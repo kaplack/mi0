@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
-const db = require('./db');
+const prisma = require('./prisma');
 const { bucket, checkS3Connection } = require('./s3');
 
 const app = express();
@@ -18,12 +18,13 @@ app.get('/api/health', (req, res) => {
 
 app.get('/api/db-health', async (req, res) => {
   try {
-    const result = await db.query('SELECT NOW() AS now');
+    const result = await prisma.$queryRaw`SELECT NOW() AS now`;
 
     res.status(200).json({
       ok: true,
       database: 'connected',
-      time: result.rows[0].now,
+      orm: 'prisma',
+      time: result[0].now,
     });
   } catch (error) {
     console.error('Database connection error:', error.message);
