@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const db = require('./db');
+const { bucket, checkS3Connection } = require('./s3');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,6 +31,25 @@ app.get('/api/db-health', async (req, res) => {
     res.status(500).json({
       ok: false,
       database: 'error',
+    });
+  }
+});
+
+app.get('/api/s3-health', async (req, res) => {
+  try {
+    await checkS3Connection();
+
+    res.status(200).json({
+      ok: true,
+      storage: 'connected',
+      bucket,
+    });
+  } catch (error) {
+    console.error('S3 connection error:', error.message);
+
+    res.status(500).json({
+      ok: false,
+      storage: 'error',
     });
   }
 });
