@@ -39,6 +39,9 @@ model User {
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
   sessions     Session[]
+  raffles      Raffle[]
+  publicationRequests RafflePublication[] @relation("PublicationRequester")
+  publicationReviews RafflePublication[] @relation("PublicationReviewer")
   memberships Membership[]
 
   @@map("users")
@@ -68,6 +71,7 @@ model Workspace {
   updatedAt   DateTime        @updatedAt @map("updated_at")
   memberships Membership[]
   modules     WorkspaceModule[]
+  raffles     Raffle[]
 
   @@map("workspaces")
 }
@@ -110,4 +114,98 @@ model WorkspaceModule {
   @@id([workspaceId, moduleId])
   @@index([moduleId])
   @@map("workspace_modules")
+}
+
+enum RaffleStatus {
+  DRAFT
+  COMPLETED
+}
+
+enum RafflePublicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Raffle {
+  id            String       @id @default(uuid()) @db.Uuid
+  workspaceId   String       @map("workspace_id") @db.Uuid
+  createdById   String       @map("created_by_id") @db.Uuid
+  name          String       @db.VarChar(120)
+  status        RaffleStatus @default(DRAFT)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  drawnAt       DateTime?    @map("drawn_at")
+  publicCode    String?      @unique @map("public_code") @db.VarChar(32)
+  publishedAt   DateTime?    @map("published_at")
+  workspace     Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy     User         @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  participants  RaffleParticipant[]
+  prizes        RafflePrize[]
+  results       RaffleResult[]
+  publications  RafflePublication[]
+
+  @@index([workspaceId, createdAt])
+  @@map("raffles")
+}
+
+model RaffleParticipant {
+  id        String @id @default(uuid()) @db.Uuid
+  raffleId  String @map("raffle_id") @db.Uuid
+  name      String @db.VarChar(120)
+  order     Int
+  raffle    Raffle @relation(fields: [raffleId], references: [id], onDelete: Cascade)
+  results   RaffleResult[]
+
+  @@unique([raffleId, id])
+  @@unique([raffleId, order])
+  @@map("raffle_participants")
+}
+
+model RafflePrize {
+  id        String @id @default(uuid()) @db.Uuid
+  raffleId  String @map("raffle_id") @db.Uuid
+  name      String @db.VarChar(120)
+  order     Int
+  raffle    Raffle @relation(fields: [raffleId], references: [id], onDelete: Cascade)
+  results   RaffleResult[]
+
+  @@unique([raffleId, id])
+  @@unique([raffleId, order])
+  @@map("raffle_prizes")
+}
+
+model RaffleResult {
+  id            String @id @default(uuid()) @db.Uuid
+  raffleId      String @map("raffle_id") @db.Uuid
+  prizeId       String @map("prize_id") @db.Uuid
+  participantId String @map("participant_id") @db.Uuid
+  drawnAt       DateTime @map("drawn_at")
+  raffle        Raffle @relation(fields: [raffleId], references: [id], onDelete: Cascade)
+  prize         RafflePrize @relation(fields: [raffleId, prizeId], references: [raffleId, id], onDelete: Restrict)
+  participant   RaffleParticipant @relation(fields: [raffleId, participantId], references: [raffleId, id], onDelete: Restrict)
+
+  @@unique([raffleId, prizeId])
+  @@unique([raffleId, participantId])
+  @@map("raffle_results")
+}
+
+model RafflePublication {
+  id              String @id @default(uuid()) @db.Uuid
+  raffleId        String @map("raffle_id") @db.Uuid
+  requestedById   String @map("requested_by_id") @db.Uuid
+  reviewedById    String? @map("reviewed_by_id") @db.Uuid
+  reference       String @unique @db.VarChar(40)
+  amountCents     Int @default(490) @map("amount_cents")
+  status          RafflePublicationStatus @default(PENDING)
+  requestedAt     DateTime @default(now()) @map("requested_at")
+  reviewedAt      DateTime? @map("reviewed_at")
+  rejectionReason String? @map("rejection_reason") @db.VarChar(300)
+  raffle          Raffle @relation(fields: [raffleId], references: [id], onDelete: Cascade)
+  requestedBy     User @relation("PublicationRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  reviewedBy      User? @relation("PublicationReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+
+  @@index([status, requestedAt])
+  @@index([raffleId, requestedAt])
+  @@map("raffle_publications")
 }

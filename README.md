@@ -4,7 +4,7 @@
 
 mi0.app es una plataforma de microapps sencillas para personas, negocios y organizaciones. Cada herramienta resuelve una tarea concreta y puede usarse de forma independiente, sin aprender un sistema grande.
 
-**Sorteos es la primera herramienta de mi0.** Está implementada en la web como una utilidad gratuita que se usa sin registro. La prioridad actual es validar esa experiencia antes de ampliar el catálogo.
+**Sorteos es la primera herramienta de mi0.** Está implementada en la web como una utilidad gratuita que se usa sin registro. Sorteos Avanzado amplía esa experiencia con resultados guardados y varios premios. Ambas herramientas están disponibles; la prioridad es validar su uso real.
 
 ## Primera microapp: Sorteos
 
@@ -17,6 +17,12 @@ El usuario puede:
 
 El sorteo se ejecuta en el navegador. Actualmente no guarda participantes ni resultados en la base de datos y no tiene historial. Cada entrada cuenta como una participación; los nombres repetidos no se eliminan automáticamente.
 
+## Sorteos Avanzado
+
+Gratis con cuenta: guarda sorteos por espacio, admite varios premios y conserva ganadores elegidos por el servidor. Publicar y compartir los resultados cuesta **S/4.90 por sorteo**, mediante Yape y aprobación manual de superadmin. Sorteos Simple conserva su funcionamiento sin registro.
+
+Consulta [la guía de Sorteos Avanzado](docs/SORTEOS_AVANZADO.md) para reglas, configuración, API, migración y pruebas. En producción deben aplicarse la migración y las variables YAPE_PHONE/YAPE_NAME antes de habilitar el servicio.
+
 ## Plataforma y espacios
 
 La web combina herramientas de acceso directo con una base para gestionar microapps mediante cuentas y espacios de trabajo.
@@ -28,7 +34,7 @@ La web combina herramientas de acceso directo con una base para gestionar microa
 - Listado de espacios y módulos activos del usuario.
 - Panel de superadmin con resumen y consultas de usuarios, organizaciones y módulos.
 
-El catálogo público es estático y muestra únicamente Sorteos. Las herramientas sin implementar se conservan como ideas futuras fuera del home. La activación de módulos existe en la API, pero el flujo para agregarlos y abrirlos desde el panel del usuario todavía está incompleto.
+El catálogo público es estático y muestra Sorteos y Sorteos Avanzado. Las herramientas sin implementar se conservan como ideas futuras fuera del home. Sorteos Avanzado está disponible desde el home con cuenta y desde el espacio elegido en Mi0. La activación de otros módulos sigue siendo una función de la API.
 
 ## Estado actual
 
@@ -37,9 +43,9 @@ El catálogo público es estático y muestra únicamente Sorteos. Las herramient
 | Catálogo y filtros | Implementados |
 | Sorteos | Implementado; pendiente de validación de uso y revisión visual |
 | Autenticación y sesiones | Implementadas; pendiente de comprobación integral con PostgreSQL |
-| Core de espacios y membresías | Implementado; pendiente de reforzar autorización al activar módulos |
-| Panel del usuario | Lista espacios y módulos; apertura de microapps pendiente |
-| Superadmin | Consultas implementadas; pendientes de concurrencia y lint |
+| Core de espacios y membresías | Implementado; activación restringida a OWNER/ADMIN en espacios activos |
+| Panel del usuario | Lista espacios y permite abrir Sorteos Avanzado |
+| Superadmin | Consultas y aprobación/rechazo de publicaciones; concurrencia y lint corregidos |
 | PWA | Pendiente; la portada la anuncia, pero aún no existe implementación |
 | Despliegue y servicios externos | No verificados en la revisión local |
 
@@ -53,7 +59,7 @@ El catálogo público es estático y muestra únicamente Sorteos. Las herramient
 | superadmin/ | Panel de administración de la plataforma | React + Vite |
 | docs/ | Documentación complementaria | Markdown |
 
-La API incluye integración y comprobación de conexión S3. La revisión no confirmó carga de archivos ni conectividad real con PostgreSQL/S3.
+La API incluye integración y comprobación de conexión S3. PostgreSQL local está conectado y migrado. S3 queda pendiente; las dos microapps de sorteos no necesitan almacenamiento de archivos.
 
 ## Desarrollo local
 
@@ -97,7 +103,7 @@ npm run lint --prefix superadmin
 npm run build --prefix superadmin
 ```
 
-En la revisión del 7 de octubre de 2026, ambas compilaciones y el lint de la web pasaron. El lint de superadmin reportó dos errores de `react-hooks/set-state-in-effect`. No se encontraron pruebas automatizadas propias del proyecto.
+Ambos frontends pasan lint y compilación. Sorteos Avanzado incluye seis pruebas HTTP de integración con PostgreSQL aislado y verificación del recorrido completo en navegador, escritorio y móvil.
 
 ## Dirección del producto
 

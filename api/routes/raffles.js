@@ -1,0 +1,21 @@
+const express = require('express');
+const { requireAuth } = require('../middleware/auth');
+const { requireSuperadmin } = require('../middleware/superadmin');
+const service = require('../raffles/service');
+const { publicationConfig } = require('../raffles/config');
+const router = express.Router();
+router.get('/public/:code', async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({ ok: true, raffle: await service.publicResults(req.params.code) });
+});
+router.use(requireAuth);
+router.get('/config', (req, res) => res.json({ ok: true, publication: publicationConfig() }));
+router.get('/publications/pending', requireSuperadmin, async (req, res) => res.json({ ok: true, publications: await service.pendingPublications() }));
+router.post('/publications/:id/review', requireSuperadmin, async (req, res) => res.json({ ok: true, publication: await service.review(req.auth.user, req.params.id, req.body?.action, req.body?.reason) }));
+router.get('/', async (req, res) => res.json({ ok: true, raffles: await service.list(req.auth.user.id, req.query.workspaceId) }));
+router.post('/', async (req, res) => res.status(201).json({ ok: true, raffle: await service.save(req.auth.user.id, req.body) }));
+router.get('/:id', async (req, res) => res.json({ ok: true, raffle: await service.get(req.auth.user.id, req.params.id) }));
+router.put('/:id', async (req, res) => res.json({ ok: true, raffle: await service.save(req.auth.user.id, req.body, req.params.id) }));
+router.post('/:id/draw', async (req, res) => res.json({ ok: true, raffle: await service.draw(req.auth.user.id, req.params.id) }));
+router.post('/:id/publication', async (req, res) => res.status(201).json({ ok: true, raffle: await service.requestPublication(req.auth.user.id, req.params.id, req.body?.reference) }));
+module.exports = router;

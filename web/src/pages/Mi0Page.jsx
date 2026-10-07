@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../services/api'
 
-export function Mi0Page({ user, onLogout, onExplore }) {
+export function Mi0Page({ user, onLogout, onExplore, onOpenMicroapp, openAdvancedRequested }) {
   const [workspaces, setWorkspaces] = useState([])
   const [activeId, setActiveId] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -9,16 +9,20 @@ export function Mi0Page({ user, onLogout, onExplore }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
-    api('/workspaces')
+    const controller = new AbortController()
+    api('/workspaces', { signal: controller.signal })
       .then((data) => {
         setWorkspaces(data.workspaces || [])
         setActiveId(data.workspaces?.[0]?.id || null)
+        if (openAdvancedRequested && data.workspaces?.[0]) onOpenMicroapp('sorteos-avanzado', data.workspaces[0])
       })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [])
+      .catch((err) => { if (!controller.signal.aborted) setError(err.message) })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    return () => controller.abort()
+  }, [onOpenMicroapp, openAdvancedRequested])
 
   const activeWorkspace = workspaces.find((workspace) => workspace.id === activeId) || workspaces[0]
+  const otherModules = activeWorkspace?.modules?.filter(module => module.code !== 'sorteos-avanzado') || []
 
   return (
     <div className="console-shell">
@@ -61,6 +65,8 @@ export function Mi0Page({ user, onLogout, onExplore }) {
             <p className="console-status">Cargando tu espacio…</p>
           ) : error ? (
             <div className="console-empty"><h2>No pudimos cargar tu espacio</h2><p>{error}</p></div>
+          ) : !activeWorkspace ? (
+            <div className="console-empty"><h2>No tienes espacios activos</h2><p>Tu cuenta necesita un espacio activo para usar Sorteos Avanzado.</p></div>
           ) : (
             <>
               <div className="console-welcome">
@@ -74,22 +80,19 @@ export function Mi0Page({ user, onLogout, onExplore }) {
                 <button type="button" onClick={onExplore}>Explorar microapps →</button>
               </div>
 
-              {activeWorkspace?.modules?.length ? (
+              {activeWorkspace && <article className="console-app-card" style={{ marginBottom: 20 }}>
+                <div>★</div><h3>Sorteos Avanzado</h3><p>Varios premios y resultados guardados. Publica y comparte por S/4.90.</p>
+                <button className="primary-button" type="button" onClick={() => onOpenMicroapp('sorteos-avanzado', activeWorkspace)}>Abrir →</button>
+              </article>}
+              {otherModules.length ? (
                 <div className="console-app-grid">
-                  {activeWorkspace.modules.map((module) => (
+                  {otherModules.map((module) => (
                     <article key={module.id} className="console-app-card">
                       <div>0_</div><h3>{module.name}</h3><p>{module.description}</p>
                     </article>
                   ))}
                 </div>
-              ) : (
-                <div className="console-empty">
-                  <div className="console-empty-icon">0_</div>
-                  <h2>Tu espacio está listo</h2>
-                  <p>Aún no has agregado microapps. Explora el catálogo y agrega solo las que necesites.</p>
-                  <button type="button" onClick={onExplore}>Explorar microapps</button>
-                </div>
-              )}
+              ) : null}
             </>
           )}
         </section>

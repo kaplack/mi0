@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { Publications } from './Publications'
 import './App.css'
 
 const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
@@ -22,20 +23,18 @@ async function api(path, options = {}) {
 
 function App() {
   const [user, setUser] = useState(null)
-  const [checking, setChecking] = useState(true)
+  const [checking, setChecking] = useState(() => Boolean(localStorage.getItem(TOKEN_KEY)))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [summary, setSummary] = useState(null)
   const [section, setSection] = useState(null)
   const [items, setItems] = useState([])
   const [dataLoading, setDataLoading] = useState(false)
+  const requestId = useRef(0)
 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
-    if (!token) {
-      setChecking(false)
-      return
-    }
+    if (!token) return
 
     api('/auth/me')
       .then(({ user }) => {
@@ -76,33 +75,28 @@ function App() {
     }
   }
 
-  async function loadDashboard() {
-    try {
-      const data = await api('/admin/summary')
-      setSummary(data.summary)
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
   async function openSection(nextSection) {
+    const currentRequest = ++requestId.current
+    setItems([])
     setSection(nextSection)
     setDataLoading(true)
     setError('')
 
     try {
       const data = await api(`/admin/${nextSection}`)
-      setItems(data[nextSection] || [])
+      if (requestId.current === currentRequest) setItems(data[nextSection] || [])
     } catch (err) {
-      setError(err.message)
-      setItems([])
+      if (requestId.current === currentRequest) { setError(err.message); setItems([]) }
     } finally {
-      setDataLoading(false)
+      if (requestId.current === currentRequest) setDataLoading(false)
     }
   }
 
   useEffect(() => {
-    if (user?.role === 'SUPERADMIN') loadDashboard()
+    if (user?.role !== 'SUPERADMIN') return
+    const controller = new AbortController()
+    api('/admin/summary', { signal: controller.signal }).then(data => setSummary(data.summary)).catch(err => { if (!controller.signal.aborted) setError(err.message) })
+    return () => controller.abort()
   }, [user])
 
   async function handleLogout() {
@@ -113,7 +107,8 @@ function App() {
     }
 
     localStorage.removeItem(TOKEN_KEY)
-    setUser(null)
+    requestId.current += 1
+    setUser(null); setSummary(null); setSection(null); setItems([]); setError(''); setDataLoading(false)
   }
 
   if (checking) {
@@ -152,11 +147,12 @@ function App() {
 
           {error && <p className="error" role="alert">{error}</p>}
 
+          <Publications api={api} />
           {section && (
             <section className="data-panel">
               <div className="panel-heading">
                 <h2>{cards.find((card) => card.key === section)?.label}</h2>
-                <button className="text-button" type="button" onClick={() => setSection(null)}>Cerrar</button>
+                <button className="text-button" type="button" onClick={() => { requestId.current += 1; setSection(null) }}>Cerrar</button>
               </div>
 
               {dataLoading ? <p>Cargando…</p> : (

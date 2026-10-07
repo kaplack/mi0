@@ -1,6 +1,7 @@
 const express = require('express');
 const prisma = require('../prisma');
 const { requireAuth } = require('../middleware/auth');
+const { access } = require('../raffles/service');
 
 const router = express.Router();
 
@@ -49,18 +50,7 @@ router.get('/', async (req, res, next) => {
 
 router.post('/:workspaceId/modules/:moduleCode', async (req, res, next) => {
   try {
-    const membership = await prisma.membership.findUnique({
-      where: {
-        userId_workspaceId: {
-          userId: req.auth.user.id,
-          workspaceId: req.params.workspaceId,
-        },
-      },
-    });
-
-    if (!membership) {
-      return res.status(404).json({ ok: false, message: 'Espacio no encontrado' });
-    }
+    await access(prisma, req.auth.user.id, req.params.workspaceId, true);
 
     const module = await prisma.module.findUnique({
       where: { code: req.params.moduleCode },

@@ -1,7 +1,7 @@
 # mi0.app · Backlog
 
 **Actualizado:** 7 de octubre de 2026
-**Fase actual:** Consolidación de Sorteos y del Core existente.
+**Fase actual:** Sorteos Simple y Sorteos Avanzado implementados; validación de uso y preparación de producción.
 
 ## Objetivo actual
 
@@ -20,9 +20,9 @@ La prioridad fue confirmada por el usuario el 7 de octubre de 2026. Matrículas 
 | PostgreSQL | Esquema y migraciones presentes | Conexión real y migraciones aplicadas no verificadas |
 | Autenticación | Implementada | Contraseñas con scrypt, tokens de sesión almacenados como hash y revocación |
 | Espacios y membresías | Implementados | PERSONAL/ORGANIZATION; OWNER/ADMIN/MEMBER; espacio personal automático al registrarse |
-| Activación de módulos | API implementada | Falta comprobar estado del espacio y autorización según rol |
-| Panel del usuario | Parcial | Lista espacios y módulos; tarjetas sin acción de apertura |
-| Superadmin | Parcial | Resumen/listados; respuestas concurrentes y dos errores de lint pendientes |
+| Activación de módulos | API implementada | OWNER/ADMIN y espacio activo comprobados en servidor y pruebas |
+| Panel del usuario | Parcial | Lista espacios y módulos; permite abrir Sorteos Avanzado |
+| Superadmin | Parcial | Resumen/listados y revisión de pagos implementados; concurrencia/lint corregidos |
 | S3 | Integración presente | Conectividad y flujo de archivos no verificados |
 | PWA | Pendiente | Portada anuncia instalación; no se encontró manifest ni service worker |
 | Otras microapps | Pendientes | Ocultas del home; conservadas como ideas futuras |
@@ -30,20 +30,20 @@ La prioridad fue confirmada por el usuario el 7 de octubre de 2026. Matrículas 
 
 ## P0 · Corregir autorización de módulos
 
-**Próxima tarea técnica:** endurecer `POST /api/workspaces/:workspaceId/modules/:moduleCode`.
+**Tarea completada:** endurecer `POST /api/workspaces/:workspaceId/modules/:moduleCode`.
 
-- [ ] Rechazar activaciones en espacios INACTIVE.
-- [ ] Definir y aplicar qué roles pueden activar módulos; propuesta pendiente de confirmar: OWNER y ADMIN.
-- [ ] Mantener el rechazo de usuarios sin membresía y de módulos inactivos.
-- [ ] Verificar permisos con usuarios de dos espacios y con los roles permitidos/restringidos.
+- [x] Rechazar activaciones en espacios INACTIVE.
+- [x] Restringir la activación a OWNER y ADMIN.
+- [x] Mantener el rechazo de usuarios sin membresía y de módulos inactivos.
+- [x] Verificar permisos con usuarios de dos espacios y con los roles permitidos/restringidos.
 
 **Criterio de aceptación:** un usuario sin permiso o un espacio inactivo no produce cambios en los módulos del espacio.
 
 ## P0 · Estabilizar superadmin
 
-- [ ] Evitar que una respuesta anterior sobrescriba los datos de una sección elegida después.
-- [ ] Limpiar el estado del panel al cerrar sesión.
-- [ ] Corregir los dos errores de `react-hooks/set-state-in-effect`.
+- [x] Evitar que una respuesta anterior sobrescriba los datos de una sección elegida después.
+- [x] Limpiar el estado del panel al cerrar sesión.
+- [x] Corregir los dos errores de `react-hooks/set-state-in-effect`.
 - [ ] Verificar cambios rápidos entre Usuarios, Negocios y Microapps, incluyendo errores de red.
 
 **Criterio de aceptación:** cada sección muestra únicamente sus datos, el panel no conserva datos de una sesión anterior y lint/build pasan.
@@ -62,7 +62,7 @@ La prioridad fue confirmada por el usuario el 7 de octubre de 2026. Matrículas 
 
 Estos puntos se confirmaron por lectura del código; la prueba interactiva sigue pendiente.
 
-- [x] Mostrar únicamente Sorteos en el home y sus referencias visuales; categorías derivadas del catálogo disponible.
+- [x] Mostrar únicamente herramientas implementadas en el home: Sorteos y Sorteos Avanzado; categorías derivadas del catálogo disponible.
 
 ### Validación pendiente
 
@@ -104,7 +104,8 @@ Sorteos continúa siendo la primera herramienta gratuita. Las hipótesis previas
 
 | Herramienta | Situación |
 |---|---|
-| Sorteos | Primera herramienta implementada |
+| Sorteos | Primera herramienta implementada; gratis y sin cuenta |
+| Sorteos Avanzado | Implementado; resultados guardados y publicación por S/4.90 |
 | Generador QR | Idea futura; fuera del home |
 | Conversor de unidades | Idea futura; fuera del home |
 | Notas rápidas | Idea futura; fuera del home |
@@ -128,7 +129,7 @@ Si se retoma, reutilizar la demo y diseñar el aislamiento por espacio. Las enti
 - No automatizar pagos ni suscripciones antes de definir el modelo comercial.
 - No reconstruir Vincu ni ampliar el Core sin una herramienta que lo necesite.
 
-## Evidencia de revisión · 7 de octubre de 2026
+## Evidencia histórica de la revisión inicial · 7 de octubre de 2026
 
 | Comprobación | Resultado |
 |---|---|
@@ -140,4 +141,20 @@ Si se retoma, reutilizar la demo y diseñar el aislamiento por espacio. Las enti
 | PostgreSQL/S3 y producción | No comprobados |
 | Prueba visual/interactiva | Pendiente |
 
-La revisión identificó los pendientes por lectura de código y comprobaciones locales. No se aplicaron correcciones funcionales. Esta actualización modifica únicamente README y backlog para reflejar la prioridad confirmada.
+Esta tabla conserva la evidencia inicial; los resultados posteriores están registrados en el bloque de Sorteos Avanzado.
+
+## Sorteos Avanzado · implementado y verificado, 7 de octubre de 2026
+
+- API y modelos de sorteos persistentes, participantes, premios, resultados y solicitudes de publicación implementados.
+- Resultado calculado en servidor con crypto.randomInt; bloqueo de fila y transacción evitan repetir sorteos y modificar ganadores.
+- Permisos: miembros consultan; OWNER/ADMIN crean, editan borradores, sortean y solicitan publicación; SUPERADMIN aprueba/rechaza pagos.
+- Publicación independiente del estado del sorteo: S/4.90 por Yape, referencia única y aprobación manual. Configuración en YAPE_PHONE/YAPE_NAME; sin comprobantes ni S3.
+- Interfaz privada, animación por premio y página pública /s/:code implementadas. Sorteos Simple conserva su funcionamiento.
+- Seis pruebas HTTP con PostgreSQL en esquema temporal aislado: correctas. Incluyen migraciones desde cero, concurrencia, permisos, pagos, privacidad y claves foráneas.
+- Lint y compilación de web/superadmin: correctos. Recorrido completo en navegador, escritorio y móvil verificado sin errores ni desbordamientos; cuentas y sorteos temporales eliminados. Guía en docs/SORTEOS_AVANZADO.md.
+- La migración 202610070003_advanced_raffles se aplica únicamente en mi0 local; Neon no se modifica.
+### Próximos pasos
+
+- [ ] Aplicar la migración en producción y configurar YAPE_PHONE/YAPE_NAME en el entorno de la API cuando se autorice; Neon no se modificó en esta tarea.
+- [ ] Validar Sorteos Avanzado con usuarios reales y la publicación por S/4.90.
+- [ ] Definir la frecuencia de verificación manual de pagos.

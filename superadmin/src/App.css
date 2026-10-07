@@ -138,3 +138,9 @@ button:disabled { opacity: .6; cursor: wait; }
   .metric-card { min-height: 105px; }
   .list-row { align-items: flex-start; flex-direction: column; gap: 6px; }
 }
+
+.publication-row { padding: 20px 0; border-top: 1px solid #e5e7eb; overflow-wrap: anywhere; }
+.publication-row p { font-size: 14px; line-height: 1.6; }
+.publication-actions { display: grid; gap: 14px; max-width: 540px; }
+.publication-actions .secondary { margin: 0; }
+.publication-actions button:focus-visible { outline: 3px solid #6c5ce7; outline-offset: 3px; }
