@@ -1,4 +1,5 @@
 export const tools = [
+  { code: 'sorteos', icon: '★', title: 'Sorteos', description: 'Elige un ganador al azar de forma rápida y gratis.', category: 'Utilidades', tone: 'mint', available: true },
   { code: 'qr-generator', icon: '▦', title: 'Generador QR', description: 'Crea códigos QR en segundos. Texto, URLs, WiFi y más.', category: 'Utilidades', tone: 'mint' },
   { code: 'unit-converter', icon: '⇄', title: 'Conversor de unidades', description: 'Convierte unidades de forma fácil y rápida.', category: 'Productividad', tone: 'blue' },
   { code: 'quick-notes', icon: '▤', title: 'Notas rápidas', description: 'Captura y organiza tus ideas al instante.', category: 'Productividad', tone: 'coral' },
