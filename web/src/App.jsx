@@ -71,6 +71,19 @@ function App() {
           <a className="active" href="#herramientas">Herramientas</a>
           <a href="#como-funciona">Cómo funciona</a>
           <a href="#acerca">Acerca de</a>
+          <div className="mobile-auth-actions">
+            {user ? (
+              <>
+                <span>Hola, {user.name}</span>
+                <button type="button" onClick={() => { logout(); setMenuOpen(false) }}>Salir</button>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={() => { setAuthMode('login'); setMenuOpen(false) }}>Iniciar sesión</button>
+                <button className="mobile-create-account" type="button" onClick={() => { setAuthMode('register'); setMenuOpen(false) }}>Crear cuenta</button>
+              </>
+            )}
+          </div>
         </nav>
         <div className="header-actions">
           {user ? (
