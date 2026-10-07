@@ -2,7 +2,7 @@
   "name": "mi0",
   "private": true,
   "scripts": {
-    "dev": "concurrently -n web,api \"npm run dev --prefix web\" \"npm run dev --prefix api\"",
+    "dev": "concurrently -n web,api,superadmin \"npm run dev --prefix web\" \"npm run dev --prefix api\" \"npm run dev --prefix superadmin\"",
     "dev:web": "npm run dev --prefix web",
     "dev:api": "npm run dev --prefix api",
     "dev:admin": "npm run dev --prefix superadmin"

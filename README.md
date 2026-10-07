@@ -74,13 +74,13 @@ Con una base de datos de desarrollo configurada, aplicar las migraciones existen
 npm run db:migrate:deploy --prefix api
 ```
 
-Iniciar la web y la API:
+Iniciar la web, la API y el panel de superadmin juntos:
 
 ```powershell
 npm run dev
 ```
 
-Iniciar el panel de superadmin en otra terminal:
+Para iniciar únicamente el panel de superadmin:
 
 ```powershell
 npm run dev:admin
