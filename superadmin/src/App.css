@@ -106,3 +106,35 @@ button:disabled { opacity: .6; cursor: wait; }
   .shell { padding: 16px; }
   .card { padding: 28px 22px; border-radius: 14px; }
 }
+
+
+.admin-shell { min-height: 100svh; background: #f6f7f8; color: #17191c; }
+.admin-header { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 max(24px, calc((100vw - 1100px) / 2)); background: #fff; border-bottom: 1px solid #e5e7eb; }
+.admin-header .brand { margin: 0; font-size: 26px; }
+.admin-header > div { display: flex; align-items: center; gap: 18px; }
+.admin-name { font-size: 14px; font-weight: 600; }
+.text-button { min-height: auto; padding: 0; background: transparent; color: #6b7280; font-size: 14px; }
+.dashboard { width: min(100% - 48px, 1100px); margin: 0 auto; padding: 48px 0; }
+.dashboard h1 { margin-bottom: 28px; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.metric-card { min-height: 140px; padding: 22px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; border: 1px solid #e5e7eb; background: #fff; color: #17191c; text-align: left; }
+.metric-card:hover { border-color: #c7c9cf; }
+.metric-card span { color: #6b7280; font-size: 14px; }
+.metric-card strong { font-size: 34px; letter-spacing: -1px; }
+.data-panel { margin-top: 24px; padding: 24px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; }
+.panel-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.panel-heading h2 { margin: 0; font-size: 20px; }
+.item-list { display: grid; }
+.list-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 15px 0; border-top: 1px solid #eef0f2; }
+.list-row div { display: grid; gap: 3px; }
+.list-row small, .list-row > span, .empty { color: #6b7280; font-size: 13px; }
+.empty { margin: 14px 0 0; }
+
+@media (max-width: 700px) {
+  .admin-header { padding: 0 18px; }
+  .admin-name { display: none; }
+  .dashboard { width: min(100% - 32px, 1100px); padding: 32px 0; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .metric-card { min-height: 105px; }
+  .list-row { align-items: flex-start; flex-direction: column; gap: 6px; }
+}
