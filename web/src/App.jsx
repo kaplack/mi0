@@ -82,7 +82,7 @@ function App() {
           <div className="mobile-auth-actions">
             {user ? (
               <>
-                <span>Hola, {user.name}</span>
+                <button type="button" onClick={() => { setConsoleOpen(true); setMenuOpen(false) }}>Mi0</button>
                 <button type="button" onClick={() => { logout(); setMenuOpen(false) }}>Salir</button>
               </>
             ) : (
