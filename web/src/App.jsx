@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
-import { AuthView, TOKEN_KEY, authApi } from './AuthView'
-import { ConsoleView } from './ConsoleView'
+import { AuthPage } from './pages/AuthPage'\nimport { api, TOKEN_KEY } from './services/api'
+import { Mi0Page } from './pages/Mi0Page'
 
 const tools = [
   { code: 'qr-generator', icon: '▦', title: 'Generador QR', description: 'Crea códigos QR en segundos. Texto, URLs, WiFi y más.', category: 'Utilidades', tone: 'mint' },
@@ -28,10 +28,10 @@ function ToolCard({ tool, user, onAdded }) {
     if (!user) return
     setAdding(true)
     try {
-      const data = await authApi('/workspaces')
+      const data = await api('/workspaces')
       const workspace = data.workspaces?.find((item) => item.type === 'PERSONAL') || data.workspaces?.[0]
       if (!workspace) throw new Error('No encontramos tu espacio')
-      await authApi('/workspaces/' + workspace.id + '/modules/' + tool.code, { method: 'POST' })
+      await api('/workspaces/' + workspace.id + '/modules/' + tool.code, { method: 'POST' })
       setAdded(true)
       onAdded?.()
     } catch (error) {
@@ -70,14 +70,14 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
     if (token) {
-      authApi('/auth/me')
+      api('/auth/me')
         .then((data) => { setUser(data.user); setConsoleOpen(true) })
         .catch(() => localStorage.removeItem(TOKEN_KEY))
     }
   }, [])
 
   async function logout() {
-    try { await authApi('/auth/logout', { method: 'POST' }) } catch {}
+    try { await api('/auth/logout', { method: 'POST' }) } catch {}
     localStorage.removeItem(TOKEN_KEY)
     setUser(null)
     setConsoleOpen(false)
@@ -90,11 +90,11 @@ function App() {
   }), [query, category])
 
   if (authMode) {
-    return <AuthView mode={authMode} onModeChange={setAuthMode} onAuthenticated={(nextUser) => { setUser(nextUser); setConsoleOpen(true); setAuthMode(null) }} onClose={() => setAuthMode(null)} />
+    return <AuthPage mode={authMode} onModeChange={setAuthMode} onAuthenticated={(nextUser) => { setUser(nextUser); setConsoleOpen(true); setAuthMode(null) }} onClose={() => setAuthMode(null)} />
   }
 
   if (user && consoleOpen) {
-    return <ConsoleView key={consoleRefresh} user={user} onLogout={logout} onExplore={() => setConsoleOpen(false)} />
+    return <Mi0Page key={consoleRefresh} user={user} onLogout={logout} onExplore={() => setConsoleOpen(false)} />
   }
 
   return (
