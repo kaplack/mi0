@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { AuthView, TOKEN_KEY, authApi } from './AuthView'
+import { ConsoleView } from './ConsoleView'
 
 const tools = [
   { icon: '▦', title: 'Generador QR', description: 'Crea códigos QR en segundos. Texto, URLs, WiFi y más.', category: 'Utilidades', tone: 'mint' },
@@ -39,14 +40,14 @@ function App() {
   const [authMode, setAuthMode] = useState(null)
   const [user, setUser] = useState(null)
 
-  useState(() => {
+  useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
     if (token) {
       authApi('/auth/me')
         .then((data) => setUser(data.user))
         .catch(() => localStorage.removeItem(TOKEN_KEY))
     }
-  })
+  }, [])
 
   async function logout() {
     try { await authApi('/auth/logout', { method: 'POST' }) } catch {}
@@ -62,6 +63,10 @@ function App() {
 
   if (authMode) {
     return <AuthView mode={authMode} onModeChange={setAuthMode} onAuthenticated={(nextUser) => { setUser(nextUser); setAuthMode(null) }} onClose={() => setAuthMode(null)} />
+  }
+
+  if (user) {
+    return <ConsoleView user={user} onLogout={logout} onExplore={() => setUser(null)} />
   }
 
   return (
