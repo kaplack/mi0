@@ -39,12 +39,13 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [authMode, setAuthMode] = useState(null)
   const [user, setUser] = useState(null)
+  const [consoleOpen, setConsoleOpen] = useState(true)
 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
     if (token) {
       authApi('/auth/me')
-        .then((data) => setUser(data.user))
+        .then((data) => { setUser(data.user); setConsoleOpen(true) })
         .catch(() => localStorage.removeItem(TOKEN_KEY))
     }
   }, [])
@@ -53,6 +54,7 @@ function App() {
     try { await authApi('/auth/logout', { method: 'POST' }) } catch {}
     localStorage.removeItem(TOKEN_KEY)
     setUser(null)
+    setConsoleOpen(false)
   }
 
   const filtered = useMemo(() => tools.filter((tool) => {
@@ -62,11 +64,11 @@ function App() {
   }), [query, category])
 
   if (authMode) {
-    return <AuthView mode={authMode} onModeChange={setAuthMode} onAuthenticated={(nextUser) => { setUser(nextUser); setAuthMode(null) }} onClose={() => setAuthMode(null)} />
+    return <AuthView mode={authMode} onModeChange={setAuthMode} onAuthenticated={(nextUser) => { setUser(nextUser); setConsoleOpen(true); setAuthMode(null) }} onClose={() => setAuthMode(null)} />
   }
 
-  if (user) {
-    return <ConsoleView user={user} onLogout={logout} onExplore={() => setUser(null)} />
+  if (user && consoleOpen) {
+    return <ConsoleView user={user} onLogout={logout} onExplore={() => setConsoleOpen(false)} />
   }
 
   return (
@@ -94,7 +96,7 @@ function App() {
         <div className="header-actions">
           {user ? (
             <>
-              <span className="user-greeting">Hola, {user.name}</span>
+              <button className="secondary-button" onClick={() => setConsoleOpen(true)}>Mi0</button>
               <button className="secondary-button" onClick={logout}>Salir</button>
             </>
           ) : (
