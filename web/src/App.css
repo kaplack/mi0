@@ -253,3 +253,7 @@ footer .logo { font-size: 22px; } footer span { margin-left: auto; }
 .tool-add-button:hover { border-color: var(--primary); background: #f2fffb; color: #087f62; }
 .tool-add-button.added { border-color: #b7f3df; background: #e9fff8; color: #087f62; cursor: default; }
 .tool-add-button:disabled { opacity: .75; }
+
+
+.tool-open-button { position: absolute; right: 12px; bottom: 12px; min-height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: #172033; color: #fff; font-size: 11px; font-weight: 700; }
+.tool-coming-soon { position: absolute; right: 12px; bottom: 16px; color: var(--text-secondary); font-size: 10px; font-weight: 600; }
