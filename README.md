@@ -1,297 +1,122 @@
 # mi0.app
 
-> **Microherramientas simples, modulares y listas para usar.**
+> **Pequeñas herramientas para grandes ideas.**
 
-mi0.app es una plataforma de pequeñas herramientas digitales para negocios y organizaciones. Cada herramienta resuelve una tarea concreta sin obligar al cliente a aprender o administrar un sistema grande.
+mi0.app es una plataforma de microapps sencillas para personas, negocios y organizaciones. Cada herramienta resuelve una tarea concreta y puede usarse de forma independiente, sin aprender un sistema grande.
 
-La propuesta es simple:
+**Sorteos es la primera herramienta de mi0.** Está implementada en la web como una utilidad gratuita que se usa sin registro. La prioridad actual es validar esa experiencia antes de ampliar el catálogo.
 
-> **Activa solamente la herramienta que necesitas y empieza a usarla.**
+## Primera microapp: Sorteos
 
-El cliente no debería tener que preocuparse por hosting, servidores, bases de datos, PWA, dominios ni decisiones técnicas. mi0 entrega el resultado.
+El usuario puede:
 
----
+1. Abrir Sorteos desde el catálogo.
+2. Agregar participantes separados por líneas o comas.
+3. Sortear entre al menos dos entradas y ver una animación con el ganador.
+4. Repetir el sorteo o limpiar la lista.
 
-## Visión
+El sorteo se ejecuta en el navegador. Actualmente no guarda participantes ni resultados en la base de datos y no tiene historial. Cada entrada cuenta como una participación; los nombres repetidos no se eliminan automáticamente.
 
-Muchos negocios necesitan resolver problemas pequeños:
+## Plataforma y espacios
 
-- recibir solicitudes de matrícula;
-- gestionar citas;
-- registrar incidentes;
-- hacer seguimiento de acuerdos;
-- organizar actividades;
-- fidelizar clientes;
-- recibir solicitudes de huéspedes.
+La web combina herramientas de acceso directo con una base para gestionar microapps mediante cuentas y espacios de trabajo.
 
-Normalmente las alternativas son hojas de cálculo, WhatsApp, procesos manuales o sistemas mucho más grandes de lo necesario.
+- Registro e inicio/cierre de sesión.
+- Creación automática de un espacio personal al registrarse.
+- Modelo de espacios personales y de organizaciones.
+- Membresías con roles OWNER, ADMIN y MEMBER.
+- Listado de espacios y módulos activos del usuario.
+- Panel de superadmin con resumen y consultas de usuarios, organizaciones y módulos.
 
-mi0 busca ocupar ese espacio con **MicroApps pequeñas por diseño**.
+El catálogo público es estático. Sorteos es la única herramienta marcada como disponible; las demás aparecen como «Próximamente». La activación de módulos existe en la API, pero el flujo para agregarlos y abrirlos desde el panel del usuario todavía está incompleto.
 
-### Regla de producto
+## Estado actual
 
-> Si necesitamos un manual para que alguien entienda una herramienta, probablemente la estamos complicando demasiado.
-
----
-
-## Un negocio, varias herramientas
-
-El centro de mi0 es el **negocio u organización**, no cada aplicación.
-
-Un negocio crea su identidad una sola vez y después puede activar diferentes herramientas.
-
-Ejemplo:
-
-```text
-mi0.app/bella-studio
-├── Citas
-├── Tarjeta de Sellos
-└── Formularios
-```
-
-Las herramientas pueden compartir:
-
-- identidad del negocio;
-- logo y colores;
-- usuarios y permisos;
-- clientes/contactos;
-- archivos;
-- configuración;
-- notificaciones.
-
-Internamente, cada negocio se identifica mediante un `business_id` u `organization_id`.
-
----
-
-## MicroApps previstas
-
-### Web de Matrículas
-
-Para nidos, academias, talleres y organizaciones que reciben solicitudes de inscripción.
-
-### Web de Citas
-
-Para dentistas, podólogos, salones, barberías y otros profesionales.
-
-### Tarjeta de Sellos
-
-Fidelización digital sencilla basada en sellos y premios.
-
-### Servicios para Huéspedes
-
-Solicitudes y servicios para hoteles, hostales y alojamientos.
-
-### Acuerdos y Pendientes
-
-Seguimiento de compromisos generados en reuniones o directorios.
-
-### Calendario de Actividades
-
-Actividades, responsables, fechas y seguimiento.
-
-### Registro de Incidentes
-
-Registro, asignación, seguimiento y cierre de incidencias.
-
-### Futuras herramientas
-
-Formularios, solicitudes, reservas, catálogos, pedidos y otras necesidades que puedan resolverse mediante una MicroApp sencilla.
-
----
-
-## Las herramientas pueden integrarse
-
-Cada MicroApp debe funcionar de manera independiente, pero compartir el Core permite combinarlas.
-
-Por ejemplo:
-
-```text
-Salón
-Citas + Clientes + Tarjeta de Sellos
-
-Hotel
-Reservas + Huéspedes + Solicitudes
-
-Organización
-Acuerdos + Calendario + Incidentes
-```
-
-La intención es permitir soluciones más completas mediante piezas pequeñas, sin convertir mi0 en un sistema pesado.
-
----
-
-## Core de mi0
-
-mi0 se plantea como una plataforma **multi-tenant y modular**.
-
-No habrá una aplicación independiente para cada tipo de negocio. Existirá un Core común sobre el que se activarán módulos.
-
-### Core compartido
-
-- Negocios / organizaciones
-- Usuarios y permisos
-- Clientes / contactos
-- Branding
-- Archivos
-- Suscripciones
-- Notificaciones
-- Idiomas
-
-### Módulos
-
-- Matrículas
-- Citas
-- Sellos
-- Acuerdos
-- Calendario
-- Incidentes
-- Otros módulos futuros
-
-Los módulos activos de cada negocio determinan las funciones disponibles.
-
----
-
-## Primer experimento: Web de Matrículas
-
-mi0 no desarrollará toda la plataforma antes de validar demanda.
-
-La primera MicroApp será **Web de Matrículas**, tomando como base la demo para nidos ya desarrollada.
-
-Ejemplo:
-
-```text
-mi0.app/colores-y-sonrisas
-```
-
-Flujo inicial:
-
-1. Los padres llegan desde celular, WhatsApp, redes sociales o QR.
-2. Consultan información del nido, niveles, fotos, vacantes y otros datos configurados.
-3. Envían una solicitud de matrícula o interés.
-4. El nido administra esos contactos desde un panel sencillo.
-
-### Validación
-
-El experimento inicial consiste en contactar aproximadamente **10–20 nidos** y comprobar dos cosas:
-
-1. si realmente utilizan la herramienta;
-2. si están dispuestos a pagar por ella.
-
-El objetivo inicial no es construir muchas MicroApps. Es conseguir aprendizaje real y el **primer cliente que pague**.
-
----
-
-## Modelo comercial inicial
-
-Hipótesis inicial a validar:
-
-- **S/19.90 mensuales** por herramienta;
-- alternativa de **S/199 anuales**;
-- **14 días de prueba**, sin tarjeta.
-
-La prioridad es reducir al mínimo la fricción para probar una herramienta.
-
-### mi0.app vs alanburga.com
-
-Son propuestas distintas:
-
-**mi0.app**
-
-Herramientas listas para usar mediante suscripción.
-
-**alanburga.com**
-
-Desarrollo personalizado y webs completas, actualmente planteadas desde aproximadamente S/800.
-
----
-
-## Fidelización y Vincu
-
-mi0 puede incluir una **Tarjeta de Sellos sencilla**:
-
-- definir cantidad de sellos;
-- definir premio;
-- registrar clientes;
-- sumar sellos.
-
-El objetivo **no es reconstruir Vincu dentro de mi0**.
-
-Vincu puede continuar como el producto especializado y más completo de fidelización, mientras mi0 ofrece únicamente la funcionalidad mínima necesaria cuando un negocio necesita algo sencillo.
-
----
-
-## Arquitectura técnica inicial
-
-Stack previsto:
-
-| Componente | Tecnología |
+| Área | Estado |
 |---|---|
-| Frontend / PWA | React |
-| API | Node.js + Express |
-| Base de datos | PostgreSQL |
-| Stack | PERN |
-| Frontend hosting | Vercel |
-| API hosting | Render |
-| PostgreSQL | Neon |
-| Archivos | BanaHosting a evaluar / S3 como alternativa |
-| Dominio | mi0.app |
+| Catálogo y filtros | Implementados |
+| Sorteos | Implementado; pendiente de validación de uso y revisión visual |
+| Autenticación y sesiones | Implementadas; pendiente de comprobación integral con PostgreSQL |
+| Core de espacios y membresías | Implementado; pendiente de reforzar autorización al activar módulos |
+| Panel del usuario | Lista espacios y módulos; apertura de microapps pendiente |
+| Superadmin | Consultas implementadas; pendientes de concurrencia y lint |
+| PWA | Pendiente; la portada la anuncia, pero aún no existe implementación |
+| Despliegue y servicios externos | No verificados en la revisión local |
 
-La arquitectura deberá favorecer módulos reutilizables y evitar duplicar funcionalidades entre MicroApps.
+## Estructura y tecnologías
 
----
+| Directorio | Función | Tecnologías |
+|---|---|---|
+| web/ | Catálogo, cuentas, panel del usuario y Sorteos | React + Vite |
+| api/ | Autenticación, espacios, módulos y consultas de administración | Node.js + Express + Prisma |
+| api/prisma/ | Esquema y migraciones | PostgreSQL |
+| superadmin/ | Panel de administración de la plataforma | React + Vite |
+| docs/ | Documentación complementaria | Markdown |
 
-## Internacionalización
+La API incluye integración y comprobación de conexión S3. La revisión no confirmó carga de archivos ni conectividad real con PostgreSQL/S3.
 
-mi0 se validará inicialmente en **Perú y en español**, pero la plataforma debería prepararse desde el inicio para español e inglés mediante internacionalización.
+## Desarrollo local
 
-Esto permitirá ampliar posteriormente tanto mi0.app como las herramientas de los negocios sin tener que rehacer la aplicación.
+Instalar dependencias desde la raíz:
 
----
-
-## Filosofía
-
-mi0 se guía por estos principios:
-
-1. **Resultado antes que tecnología.**
-2. **Cero fricción técnica para el cliente.**
-3. **Herramientas pequeñas por diseño.**
-4. **Activar solamente lo necesario.**
-5. **Compartir negocio, usuarios y clientes.**
-6. **Integrar herramientas sin crear un sistema pesado.**
-7. **Mantener un precio accesible.**
-8. **Validar antes de automatizar o ampliar.**
-9. **No duplicar sistemas grandes cuando una función sencilla sea suficiente.**
-
----
-
-## Roadmap inmediato
-
-```text
-mi0 Core
-   ↓
-Web de Matrículas
-   ↓
-Prueba con nidos reales
-   ↓
-Primer cliente que pague
-   ↓
-Aprender
-   ↓
-Siguiente MicroApp
+```powershell
+npm install
+npm install --prefix web
+npm install --prefix api
+npm install --prefix superadmin
 ```
 
-### Próximo paso
+Crear los archivos de entorno de cada aplicación usando sus respectivos `.env.example`. Configurar PostgreSQL en la API y `VITE_API_URL` en ambos frontends apuntando a la API local; Vite no tiene proxy configurado para `/api`.
 
-Construir únicamente el **Core mínimo de mi0**, convertir la demo de nidos existente en una **Web de Matrículas configurable** y probarla con negocios reales.
+Con una base de datos de desarrollo configurada, aplicar las migraciones existentes:
 
-No construir diez herramientas antes de validar la primera.
+```powershell
+npm run db:migrate:deploy --prefix api
+```
 
----
+Iniciar la web y la API:
 
-## mi0 en una frase
+```powershell
+npm run dev
+```
 
-> **mi0.app crea pequeñas herramientas digitales que resuelven una tarea concreta de un negocio, sin que el cliente tenga que preocuparse por la tecnología.**
+Iniciar el panel de superadmin en otra terminal:
 
----
+```powershell
+npm run dev:admin
+```
 
-**Estado:** definición y validación inicial · Septiembre 2026
+El script `create:superadmin` de la API permite crear una cuenta de administración; revisar sus requisitos antes de ejecutarlo.
+
+## Comprobaciones
+
+```powershell
+npm run lint --prefix web
+npm run build --prefix web
+npm run lint --prefix superadmin
+npm run build --prefix superadmin
+```
+
+En la revisión del 7 de octubre de 2026, ambas compilaciones y el lint de la web pasaron. El lint de superadmin reportó dos errores de `react-hooks/set-state-in-effect`. No se encontraron pruebas automatizadas propias del proyecto.
+
+## Dirección del producto
+
+La prioridad es consolidar Sorteos, observar uso real y elegir la siguiente microapp según necesidades comprobadas. Las herramientas pueden compartir identidad y permisos cuando lo necesiten; las utilidades públicas no requieren obligatoriamente una cuenta o un negocio.
+
+El catálogo contempla generador QR, conversor de unidades, notas rápidas, extractor de texto, calculadora de fechas, generador de contraseñas, compresor de imágenes y renombrador de archivos.
+
+Matrículas, Citas, Tarjeta de Sellos, Servicios para Huéspedes, Acuerdos, Calendario e Incidentes se conservan como ideas futuras. Matrículas dejó de ser el primer MVP; su demo previa puede servir de referencia si se retoma.
+
+Sorteos se presenta como gratuita. Las hipótesis anteriores de S/19.90 al mes, S/199 al año y 14 días de prueba quedan como referencias por validar para futuras herramientas de pago; no son un requisito del lanzamiento de Sorteos.
+
+## Principios
+
+- Resolver una tarea concreta con pocos pasos.
+- Activar y usar solamente lo necesario.
+- Compartir funciones del Core cuando aporten valor.
+- Validar una herramienta antes de construir muchas.
+- Mantener una experiencia sencilla en móvil y escritorio.
+
+Consulta [BACKLOG.md](BACKLOG.md) para conocer prioridades, criterios de aceptación y pendientes.
+
+**Actualizado:** 7 de octubre de 2026.

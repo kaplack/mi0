@@ -1,337 +1,141 @@
 # mi0.app · Backlog
 
-> Estado del proyecto y próximos pasos para convertir la demo de Matrículas en la primera MicroApp funcional de mi0.
-
-**Actualizado:** 29 de septiembre de 2026  
-**Fase actual:** Definición → MVP de Web de Matrículas
-
----
+**Actualizado:** 7 de octubre de 2026
+**Fase actual:** Consolidación de Sorteos y del Core existente.
 
 ## Objetivo actual
 
-Construir el **Core mínimo de mi0** necesario para transformar la demo existente de nidos en una **Web de Matrículas configurable, multi-tenant y funcional**, probarla con nidos reales y conseguir el primer cliente que pague.
+Validar **Sorteos como primera microapp de mi0**, gratuita y sin registro, con una experiencia sencilla desde móvil y escritorio. Consolidar la base existente de cuentas, espacios y administración sin ampliar prematuramente el catálogo.
 
-```text
-Core mínimo
-    ↓
-Web de Matrículas funcional
-    ↓
-Prueba con 10–20 nidos
-    ↓
-Primer cliente que pague
-    ↓
-Aprendizaje
-    ↓
-Siguiente MicroApp
-```
+La prioridad fue confirmada por el usuario el 7 de octubre de 2026. Matrículas pasa a ideas futuras y deja de ser el primer MVP.
 
----
+## Estado comprobado en código
 
-## Estado general
-
-| Área | Estado | Observación |
+| Área | Estado | Evidencia y límites |
 |---|---|---|
-| Concepto de mi0 | ✅ Definido | Microherramientas simples, modulares y listas para usar |
-| Modelo comercial inicial | ✅ Hipótesis definida | S/19.90/mes, S/199/año, 14 días de prueba |
-| Stack inicial | ✅ Definido | React + Node/Express + PostgreSQL (PERN) |
-| Demo visual Matrículas | ✅ Avanzada | Existe en `kaplack/demo-nido` |
-| Landing del nido | ✅ Demo lista | Colores y Sonrisas |
-| Formulario de matrícula | 🟡 Visual | Existe, pero aún no guarda datos |
-| Dashboard de matrículas | 🟡 Visual | Existe con datos ficticios |
-| Core multi-tenant | ⬜ Pendiente | Crear Business y resolución por slug |
-| API | ⬜ Pendiente | Backend real de mi0 |
-| Base de datos | ⬜ Pendiente | Esquema mínimo Core + Matrículas |
-| Configuración por negocio | ⬜ Pendiente | Reemplazar contenido hardcodeado |
-| Autenticación admin | ⬜ Pendiente | Solo la mínima necesaria para el piloto |
-| Archivos/imágenes | ⬜ Pendiente | Definir almacenamiento inicial |
-| Despliegue mi0 | ⬜ Pendiente | Vercel + Render + Neon inicialmente |
-| Piloto comercial | ⬜ Pendiente | Contactar 10–20 nidos |
+| Web React/Vite | Implementada | Catálogo, búsqueda y filtros |
+| Sorteos | Implementado | Entradas por líneas/comas, mínimo dos, animación, ganador, repetición y limpieza |
+| Datos de Sorteos | Solo navegador | No hay persistencia ni historial; nombres repetidos cuentan como entradas distintas |
+| API Express/Prisma | Implementada | Rutas de autenticación, espacios y administración |
+| PostgreSQL | Esquema y migraciones presentes | Conexión real y migraciones aplicadas no verificadas |
+| Autenticación | Implementada | Contraseñas con scrypt, tokens de sesión almacenados como hash y revocación |
+| Espacios y membresías | Implementados | PERSONAL/ORGANIZATION; OWNER/ADMIN/MEMBER; espacio personal automático al registrarse |
+| Activación de módulos | API implementada | Falta comprobar estado del espacio y autorización según rol |
+| Panel del usuario | Parcial | Lista espacios y módulos; tarjetas sin acción de apertura |
+| Superadmin | Parcial | Resumen/listados; respuestas concurrentes y dos errores de lint pendientes |
+| S3 | Integración presente | Conectividad y flujo de archivos no verificados |
+| PWA | Pendiente | Portada anuncia instalación; no se encontró manifest ni service worker |
+| Otras microapps | Pendientes | Catálogo público las muestra como «Próximamente» |
+| Producción | No verificada | No se comprobó despliegue ni servicios externos |
 
----
+## P0 · Corregir autorización de módulos
 
-# P0 · MVP Matrículas
+**Próxima tarea técnica:** endurecer `POST /api/workspaces/:workspaceId/modules/:moduleCode`.
 
-Estas tareas son necesarias para poder poner la primera MicroApp frente a un negocio real.
+- [ ] Rechazar activaciones en espacios INACTIVE.
+- [ ] Definir y aplicar qué roles pueden activar módulos; propuesta pendiente de confirmar: OWNER y ADMIN.
+- [ ] Mantener el rechazo de usuarios sin membresía y de módulos inactivos.
+- [ ] Verificar permisos con usuarios de dos espacios y con los roles permitidos/restringidos.
 
-## 1. Base del proyecto mi0
+**Criterio de aceptación:** un usuario sin permiso o un espacio inactivo no produce cambios en los módulos del espacio.
 
-- [ ] Definir estructura inicial del repositorio/monorepo.
-- [ ] Crear frontend React/Vite.
-- [ ] Crear API Node + Express.
-- [ ] Configurar PostgreSQL.
-- [ ] Configurar variables de entorno.
-- [ ] Preparar configuración de desarrollo local.
+## P0 · Estabilizar superadmin
 
-**Resultado esperado:** frontend, API y base de datos funcionando juntos en local.
+- [ ] Evitar que una respuesta anterior sobrescriba los datos de una sección elegida después.
+- [ ] Limpiar el estado del panel al cerrar sesión.
+- [ ] Corregir los dos errores de `react-hooks/set-state-in-effect`.
+- [ ] Verificar cambios rápidos entre Usuarios, Negocios y Microapps, incluyendo errores de red.
 
----
+**Criterio de aceptación:** cada sección muestra únicamente sus datos, el panel no conserva datos de una sesión anterior y lint/build pasan.
 
-## 2. Core mínimo
+## P1 · Validar Sorteos de principio a fin
 
-### Business
+### Funcionalidad existente
 
-- [ ] Crear entidad `Business`.
-- [ ] Nombre del negocio.
-- [ ] Slug público único.
-- [ ] Logo.
-- [ ] WhatsApp/teléfono.
-- [ ] Dirección.
-- [ ] Datos de contacto.
-- [ ] Branding básico.
+- [x] Abrir la herramienta desde el catálogo sin registro.
+- [x] Leer participantes separados por líneas o comas.
+- [x] Ignorar entradas vacías y exigir al menos dos entradas.
+- [x] Mostrar cuenta regresiva, animación y ganador.
+- [x] Bloquear edición y nuevos sorteos durante la animación.
+- [x] Repetir el sorteo y limpiar la lista.
+- [x] Cancelar actualizaciones pendientes al desmontar el componente.
 
-- [ ] Resolver negocio mediante slug.
-- [ ] Asociar todos los datos de Matrículas a `business_id`.
+Estos puntos se confirmaron por lectura del código; la prueba interactiva sigue pendiente.
 
-**Resultado esperado:** poder crear dos negocios diferentes y mantener sus datos separados.
+### Validación pendiente
 
----
+- [ ] Probar desde móvil y escritorio el flujo completo y el regreso al catálogo.
+- [ ] Comprobar listas largas, espacios, comas, líneas vacías y nombres repetidos.
+- [ ] Decidir cómo comunicar que los nombres repetidos cuentan como participaciones distintas.
+- [ ] Verificar teclado, foco, lectura del resultado y preferencia de movimiento reducido.
+- [ ] Confirmar con usuarios que el flujo se entiende sin explicación.
+- [ ] Registrar problemas y necesidades observadas antes de elegir la siguiente herramienta.
 
-## 3. Módulo Matrículas
+**Criterio de aceptación:** una persona puede abrir Sorteos, cargar una lista válida, obtener un ganador y repetir o limpiar desde móvil y escritorio sin errores.
 
-### EnrollmentConfig
+No añadir historial, cuentas obligatorias o persistencia de sorteos sin una necesidad validada.
 
-- [ ] Crear configuración de campaña de matrícula.
-- [ ] Nombre/año de campaña.
-- [ ] Titular y descripción.
-- [ ] Información de inicio de clases.
-- [ ] Requisitos.
-- [ ] Preguntas frecuentes.
-- [ ] Configuración de secciones visibles.
+## P1 · Completar la experiencia de plataforma
 
-### EnrollmentLevel
+- [ ] Definir el flujo para agregar y abrir microapps desde el panel del usuario.
+- [ ] Conectar las tarjetas de módulos disponibles con su pantalla correspondiente.
+- [ ] Alinear disponibilidad del catálogo público y del catálogo de la API.
+- [ ] Comprobar registro → espacio personal → listado de espacios → cierre de sesión con PostgreSQL de prueba.
+- [ ] Revisar validación de entradas y respuestas JSON centralizadas de error en la API.
+- [ ] Revisar protección contra intentos repetidos de login/registro.
+- [ ] Resolver la promesa PWA: implementar instalación o ajustar los textos y el botón de la portada.
+- [ ] Verificar variables, conectividad y recorridos reales en el entorno de despliegue.
 
-- [ ] Crear niveles.
-- [ ] Edad/nombre del nivel.
-- [ ] Turnos.
-- [ ] Información descriptiva.
-- [ ] Estado de disponibilidad/vacantes.
+**Criterio de aceptación:** las acciones visibles conducen a funciones disponibles y los estados de carga/error permiten entender lo ocurrido.
 
-### EnrollmentRequest
+## P2 · Evolución según uso real
 
-- [ ] Crear solicitud de matrícula.
-- [ ] Nombre del niño o niña.
-- [ ] Edad.
-- [ ] Padre, madre o apoderado.
-- [ ] WhatsApp.
-- [ ] Nivel.
-- [ ] Turno.
-- [ ] Comentario.
-- [ ] Estado de la solicitud.
-- [ ] Fecha de creación.
+- [ ] Elegir la siguiente microapp según feedback y demanda.
+- [ ] Evaluar recuperación de contraseña y funciones adicionales de cuentas.
+- [ ] Evaluar PWA e internacionalización cuando aporten valor.
+- [ ] Definir monetización para herramientas que lo justifiquen.
+- [ ] Evaluar historial, archivos, notificaciones e integraciones por necesidad concreta.
 
-Estados iniciales propuestos:
+Sorteos continúa siendo la primera herramienta gratuita. Las hipótesis previas de S/19.90 mensuales, S/199 anuales y 14 días de prueba se conservan para futuras herramientas de pago, pendientes de validar.
 
-```text
-Nuevo → Contactado → En revisión → Confirmado
-                          ↘ Descartado
-```
+## Catálogo futuro
 
----
-
-## 4. Convertir demo-nido en MicroApp
-
-La demo ya resuelve gran parte del diseño y experiencia visual. No debe rehacerse desde cero.
-
-- [ ] Tomar `ColoresYSonrisas.jsx` como referencia visual.
-- [ ] Convertir la página específica en una plantilla reutilizable.
-- [ ] Reemplazar nombre/logo/textos hardcodeados por datos del negocio.
-- [ ] Reemplazar niveles hardcodeados por datos de la API.
-- [ ] Reemplazar requisitos y FAQ por configuración.
-- [ ] Resolver el negocio por URL/slug.
-- [ ] Mantener diseño responsive existente.
-
-Ruta objetivo inicial:
-
-```text
-mi0.app/colores-y-sonrisas
-```
-
-**Resultado esperado:** crear/configurar un negocio sin modificar código y obtener automáticamente su Web de Matrículas.
-
----
-
-## 5. Formulario real
-
-Actualmente el formulario de `demo-nido` es visual y no persiste información.
-
-- [ ] Conectar formulario con API.
-- [ ] Validar campos requeridos.
-- [ ] Guardar `EnrollmentRequest`.
-- [ ] Mostrar confirmación al padre/apoderado.
-- [ ] Evitar envíos duplicados accidentales.
-- [ ] Asociar solicitud al negocio correcto.
-
-**Resultado esperado:** una familia puede enviar una solicitud real desde su celular.
-
----
-
-## 6. Dashboard real
-
-Usar `DashboardDemo.jsx` como referencia.
-
-- [ ] Reemplazar datos ficticios por API.
-- [ ] Mostrar total de solicitudes.
-- [ ] Mostrar solicitudes nuevas.
-- [ ] Mostrar solicitudes contactadas.
-- [ ] Mostrar solicitudes confirmadas.
-- [ ] Listar solicitudes recientes.
-- [ ] Filtrar por nivel.
-- [ ] Ver detalle de una solicitud.
-- [ ] Cambiar estado de una solicitud.
-
-**Resultado esperado:** el nido puede administrar sus contactos sin depender de conversaciones dispersas de WhatsApp.
-
----
-
-## 7. Admin mínimo
-
-- [ ] Login.
-- [ ] Asociar usuario al negocio.
-- [ ] Proteger dashboard.
-- [ ] Evitar acceso a datos de otro negocio.
-- [ ] Pantalla básica de configuración del negocio.
-- [ ] Configuración básica de Matrículas.
-
-No implementar todavía un sistema complejo de roles/permisos.
-
----
-
-## 8. Archivos e imágenes
-
-- [ ] Definir estrategia inicial de almacenamiento.
-- [ ] Evaluar BanaHosting para archivos públicos sencillos.
-- [ ] Mantener S3 como alternativa.
-- [ ] Subir logo.
-- [ ] Subir imágenes de portada/niveles.
-- [ ] Guardar URLs asociadas al negocio.
-
----
-
-## 9. Deploy
-
-- [ ] Crear PostgreSQL en Neon.
-- [ ] Desplegar API en Render.
-- [ ] Desplegar frontend en Vercel.
-- [ ] Configurar variables de producción.
-- [ ] Configurar dominio `mi0.app`.
-- [ ] Probar rutas por slug.
-- [ ] Probar formulario real en producción.
-- [ ] Probar dashboard desde móvil y escritorio.
-
----
-
-# P1 · Piloto comercial
-
-Después de tener el MVP funcional.
-
-- [ ] Cargar Colores y Sonrisas como primer negocio de prueba.
-- [ ] Preparar segundo nido para comprobar multi-tenancy.
-- [ ] Crear onboarding manual sencillo.
-- [ ] Contactar 10–20 nidos cercanos.
-- [ ] Enviar demo personalizada.
-- [ ] Registrar respuestas.
-- [ ] Registrar objeciones.
-- [ ] Medir cuántos prueban la herramienta.
-- [ ] Medir cuántos envían solicitudes reales.
-- [ ] Preguntar disposición a pagar.
-- [ ] Buscar primer cliente de pago.
-
-### Hipótesis comercial a validar
-
-- S/19.90 mensual.
-- S/199 anual.
-- 14 días gratis.
-- Sin tarjeta para iniciar prueba.
-
----
-
-# P2 · Después de validar Matrículas
-
-Solo trabajar estas tareas cuando exista evidencia de uso real.
-
-- [ ] Automatizar onboarding.
-- [ ] Suscripciones/pagos.
-- [ ] Planes.
-- [ ] Recuperación de contraseña.
-- [ ] Roles/permisos más completos.
-- [ ] Notificaciones.
-- [ ] PWA.
-- [ ] Internacionalización completa.
-- [ ] Métricas de uso.
-- [ ] Catálogo de MicroApps.
-- [ ] Activación/desactivación de módulos.
-
----
-
-# Futuras MicroApps
-
-No desarrollar todavía.
-
-| MicroApp | Estado |
+| Herramienta | Situación |
 |---|---|
-| Web de Matrículas | 🚧 Primera en desarrollo |
-| Web de Citas | 💡 Backlog |
-| Tarjeta de Sellos | 💡 Backlog |
-| Servicios para Huéspedes | 💡 Backlog |
-| Acuerdos y Pendientes | 💡 Backlog |
-| Calendario de Actividades | 💡 Backlog |
-| Registro de Incidentes | 💡 Backlog |
-| Formularios | 💡 Futuro |
-| Solicitudes | 💡 Futuro |
-| Reservas | 💡 Futuro |
-| Catálogo / Pedidos | 💡 Futuro |
+| Sorteos | Primera herramienta implementada |
+| Generador QR | Próximamente en el catálogo |
+| Conversor de unidades | Próximamente en el catálogo |
+| Notas rápidas | Próximamente en el catálogo |
+| Extractor de texto | Próximamente en el catálogo |
+| Calculadora de fechas | Próximamente en el catálogo |
+| Generador de contraseñas | Próximamente en el catálogo |
+| Compresor de imágenes | Próximamente en el catálogo |
+| Renombrador de archivos | Próximamente en el catálogo |
+| Matrículas, Citas, Sellos, Huéspedes, Acuerdos, Calendario e Incidentes | Ideas futuras; sin orden de implementación confirmado |
 
----
+### Referencia conservada: Matrículas
 
-# No hacer todavía
+El plan anterior contemplaba adaptar la demo `kaplack/demo-nido` (Colores y Sonrisas) para negocios con slug y branding propios, configuración de campañas/niveles, recepción de solicitudes y dashboard de seguimiento.
 
-Para proteger el alcance del MVP:
+Si se retoma, reutilizar la demo y diseñar el aislamiento por espacio. Las entidades propuestas eran EnrollmentConfig, EnrollmentLevel y EnrollmentRequest; los estados propuestos: Nuevo, Contactado, En revisión, Confirmado y Descartado. El piloto anterior de 10–20 nidos queda como referencia, sin ejecución priorizada actualmente.
 
-- ❌ Construir todas las MicroApps.
-- ❌ Crear un ERP.
-- ❌ Automatizar facturación antes de tener clientes.
-- ❌ Crear permisos complejos.
-- ❌ Reconstruir Vincu dentro de mi0.
-- ❌ Diseñar nuevamente la landing de Matrículas desde cero.
-- ❌ Crear infraestructura innecesaria antes de validar.
-- ❌ Añadir funciones solo porque podrían ser útiles en el futuro.
+## Límites de alcance
 
----
+- No construir todas las microapps antes de validar Sorteos.
+- No convertir las utilidades públicas en flujos que exijan cuenta innecesariamente.
+- No automatizar pagos ni suscripciones antes de definir el modelo comercial.
+- No reconstruir Vincu ni ampliar el Core sin una herramienta que lo necesite.
 
-# Próxima tarea
+## Evidencia de revisión · 7 de octubre de 2026
 
-## Diseñar e implementar el modelo de datos mínimo
+| Comprobación | Resultado |
+|---|---|
+| `npm run build --prefix web` | Correcto |
+| `npm run lint --prefix web` | Correcto |
+| `npm run build --prefix superadmin` | Correcto |
+| `npm run lint --prefix superadmin` | Falla: dos errores en App.jsx, líneas 36 y 105 |
+| Pruebas automatizadas del proyecto | No encontradas en la revisión |
+| PostgreSQL/S3 y producción | No comprobados |
+| Prueba visual/interactiva | Pendiente |
 
-```text
-Business
-    │
-    ├── EnrollmentConfig
-    ├── EnrollmentLevel
-    └── EnrollmentRequest
-```
-
-Después:
-
-```text
-Base de datos
-    ↓
-API
-    ↓
-demo-nido conectada a datos
-    ↓
-Dashboard real
-    ↓
-Deploy
-    ↓
-Piloto
-```
-
----
-
-## Definición de éxito de la v0.1
-
-La primera versión de mi0 estará lista para probar cuando podamos:
-
-> Crear un negocio desde configuración, asignarle sus datos, niveles y branding, acceder a `mi0.app/{slug}`, recibir una solicitud real de matrícula y verla/cambiar su estado desde el dashboard sin modificar código.
-
-Ese será el momento en que **demo-nido deja de ser una demo y mi0 se convierte en un producto funcional**.
+La revisión identificó los pendientes por lectura de código y comprobaciones locales. No se aplicaron correcciones funcionales. Esta actualización modifica únicamente README y backlog para reflejar la prioridad confirmada.
