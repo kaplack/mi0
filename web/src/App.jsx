@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import './App.css'
+import { AuthView, TOKEN_KEY, authApi } from './AuthView'
 
 const tools = [
   { icon: '▦', title: 'Generador QR', description: 'Crea códigos QR en segundos. Texto, URLs, WiFi y más.', category: 'Utilidades', tone: 'mint' },
@@ -34,12 +35,33 @@ function App() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('Todas')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [authMode, setAuthMode] = useState(null)
+  const [user, setUser] = useState(null)
+
+  useState(() => {
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (token) {
+      authApi('/auth/me')
+        .then((data) => setUser(data.user))
+        .catch(() => localStorage.removeItem(TOKEN_KEY))
+    }
+  })
+
+  async function logout() {
+    try { await authApi('/auth/logout', { method: 'POST' }) } catch {}
+    localStorage.removeItem(TOKEN_KEY)
+    setUser(null)
+  }
 
   const filtered = useMemo(() => tools.filter((tool) => {
     const matchesCategory = category === 'Todas' || tool.category === category
     const text = (tool.title + ' ' + tool.description).toLowerCase()
     return matchesCategory && text.includes(query.toLowerCase())
   }), [query, category])
+
+  if (authMode) {
+    return <AuthView mode={authMode} onModeChange={setAuthMode} onAuthenticated={(nextUser) => { setUser(nextUser); setAuthMode(null) }} onClose={() => setAuthMode(null)} />
+  }
 
   return (
     <div className="app-shell">
@@ -51,8 +73,17 @@ function App() {
           <a href="#acerca">Acerca de</a>
         </nav>
         <div className="header-actions">
-          <button className="secondary-button">Iniciar sesión</button>
-          <button className="primary-button">Crear cuenta</button>
+          {user ? (
+            <>
+              <span className="user-greeting">Hola, {user.name}</span>
+              <button className="secondary-button" onClick={logout}>Salir</button>
+            </>
+          ) : (
+            <>
+              <button className="secondary-button" onClick={() => setAuthMode('login')}>Iniciar sesión</button>
+              <button className="primary-button" onClick={() => setAuthMode('register')}>Crear cuenta</button>
+            </>
+          )}
         </div>
         <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menú">☰</button>
       </header>
