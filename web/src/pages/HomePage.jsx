@@ -3,7 +3,7 @@ import { Logo } from '../components/Logo'
 import { MicroappCard } from '../components/MicroappCard'
 import { categories, tools } from '../data/catalog'
 
-export function HomePage({ user, onLogin, onRegister, onOpenMi0, onLogout, onMicroappAdded }) {
+export function HomePage({ user, onLogin, onRegister, onOpenMi0, onLogout, onOpenMicroapp }) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('Todas')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -64,7 +64,7 @@ export function HomePage({ user, onLogin, onRegister, onOpenMi0, onLogout, onMic
         <section className="tools-section" id="herramientas">
           <div className="section-heading"><div><h2><span>★</span> Herramientas destacadas</h2><p>Pequeñas soluciones para problemas de todos los días.</p></div><button className="text-button" onClick={() => { setCategory('Todas'); setQuery('') }}>Ver todas →</button></div>
           <div className="content-grid">
-            <div className="tools-grid">{filtered.length ? filtered.map((tool) => <MicroappCard key={tool.title} tool={tool} user={user} onAdded={onMicroappAdded} />) : <p className="empty-state">No encontramos herramientas con ese criterio.</p>}</div>
+            <div className="tools-grid">{filtered.length ? filtered.map((tool) => <MicroappCard key={tool.title} tool={tool} onOpen={onOpenMicroapp} />) : <p className="empty-state">No encontramos herramientas con ese criterio.</p>}</div>
             <aside className="pwa-card"><div className="mini-brand">0_</div><h2>Lleva tus herramientas siempre contigo</h2><p>Instala mi0.app como PWA en tu dispositivo.</p><ul><li>✓ Funciona sin instalación</li><li>✓ Acceso rápido</li><li>✓ Siempre actualizadas</li></ul><button className="dark-button">Cómo instalar →</button></aside>
           </div>
         </section>
