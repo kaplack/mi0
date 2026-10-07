@@ -12,22 +12,34 @@ enum UserStatus {
   SUSPENDED
 }
 
-enum BusinessStatus {
+enum WorkspaceStatus {
   ACTIVE
   INACTIVE
 }
 
+enum WorkspaceType {
+  PERSONAL
+  ORGANIZATION
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
 model User {
-  id           String     @id @default(uuid()) @db.Uuid
-  name         String     @db.VarChar(80)
-  lastName     String     @map("last_name") @db.VarChar(120)
-  email        String     @unique @db.VarChar(254)
-  passwordHash String     @map("password_hash") @db.VarChar(255)
-  role         String     @default("USER") @db.VarChar(40)
-  status       UserStatus @default(ACTIVE)
-  createdAt    DateTime   @default(now()) @map("created_at")
-  updatedAt    DateTime   @updatedAt @map("updated_at")
+  id           String       @id @default(uuid()) @db.Uuid
+  name         String       @db.VarChar(80)
+  lastName     String       @map("last_name") @db.VarChar(120)
+  email        String       @unique @db.VarChar(254)
+  passwordHash String       @map("password_hash") @db.VarChar(255)
+  role         String       @default("USER") @db.VarChar(40)
+  status       UserStatus   @default(ACTIVE)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
   sessions     Session[]
+  memberships Membership[]
 
   @@map("users")
 }
@@ -47,41 +59,55 @@ model Session {
   @@map("sessions")
 }
 
-model Business {
-  id        String         @id @default(uuid()) @db.Uuid
-  name      String         @db.VarChar(120)
-  slug      String         @unique @db.VarChar(120)
-  status    BusinessStatus @default(ACTIVE)
-  createdAt DateTime       @default(now()) @map("created_at")
-  updatedAt DateTime       @updatedAt @map("updated_at")
-  modules   BusinessModule[]
+model Workspace {
+  id          String          @id @default(uuid()) @db.Uuid
+  name        String          @db.VarChar(120)
+  type        WorkspaceType   @default(ORGANIZATION)
+  status      WorkspaceStatus @default(ACTIVE)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  memberships Membership[]
+  modules     WorkspaceModule[]
 
-  @@map("businesses")
+  @@map("workspaces")
+}
+
+model Membership {
+  userId      String         @map("user_id") @db.Uuid
+  workspaceId String         @map("workspace_id") @db.Uuid
+  role        MembershipRole @default(MEMBER)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@id([userId, workspaceId])
+  @@index([workspaceId])
+  @@map("memberships")
 }
 
 model Module {
-  id          String           @id @default(uuid()) @db.Uuid
-  code        String           @unique @db.VarChar(60)
-  name        String           @db.VarChar(100)
-  description String?          @db.VarChar(300)
-  active      Boolean          @default(true)
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
-  businesses  BusinessModule[]
+  id          String            @id @default(uuid()) @db.Uuid
+  code        String            @unique @db.VarChar(60)
+  name        String            @db.VarChar(100)
+  description String?           @db.VarChar(300)
+  active      Boolean           @default(true)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  workspaces  WorkspaceModule[]
 
   @@map("modules")
 }
 
-model BusinessModule {
-  businessId String   @map("business_id") @db.Uuid
-  moduleId   String   @map("module_id") @db.Uuid
-  active     Boolean  @default(true)
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  module     Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+model WorkspaceModule {
+  workspaceId String    @map("workspace_id") @db.Uuid
+  moduleId    String    @map("module_id") @db.Uuid
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  module      Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
-  @@id([businessId, moduleId])
+  @@id([workspaceId, moduleId])
   @@index([moduleId])
-  @@map("business_modules")
+  @@map("workspace_modules")
 }
