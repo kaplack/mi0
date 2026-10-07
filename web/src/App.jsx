@@ -31,6 +31,7 @@ function ToolCard({ tool }) {
   )
 }
 
+// Deployment refresh: mobile auth menu enabled
 function App() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('Todas')
