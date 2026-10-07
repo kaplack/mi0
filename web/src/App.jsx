@@ -4,14 +4,14 @@ import { AuthView, TOKEN_KEY, authApi } from './AuthView'
 import { ConsoleView } from './ConsoleView'
 
 const tools = [
-  { icon: '▦', title: 'Generador QR', description: 'Crea códigos QR en segundos. Texto, URLs, WiFi y más.', category: 'Utilidades', tone: 'mint' },
-  { icon: '⇄', title: 'Conversor de unidades', description: 'Convierte unidades de forma fácil y rápida.', category: 'Productividad', tone: 'blue' },
-  { icon: '▤', title: 'Notas rápidas', description: 'Captura y organiza tus ideas al instante.', category: 'Productividad', tone: 'coral' },
-  { icon: '▧', title: 'Extractor de texto', description: 'Extrae texto de imágenes en un clic.', category: 'Creatividad', tone: 'violet' },
-  { icon: '□', title: 'Calculadora de fechas', description: 'Suma o resta fechas fácilmente.', category: 'Productividad', tone: 'violet' },
-  { icon: '▣', title: 'Generador de contraseñas', description: 'Crea contraseñas seguras y únicas.', category: 'Utilidades', tone: 'mint' },
-  { icon: '◇', title: 'Compresor de imágenes', description: 'Reduce el peso de tus imágenes sin perder calidad.', category: 'Utilidades', tone: 'blue' },
-  { icon: '▰', title: 'Renombrador de archivos', description: 'Renombra varios archivos en un clic.', category: 'Negocios', tone: 'orange' },
+  { code: 'qr-generator', icon: '▦', title: 'Generador QR', description: 'Crea códigos QR en segundos. Texto, URLs, WiFi y más.', category: 'Utilidades', tone: 'mint' },
+  { code: 'unit-converter', icon: '⇄', title: 'Conversor de unidades', description: 'Convierte unidades de forma fácil y rápida.', category: 'Productividad', tone: 'blue' },
+  { code: 'quick-notes', icon: '▤', title: 'Notas rápidas', description: 'Captura y organiza tus ideas al instante.', category: 'Productividad', tone: 'coral' },
+  { code: 'text-extractor', icon: '▧', title: 'Extractor de texto', description: 'Extrae texto de imágenes en un clic.', category: 'Creatividad', tone: 'violet' },
+  { code: 'date-calculator', icon: '□', title: 'Calculadora de fechas', description: 'Suma o resta fechas fácilmente.', category: 'Productividad', tone: 'violet' },
+  { code: 'password-generator', icon: '▣', title: 'Generador de contraseñas', description: 'Crea contraseñas seguras y únicas.', category: 'Utilidades', tone: 'mint' },
+  { code: 'image-compressor', icon: '◇', title: 'Compresor de imágenes', description: 'Reduce el peso de tus imágenes sin perder calidad.', category: 'Utilidades', tone: 'blue' },
+  { code: 'file-renamer', icon: '▰', title: 'Renombrador de archivos', description: 'Renombra varios archivos en un clic.', category: 'Negocios', tone: 'orange' },
 ]
 
 const categories = ['Todas', 'Productividad', 'Utilidades', 'Creatividad', 'Educación', 'Negocios']
@@ -20,14 +20,39 @@ function Logo() {
   return <a className="logo" href="#" aria-label="mi0.app">mi<span>0</span><small>.app</small></a>
 }
 
-function ToolCard({ tool }) {
+function ToolCard({ tool, user, onAdded }) {
+  const [adding, setAdding] = useState(false)
+  const [added, setAdded] = useState(false)
+
+  async function addToMi0() {
+    if (!user) return
+    setAdding(true)
+    try {
+      const data = await authApi('/workspaces')
+      const workspace = data.workspaces?.find((item) => item.type === 'PERSONAL') || data.workspaces?.[0]
+      if (!workspace) throw new Error('No encontramos tu espacio')
+      await authApi('/workspaces/' + workspace.id + '/modules/' + tool.code, { method: 'POST' })
+      setAdded(true)
+      onAdded?.()
+    } catch (error) {
+      alert(error.message)
+    } finally {
+      setAdding(false)
+    }
+  }
   return (
     <article className="tool-card">
       <div className={'tool-icon ' + tool.tone}>{tool.icon}</div>
       <span className={'tag ' + tool.tone}>{tool.category}</span>
       <h3>{tool.title}</h3>
       <p>{tool.description}</p>
-      <button className="circle-button" aria-label={'Abrir ' + tool.title}>→</button>
+      {user ? (
+        <button className={'tool-add-button' + (added ? ' added' : '')} onClick={addToMi0} disabled={adding || added}>
+          {added ? '✓ Agregada' : adding ? 'Agregando…' : '+ Agregar a Mi0'}
+        </button>
+      ) : (
+        <button className="circle-button" aria-label={'Abrir ' + tool.title}>→</button>
+      )}
     </article>
   )
 }
@@ -40,6 +65,7 @@ function App() {
   const [authMode, setAuthMode] = useState(null)
   const [user, setUser] = useState(null)
   const [consoleOpen, setConsoleOpen] = useState(true)
+  const [consoleRefresh, setConsoleRefresh] = useState(0)
 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
@@ -68,7 +94,7 @@ function App() {
   }
 
   if (user && consoleOpen) {
-    return <ConsoleView user={user} onLogout={logout} onExplore={() => setConsoleOpen(false)} />
+    return <ConsoleView key={consoleRefresh} user={user} onLogout={logout} onExplore={() => setConsoleOpen(false)} />
   }
 
   return (
@@ -147,7 +173,7 @@ function App() {
           </div>
           <div className="content-grid">
             <div className="tools-grid">
-              {filtered.length ? filtered.map((tool) => <ToolCard key={tool.title} tool={tool} />) : <p className="empty-state">No encontramos herramientas con ese criterio.</p>}
+              {filtered.length ? filtered.map((tool) => <ToolCard key={tool.title} tool={tool} user={user} onAdded={() => setConsoleRefresh((value) => value + 1)} />) : <p className="empty-state">No encontramos herramientas con ese criterio.</p>}
             </div>
             <aside className="pwa-card">
               <div className="mini-brand">0_</div>
