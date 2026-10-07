@@ -2,3 +2,4 @@ microapps
 sorteos-v1
 sorteos-v1-fix
 vercel-auto-deploy-test
+mi0-clean-test
