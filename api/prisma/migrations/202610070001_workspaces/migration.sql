@@ -37,25 +37,24 @@ ALTER TABLE "memberships" ADD CONSTRAINT "memberships_workspace_id_fkey" FOREIGN
 ALTER TABLE "workspace_modules" ADD CONSTRAINT "workspace_modules_workspace_id_fkey" FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "workspace_modules" ADD CONSTRAINT "workspace_modules_module_id_fkey" FOREIGN KEY ("module_id") REFERENCES "modules"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- Every existing regular user receives the same personal workspace that new users get.
-INSERT INTO "workspaces" ("id", "name", "type", "status", "created_at", "updated_at")
-SELECT gen_random_uuid(), 'Mi espacio', 'PERSONAL', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+-- Backfill: each existing regular user receives an independent personal workspace.
+CREATE TEMP TABLE "_personal_workspace_backfill" (
+  "user_id" UUID PRIMARY KEY,
+  "workspace_id" UUID NOT NULL UNIQUE
+) ON COMMIT DROP;
+
+INSERT INTO "_personal_workspace_backfill" ("user_id", "workspace_id")
+SELECT "id", gen_random_uuid()
 FROM "users"
 WHERE "role" = 'USER';
 
-INSERT INTO "memberships" ("user_id", "workspace_id", "role", "created_at")
-SELECT u."id", w."id", 'OWNER', CURRENT_TIMESTAMP
-FROM "users" u
-JOIN LATERAL (
-  SELECT ws."id"
-  FROM "workspaces" ws
-  WHERE ws."type" = 'PERSONAL'
-    AND NOT EXISTS (SELECT 1 FROM "memberships" m WHERE m."workspace_id" = ws."id")
-  ORDER BY ws."created_at", ws."id"
-  LIMIT 1
-) w ON TRUE
-WHERE u."role" = 'USER'
-  AND NOT EXISTS (SELECT 1 FROM "memberships" m WHERE m."user_id" = u."id");
+INSERT INTO "workspaces" ("id", "name", "type", "status", "created_at", "updated_at")
+SELECT "workspace_id", 'Mi espacio', 'PERSONAL', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM "_personal_workspace_backfill";
 
--- The old Business model had no user ownership yet, so there is no safe automatic
--- mapping to Workspace. It remains untouched in this migration to avoid data loss.
+INSERT INTO "memberships" ("user_id", "workspace_id", "role", "created_at")
+SELECT "user_id", "workspace_id", 'OWNER', CURRENT_TIMESTAMP
+FROM "_personal_workspace_backfill";
+
+-- Legacy Business tables remain untouched for now: they had no user ownership,
+-- so automatically assigning them to a Workspace would risk incorrect data.
