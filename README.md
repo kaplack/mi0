@@ -28,7 +28,7 @@ La web combina herramientas de acceso directo con una base para gestionar microa
 - Listado de espacios y módulos activos del usuario.
 - Panel de superadmin con resumen y consultas de usuarios, organizaciones y módulos.
 
-El catálogo público es estático. Sorteos es la única herramienta marcada como disponible; las demás aparecen como «Próximamente». La activación de módulos existe en la API, pero el flujo para agregarlos y abrirlos desde el panel del usuario todavía está incompleto.
+El catálogo público es estático y muestra únicamente Sorteos. Las herramientas sin implementar se conservan como ideas futuras fuera del home. La activación de módulos existe en la API, pero el flujo para agregarlos y abrirlos desde el panel del usuario todavía está incompleto.
 
 ## Estado actual
 
@@ -103,7 +103,7 @@ En la revisión del 7 de octubre de 2026, ambas compilaciones y el lint de la we
 
 La prioridad es consolidar Sorteos, observar uso real y elegir la siguiente microapp según necesidades comprobadas. Las herramientas pueden compartir identidad y permisos cuando lo necesiten; las utilidades públicas no requieren obligatoriamente una cuenta o un negocio.
 
-El catálogo contempla generador QR, conversor de unidades, notas rápidas, extractor de texto, calculadora de fechas, generador de contraseñas, compresor de imágenes y renombrador de archivos.
+Las ideas futuras incluyen generador QR, conversor de unidades, notas rápidas, extractor de texto, calculadora de fechas, generador de contraseñas, compresor de imágenes y renombrador de archivos.
 
 Matrículas, Citas, Tarjeta de Sellos, Servicios para Huéspedes, Acuerdos, Calendario e Incidentes se conservan como ideas futuras. Matrículas dejó de ser el primer MVP; su demo previa puede servir de referencia si se retoma.
 

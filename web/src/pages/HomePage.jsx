@@ -50,12 +50,12 @@ export function HomePage({ user, onLogin, onRegister, onOpenMi0, onLogout, onOpe
             <span className="eyebrow">MICROAPPS</span>
             <h1>Pequeñas herramientas<br />para <span>grandes ideas.</span></h1>
             <p>Usa nuestras microapps en línea o instálalas en tu dispositivo. Herramientas simples, rápidas y siempre contigo.</p>
-            <div className="hero-search"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar herramientas, por ejemplo: QR, notas..." /><button aria-label="Buscar">→</button></div>
+            <div className="hero-search"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar herramientas, por ejemplo: Sorteos..." /><button aria-label="Buscar">→</button></div>
             <div className="category-row">{categories.map((item) => <button key={item} className={category === item ? 'selected' : ''} onClick={() => setCategory(item)}>{item}</button>)}</div>
           </div>
           <div className="hero-visual" aria-hidden="true">
             <div className="orbit orbit-one"></div><div className="orbit orbit-two"></div><div className="brand-tile">0_</div>
-            <div className="floating-tool qr">▦</div><div className="floating-tool swap">⇄</div><div className="floating-tool note">▤</div>
+            <div className="floating-tool qr">★</div>
             <div className="device-card"><div className="device-top"><Logo /></div><div className="device-title">Mis herramientas</div><div className="device-grid">{tools.slice(0, 6).map((tool) => <div key={tool.title} className={'mini-tool ' + tool.tone}>{tool.icon}</div>)}</div></div>
             <span className="device-note">En la web<br />y en tu dispositivo ↙</span>
           </div>

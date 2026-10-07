@@ -25,7 +25,7 @@ La prioridad fue confirmada por el usuario el 7 de octubre de 2026. Matrículas 
 | Superadmin | Parcial | Resumen/listados; respuestas concurrentes y dos errores de lint pendientes |
 | S3 | Integración presente | Conectividad y flujo de archivos no verificados |
 | PWA | Pendiente | Portada anuncia instalación; no se encontró manifest ni service worker |
-| Otras microapps | Pendientes | Catálogo público las muestra como «Próximamente» |
+| Otras microapps | Pendientes | Ocultas del home; conservadas como ideas futuras |
 | Producción | No verificada | No se comprobó despliegue ni servicios externos |
 
 ## P0 · Corregir autorización de módulos
@@ -61,6 +61,8 @@ La prioridad fue confirmada por el usuario el 7 de octubre de 2026. Matrículas 
 - [x] Cancelar actualizaciones pendientes al desmontar el componente.
 
 Estos puntos se confirmaron por lectura del código; la prueba interactiva sigue pendiente.
+
+- [x] Mostrar únicamente Sorteos en el home y sus referencias visuales; categorías derivadas del catálogo disponible.
 
 ### Validación pendiente
 
@@ -103,14 +105,14 @@ Sorteos continúa siendo la primera herramienta gratuita. Las hipótesis previas
 | Herramienta | Situación |
 |---|---|
 | Sorteos | Primera herramienta implementada |
-| Generador QR | Próximamente en el catálogo |
-| Conversor de unidades | Próximamente en el catálogo |
-| Notas rápidas | Próximamente en el catálogo |
-| Extractor de texto | Próximamente en el catálogo |
-| Calculadora de fechas | Próximamente en el catálogo |
-| Generador de contraseñas | Próximamente en el catálogo |
-| Compresor de imágenes | Próximamente en el catálogo |
-| Renombrador de archivos | Próximamente en el catálogo |
+| Generador QR | Idea futura; fuera del home |
+| Conversor de unidades | Idea futura; fuera del home |
+| Notas rápidas | Idea futura; fuera del home |
+| Extractor de texto | Idea futura; fuera del home |
+| Calculadora de fechas | Idea futura; fuera del home |
+| Generador de contraseñas | Idea futura; fuera del home |
+| Compresor de imágenes | Idea futura; fuera del home |
+| Renombrador de archivos | Idea futura; fuera del home |
 | Matrículas, Citas, Sellos, Huéspedes, Acuerdos, Calendario e Incidentes | Ideas futuras; sin orden de implementación confirmado |
 
 ### Referencia conservada: Matrículas
