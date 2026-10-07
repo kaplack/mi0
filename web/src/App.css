@@ -149,3 +149,39 @@ footer .logo { font-size: 22px; } footer span { margin-left: auto; }
   .auth-card { padding: 30px 22px; border-radius: 14px; }
   .auth-name-row { grid-template-columns: 1fr; }
 }
+
+.mobile-auth-actions { display: none; }
+
+@media (max-width: 980px) {
+  .main-nav.open .mobile-auth-actions {
+    display: grid;
+    gap: 9px;
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .mobile-auth-actions button {
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .mobile-auth-actions .mobile-create-account {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #0b2b23;
+  }
+
+  .mobile-auth-actions span {
+    padding: 6px 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+  }
+}
