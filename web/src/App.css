@@ -247,3 +247,9 @@ footer .logo { font-size: 22px; } footer span { margin-left: auto; }
   .console-app-grid { grid-template-columns: 1fr; }
   .console-overlay { position: fixed; inset: 0; z-index: 41; display: block; border: 0; background: rgba(15,23,42,.24); }
 }
+
+
+.tool-add-button { position: absolute; right: 12px; bottom: 12px; min-height: 32px; padding: 0 11px; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: #2563eb; font-size: 11px; font-weight: 700; }
+.tool-add-button:hover { border-color: var(--primary); background: #f2fffb; color: #087f62; }
+.tool-add-button.added { border-color: #b7f3df; background: #e9fff8; color: #087f62; cursor: default; }
+.tool-add-button:disabled { opacity: .75; }
