@@ -6,9 +6,9 @@
 .advanced-list-item { display: grid; gap: 5px; width: 100%; padding: 14px 10px; margin-top: 10px; border: 1px solid var(--border); border-radius: 10px; text-align: left; background: var(--surface); color: var(--text-primary); overflow-wrap: anywhere; }
 .advanced-list-item.selected { border-color: var(--primary-dark); background: #e9fff8; }
 .advanced-list-item small { color: var(--text-secondary); }
-.advanced-detail form { display: grid; gap: 16px; }
-.advanced-detail label { display: grid; gap: 8px; font-size: 14px; font-weight: 600; }
-.advanced-detail input { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font: inherit; color: var(--text-primary); background: var(--surface); }
+.advanced-detail form, .advanced-modal form { display: grid; gap: 16px; }
+.advanced-detail label, .advanced-modal label { display: grid; gap: 8px; font-size: 14px; font-weight: 600; }
+.advanced-detail input, .advanced-modal input { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font: inherit; color: var(--text-primary); background: var(--surface); }
 .advanced-detail fieldset { min-width: 0; border: 1px solid var(--border); padding: 15px; border-radius: 10px; }
 .advanced-detail legend { font-size: 14px; font-weight: 700; }
 .advanced-prize-row { display: flex; gap: 8px; align-items: end; margin-bottom: 12px; }
@@ -37,3 +37,18 @@
   .advanced-list { max-height: 310px; overflow: auto; }
   .advanced-layout .raffle-card { padding: 18px; }
 }
+
+.advanced-result-actions { display: flex; gap: 12px; margin-top: 24px; }
+.advanced-result-actions > button { flex: 1; width: auto; min-height: 48px; }
+.advanced-continue { margin-top: 12px; }
+.raffle-stage > div { display: grid; gap: 8px; width: 100%; }
+.advanced-modal { width: min(520px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 28px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); color: var(--text-primary); box-shadow: var(--shadow-soft); overflow: auto; line-height: 1.6; }
+.advanced-modal::backdrop { background: rgba(15, 23, 42, .55); }
+.advanced-modal-heading { display: flex; align-items: flex-start; gap: 12px; justify-content: space-between; }
+.advanced-modal-heading h2 { margin: 0; font-size: 22px; }
+.advanced-modal-heading button { flex-shrink: 0; }
+@media (max-width: 560px) {
+  .advanced-result-actions { flex-direction: column; }
+  .advanced-modal { padding: 20px; }
+}
+.advanced-participant-field label { margin-bottom: 8px; }

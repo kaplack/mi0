@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { Logo } from '../../components/Logo'
 import { useRaffles } from './useRaffles'
 import { RaffleReveal } from './RaffleReveal'
+import { PublicationModal } from './PublicationModal'
 import '../sorteos/Sorteos.css'
 import './SorteosAvanzado.css'
 const names = text => text.split(/\n|,/).map(name => name.trim()).filter(Boolean)
@@ -14,6 +15,7 @@ export function SorteosAvanzado({ workspace, onBack }) {
   const [text, setText] = useState('')
   const [prizes, setPrizes] = useState([''])
   const [reference, setReference] = useState('')
+  const [publicationOpen, setPublicationOpen] = useState(false)
   const [reveal, setReveal] = useState(null)
   const [copied, setCopied] = useState(false)
   const finishReveal = useCallback(() => setReveal(null), [])
@@ -26,7 +28,7 @@ export function SorteosAvanzado({ workspace, onBack }) {
     setSelectedId(raffle?.id || null); setName(raffle?.name || '')
     setText(raffle?.participants.map(item => item.name).join('\n') || '')
     setPrizes(raffle?.prizes.map(item => item.name) || [''])
-    setEditing(true); setReference(''); store.setError('')
+    setEditing(true); setPublicationOpen(false); setReference(''); store.setError('')
   }
   async function save(event) {
     event.preventDefault()
@@ -39,7 +41,7 @@ export function SorteosAvanzado({ workspace, onBack }) {
   }
   async function publish(event) {
     event.preventDefault()
-    if (await store.publish(selected.id, reference)) setReference('')
+    if (await store.publish(selected.id, reference)) { setReference(''); setPublicationOpen(false) }
   }
   const shareUrl = selected?.publicCode ? window.location.origin + '/s/' + selected.publicCode : ''
   async function copyLink() {
@@ -50,7 +52,7 @@ export function SorteosAvanzado({ workspace, onBack }) {
     <header className="raffle-header"><Logo /><button type="button" onClick={onBack} disabled={!!reveal || store.busy}>← Volver a Mi0</button></header>
     <main className="advanced-main">
       <section className="raffle-intro"><span className="raffle-kicker">{workspace.name}</span><h1>Sorteos Avanzado</h1><p>Varios premios. Un ganador por premio. Resultados guardados.</p></section>
-      {store.error && <p className="advanced-error" role="alert">{store.error}</p>}
+      {store.error && !publicationOpen && <p className="advanced-error" role="alert">{store.error}</p>}
       {store.loading ? <p role="status">Cargando tus sorteos…</p> : <div className="advanced-layout">
         <aside className="raffle-card advanced-list">
           <h2>Mis sorteos</h2>
@@ -64,7 +66,7 @@ export function SorteosAvanzado({ workspace, onBack }) {
           {reveal ? <RaffleReveal raffle={reveal} onDone={finishReveal} /> : editing ? <form onSubmit={save}>
             <h2>{selectedId ? 'Editar borrador' : 'Crear sorteo'}</h2>
             <label>Nombre del sorteo<input value={name} onChange={event => setName(event.target.value)} maxLength={120} required disabled={store.busy} placeholder="Sorteo de aniversario" /></label>
-            <label>Participantes<textarea value={text} onChange={event => setText(event.target.value)} disabled={store.busy} placeholder={'Ana Pérez\nCarlos Ruiz\nLucía Díaz'} /></label>
+            <div className="advanced-participant-field"><label htmlFor="advanced-participants">Participantes</label><textarea id="advanced-participants" value={text} onChange={event => setText(event.target.value)} disabled={store.busy} placeholder={'Ana Pérez\nCarlos Ruiz\nLucía Díaz'} /></div>
             <small className="advanced-muted">{participants.length} participantes · Máximo 1000. Una persona por línea o separada por coma.</small>
             {duplicate && <p className="advanced-error">Hay nombres repetidos. Añade un apellido o identificador para distinguirlos.</p>}
             <fieldset disabled={store.busy}><legend>Premios</legend>{prizes.map((prize, index) => <div className="advanced-prize-row" key={index}>
@@ -88,21 +90,19 @@ export function SorteosAvanzado({ workspace, onBack }) {
             </> : <>
               <p className="advanced-muted">Realizado: {date(selected.drawnAt)}</p>
               <ol className="advanced-results">{selected.results.map(result => <li key={result.prize.id}><span>{result.prize.name}</span><strong>{result.participant.name}</strong></li>)}</ol>
+              {writable && <div className="advanced-result-actions">
+                <button className="advanced-secondary" type="button" disabled={store.busy} onClick={() => edit({ ...selected, id: null, name: selected.name.slice(0, 112) + ' (copia)' })}>Repetir sorteo</button>
+                {!selected.publicCode && selected.publication?.status !== 'PENDING' && <button className="raffle-draw" type="button" disabled={store.busy} onClick={() => { store.setError(''); setPublicationOpen(true) }}>Publicar y compartir</button>}
+              </div>}
               {selected.publicCode ? <section className="advanced-publication"><h3>Resultados publicados</h3><a className="advanced-share-link" href={shareUrl} target="_blank" rel="noreferrer">{shareUrl}</a><button className="advanced-secondary" type="button" onClick={copyLink}>{copied ? 'Enlace copiado' : 'Copiar enlace'}</button></section>
                 : selected.publication?.status === 'PENDING' ? <section className="advanced-publication"><h3>Pendiente de aprobación</h3><p>Estamos verificando tu pago de S/4.90. Vuelve a abrir este sorteo para consultar el estado.</p><p className="advanced-muted">Operación: {selected.publication.reference}</p><button className="advanced-secondary" type="button" disabled={store.busy} onClick={() => store.refresh(selected.id)}>Actualizar estado</button></section>
-                : <section className="advanced-publication"><h3>Publicar y compartir — S/4.90</h3><p>Comparte premios y ganadores mediante un enlace público. Los demás participantes y tus datos de cuenta permanecen privados.</p>
-                  {selected.publication?.status === 'REJECTED' && <p className="advanced-error">Solicitud rechazada: {selected.publication.rejectionReason}. Puedes registrar una nueva operación.</p>}
-                  {!writable ? <p>Solo un propietario o administrador puede solicitar la publicación.</p> : store.config?.enabled ? <form onSubmit={publish}>
-                    <p>Yapea <strong>S/4.90</strong> al <strong>{store.config.yapePhone}</strong><br />Beneficiario: <strong>{store.config.yapeName}</strong></p>
-                    <p className="advanced-muted">La publicación requiere verificación manual. El enlace estará disponible después de la aprobación.</p>
-                    <label>Número de operación Yape<input value={reference} onChange={event => setReference(event.target.value)} minLength={4} maxLength={40} pattern="[a-zA-Z0-9-]{4,40}" required disabled={store.busy} /></label>
-                    <button className="raffle-draw" disabled={store.busy}>{store.busy ? 'Enviando…' : 'Ya pagué: solicitar publicación'}</button>
-                  </form> : <p>La publicación por Yape estará disponible próximamente. Tus resultados ya están guardados.</p>}
-                </section>}
+                : !writable ? <p className="advanced-muted">Solo un propietario o administrador puede solicitar la publicación.</p> : null}
             </>}
           </> : <div className="advanced-empty"><h2>Un sorteo, varios premios</h2><p>Guarda participantes y premios, realiza tu sorteo y consulta los ganadores cuando quieras.</p><p className="advanced-muted">Crear y guardar es gratis. Publicar un enlace cuesta S/4.90.</p></div>}
         </section>
       </div>}
+      {publicationOpen && selected && <PublicationModal config={store.config} reference={reference} onReferenceChange={setReference}
+        onSubmit={publish} onClose={() => setPublicationOpen(false)} busy={store.busy} error={store.error} publication={selected.publication} />}
     </main>
   </div>
 }

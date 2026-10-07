@@ -158,3 +158,11 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - [ ] Aplicar la migración en producción y configurar YAPE_PHONE/YAPE_NAME en el entorno de la API cuando se autorice; Neon no se modificó en esta tarea.
 - [ ] Validar Sorteos Avanzado con usuarios reales y la publicación por S/4.90.
 - [ ] Definir la frecuencia de verificación manual de pagos.
+
+## Mejora de presentación de sorteos · 7 de octubre de 2026
+
+- Cada ganador permanece visible hasta continuar manualmente con el siguiente premio; el último ofrece «Ver todos los resultados».
+- «Repetir sorteo» abre un nuevo borrador con participantes/premios copiados; el sorteo original conserva resultados y publicación.
+- «Publicar y compartir» abre un modal; S/4.90 aparece dentro. Incluye datos Yape, operación y envío, con Escape/cierre, control de foco y bloqueo durante el envío.
+- No hay cambios de API, esquema ni migraciones. Sorteos Simple conserva su funcionamiento.
+- Lint y compilación de la web correctos; recorrido de navegador aprobado en escritorio y móvil: pausa entre premios, copia del sorteo, modal, envío y publicación.

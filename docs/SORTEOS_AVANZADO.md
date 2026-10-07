@@ -8,13 +8,15 @@ Microapp gratuita con cuenta: guarda participantes, premios y resultados por esp
 2. Crear un sorteo en el espacio personal o abrirlo desde el espacio elegido en Mi0.
 3. Agregar entre 2 y 1000 participantes y entre 1 y 50 premios; no más premios que participantes.
 4. Guardar el borrador. Puede editarse antes de realizar el sorteo.
-5. Realizar el sorteo. La API determina y guarda todos los ganadores antes de animarlos.
+5. Realizar el sorteo. La API determina y guarda todos los ganadores antes de animarlos. Cada ganador permanece visible hasta pulsar «Continuar con el siguiente premio»; al terminar, pulsar «Ver todos los resultados».
 6. Consultar los resultados guardados. No se permite volver a sortear ni editar datos de un sorteo realizado.
-7. Opcionalmente, pagar S/4.90 y registrar el número de operación Yape.
+7. Opcionalmente, pulsar «Publicar y compartir». El modal muestra el precio S/4.90, los datos de Yape y el campo de operación. Solo se cierra automáticamente si el envío funciona; un error conserva la operación para reintentar.
 8. El superadmin verifica el pago y aprueba o rechaza la solicitud.
 9. Después de aprobar, copiar el enlace público /s/:code.
 
 No se admiten nombres repetidos (ignorando mayúsculas y espacios exteriores). Si dos personas tienen el mismo nombre, deben distinguirse con un apellido o identificador. Cada entrada representa un participante y gana como máximo un premio. No se verifica la identidad real de las personas.
+
+Desde los resultados, «Repetir sorteo» prepara un nuevo borrador con el nombre marcado como copia, los mismos participantes y premios. Puede editarse antes de guardar y realizarse; conserva los resultados del sorteo original.
 
 ## Estados y privacidad
 
