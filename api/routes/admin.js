@@ -11,7 +11,7 @@ router.get('/summary', async (req, res, next) => {
   try {
     const [users, businesses, modules] = await Promise.all([
       prisma.user.count(),
-      prisma.business.count(),
+      prisma.workspace.count({ where: { type: 'ORGANIZATION' } }),
       prisma.module.count(),
     ]);
 
@@ -44,7 +44,8 @@ router.get('/users', async (req, res, next) => {
 
 router.get('/businesses', async (req, res, next) => {
   try {
-    const businesses = await prisma.business.findMany({
+    const workspaces = await prisma.workspace.findMany({
+      where: { type: 'ORGANIZATION' },
       include: {
         modules: {
           include: { module: true },
@@ -52,6 +53,11 @@ router.get('/businesses', async (req, res, next) => {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    const businesses = workspaces.map((workspace) => ({
+      ...workspace,
+      slug: workspace.id,
+    }));
 
     res.json({ ok: true, businesses });
   } catch (error) {
