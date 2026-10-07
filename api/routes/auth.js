@@ -51,15 +51,35 @@ router.post('/register', async (req, res, next) => {
       return res.status(409).json({ ok: false, message: 'Ya existe una cuenta con este correo' });
     }
 
-    const user = await prisma.user.create({
-      data: {
-        name,
-        lastName,
-        email,
-        passwordHash: hashPassword(password),
-        role: 'USER',
-        status: 'ACTIVE',
-      },
+    const user = await prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          name,
+          lastName,
+          email,
+          passwordHash: hashPassword(password),
+          role: 'USER',
+          status: 'ACTIVE',
+        },
+      });
+
+      const workspace = await tx.workspace.create({
+        data: {
+          name: 'Mi espacio',
+          type: 'PERSONAL',
+          status: 'ACTIVE',
+        },
+      });
+
+      await tx.membership.create({
+        data: {
+          userId: createdUser.id,
+          workspaceId: workspace.id,
+          role: 'OWNER',
+        },
+      });
+
+      return createdUser;
     });
 
     const token = await startSession(user.id);
