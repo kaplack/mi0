@@ -1,6 +1,7 @@
 .raffle-shell { min-height: 100vh; background: radial-gradient(circle at 50% 0%, rgba(0,229,168,.10), transparent 34%), var(--background); color: var(--text-primary); }
 .raffle-header { height: 76px; max-width: 1100px; margin: auto; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
 .raffle-header button { border: 0; background: transparent; color: var(--text-secondary); font-size: 13px; font-weight: 600; }
+.raffle-header button:disabled { opacity: .45; cursor: not-allowed; }
 .raffle-main { max-width: 680px; padding: 64px 24px 80px; }
 .raffle-intro { text-align: center; }
 .raffle-kicker { display: inline-block; padding: 7px 12px; border-radius: 999px; background: #e9fff8; color: #087f62; font-size: 10px; font-weight: 800; letter-spacing: .1em; }
@@ -10,15 +11,34 @@
 .raffle-card > label { display: block; margin-bottom: 9px; font-size: 13px; font-weight: 700; }
 .raffle-card textarea { width: 100%; min-height: 210px; resize: vertical; padding: 15px; border: 1px solid var(--border); border-radius: 12px; outline: none; color: var(--text-primary); font: inherit; line-height: 1.6; }
 .raffle-card textarea:focus { border-color: var(--primary-dark); box-shadow: 0 0 0 3px rgba(0,229,168,.12); }
+.raffle-card textarea:disabled { background: #f8fafc; color: var(--text-secondary); }
 .raffle-meta { min-height: 38px; display: flex; align-items: center; justify-content: space-between; color: var(--text-secondary); font-size: 12px; }
 .raffle-meta button { border: 0; background: transparent; color: #2563eb; font-size: 12px; }
 .raffle-draw { width: 100%; min-height: 52px; border: 0; border-radius: 11px; background: #172033; color: #fff; font-weight: 800; }
 .raffle-draw:disabled { opacity: .35; cursor: not-allowed; }
 .raffle-hint { margin: 9px 0 0; text-align: center; color: var(--text-secondary); font-size: 12px; }
-.raffle-result { margin-top: 18px; padding: 28px 20px; display: grid; place-items: center; border-radius: 14px; background: #e9fff8; text-align: center; }
-.raffle-result small { color: #087f62; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
-.raffle-result strong { margin: 5px 0 15px; font-size: clamp(28px, 6vw, 42px); letter-spacing: -1.5px; overflow-wrap: anywhere; }
+.raffle-stage, .raffle-result { margin-top: 18px; min-height: 154px; padding: 28px 20px; display: grid; place-items: center; align-content: center; border-radius: 14px; background: #e9fff8; text-align: center; overflow: hidden; }
+.raffle-stage small, .raffle-result small { color: #087f62; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+.raffle-countdown { margin-top: 4px; font-size: clamp(64px, 14vw, 92px); line-height: 1; letter-spacing: -4px; animation: raffle-pop .65s ease both; }
+.raffle-running-name { width: 100%; margin-top: 8px; font-size: clamp(28px, 6vw, 42px); line-height: 1.1; letter-spacing: -1.5px; overflow-wrap: anywhere; }
+.raffle-result strong { margin: 5px 0 15px; font-size: clamp(28px, 6vw, 42px); letter-spacing: -1.5px; overflow-wrap: anywhere; animation: raffle-winner .5s cubic-bezier(.2,.8,.2,1) both; }
 .raffle-result button { border: 0; background: transparent; color: #087f62; font-size: 12px; font-weight: 700; }
+
+@keyframes raffle-pop {
+  0% { opacity: 0; transform: scale(.72); }
+  35% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes raffle-winner {
+  0% { opacity: 0; transform: scale(.88); }
+  65% { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .raffle-countdown, .raffle-result strong { animation: none; }
+}
 
 @media (max-width: 560px) {
   .raffle-header { height: 66px; padding: 0 18px; }
