@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import { AuthPage } from './pages/AuthPage'
 import { HomePage } from './pages/HomePage'
-import { Mi0Page } from './pages/Mi0Page'
+import { Mi0Page } from './pages/Mi0Page'\nimport { Sorteos } from './microapps/sorteos/Sorteos'
 import { api, TOKEN_KEY } from './services/api'
 
 function App() {
   const [authMode, setAuthMode] = useState(null)
   const [user, setUser] = useState(null)
   const [consoleOpen, setConsoleOpen] = useState(true)
-  const [consoleRefresh, setConsoleRefresh] = useState(0)
+  const [consoleRefresh] = useState(0)\n  const [activeMicroapp, setActiveMicroapp] = useState(null)
 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
@@ -32,6 +32,10 @@ function App() {
     localStorage.removeItem(TOKEN_KEY)
     setUser(null)
     setConsoleOpen(false)
+  }
+
+  if (activeMicroapp === 'sorteos') {
+    return <Sorteos onBack={() => setActiveMicroapp(null)} />
   }
 
   if (authMode) {
@@ -67,7 +71,7 @@ function App() {
       onRegister={() => setAuthMode('register')}
       onOpenMi0={() => setConsoleOpen(true)}
       onLogout={logout}
-      onMicroappAdded={() => setConsoleRefresh((value) => value + 1)}
+      onOpenMicroapp={setActiveMicroapp}
     />
   )
 }
