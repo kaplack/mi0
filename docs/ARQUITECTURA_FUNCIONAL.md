@@ -162,20 +162,25 @@ Las microapps serán **módulos dentro del ecosistema mi0**, en lugar de proyect
 
 ## 9. Relación usuario–microapps
 
-La plataforma deberá registrar qué microapps ha agregado cada usuario a su espacio.
+Una microapp **no necesita estar agregada a Mi0 para poder utilizarse**. Cuando su naturaleza lo permita, el visitante podrá abrirla directamente desde el Home y usarla sin cuenta.
+
+Cuando un usuario decida conservar una microapp en Mi0, la relación se registra en su espacio mediante `WorkspaceModule`.
 
 Modelo conceptual:
 
 ```text
+VISITANTE
+  └── abre microapp → usa sin persistencia
+
 USER
-  │
-  └── USER_APPS
-      ├── incidentes
-      ├── agenda
-      └── tareas
+  └── WORKSPACE
+      └── WORKSPACE_MODULES
+          ├── sorteos
+          ├── agenda
+          └── ...
 ```
 
-Esto permitirá personalizar Mi0 sin duplicar las aplicaciones.
+Agregar una microapp a Mi0 aporta persistencia y acceso recurrente; no debe convertirse en un requisito artificial para probar una herramienta.
 
 ## 10. Consideraciones PWA
 
@@ -329,7 +334,101 @@ Principios de UX:
 
 > **mi0 pertenece a la persona. Los espacios organizan el contexto en el que utiliza sus microapps.**
 
-## 14. Documentos relacionados
+## 14. Modelo de acceso: usar primero, guardar después
+
+mi0.app adopta como principio de producto:
+
+> **Usar primero. Guardar después.**
+
+Siempre que la naturaleza de una microapp lo permita, el visitante podrá probarla y resolver la necesidad principal **sin registrarse, sin agregarla previamente a Mi0 y sin configurar un espacio**.
+
+Flujo principal:
+
+```text
+Home → Microapp → Usar
+```
+
+Si el usuario necesita conservar información o reutilizar la herramienta:
+
+```text
+Microapp → Agregar a Mi0 → Persistencia
+```
+
+### 14.1 Home como exploración
+
+El Home es el catálogo público de microapps. Por ello, no es necesario duplicar inicialmente un segundo catálogo de “Explorar” dentro de la consola.
+
+Las cards del Home deben priorizar una acción clara: **Abrir**.
+
+### 14.2 Uso sin cuenta
+
+Una microapp pública debe resolver realmente su función principal. Las limitaciones para visitantes pueden existir cuando tengan sentido técnico o comercial, especialmente en capacidades que requieren identidad o persistencia.
+
+No se deben introducir limitaciones artificiales únicamente para forzar el registro.
+
+Ejemplos de capacidades que pueden requerir Mi0:
+
+- guardar datos;
+- recuperar información en otra sesión o dispositivo;
+- historial;
+- listas reutilizables;
+- colaboración;
+- personalización persistente.
+
+### 14.3 Qué representa Mi0
+
+Mi0 no es un requisito para utilizar las herramientas públicas. Es el lugar donde el usuario conserva las microapps y datos que quiere mantener.
+
+La experiencia cotidiana debe ser simple:
+
+```text
+Sin cuenta: Home → Abrir → Usar
+Con Mi0:    Mis microapps → Abrir → Usar con persistencia
+```
+
+### 14.4 Workspace como infraestructura silenciosa
+
+`Workspace`, `Membership` y `WorkspaceModule` se mantienen porque permiten propiedad de datos, organizaciones y colaboración futura.
+
+Sin embargo, estos conceptos no deben imponerse al usuario si no necesita conocerlos. “Mi espacio” puede mostrarse de forma discreta y la administración avanzada de espacios se incorporará únicamente cuando exista un caso real.
+
+La complejidad necesaria puede existir en la arquitectura sin convertirse en complejidad de uso.
+
+### 14.5 Primera microapp de referencia: Sorteos
+
+**Sorteos** será la primera microapp utilizada para validar este modelo.
+
+Primera versión prevista:
+
+- acceso desde el Home;
+- uso gratuito;
+- sin registro obligatorio;
+- ingreso de participantes;
+- ejecución del sorteo;
+- sin persistencia para visitantes.
+
+Al agregarla a Mi0 podrán incorporarse posteriormente funciones persistentes como guardar listas, reutilizarlas o consultar historial. Estas capacidades se añadirán solo si aportan valor real.
+
+Sorteos servirá para validar el ciclo completo:
+
+```text
+descubrir → abrir → usar → agregar a Mi0 → guardar → volver a usar
+```
+
+### 14.6 Lo que no construiremos todavía
+
+Para mantener la simplicidad, no se implementarán anticipadamente:
+
+- planes complejos;
+- permisos por microapp sin un caso real;
+- administración avanzada de espacios;
+- un catálogo duplicado dentro de la consola;
+- límites artificiales para obligar al registro;
+- funciones de persistencia que una microapp todavía no necesite.
+
+Cada capacidad se incorporará cuando resuelva una necesidad comprobada.
+
+## 15. Documentos relacionados
 
 A medida que avance el proyecto, esta arquitectura funcional se complementará con:
 
