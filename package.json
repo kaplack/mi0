@@ -1,0 +1,13 @@
+{
+  "name": "mi0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n web,api \"npm run dev --prefix web\" \"npm run dev --prefix api\"",
+    "dev:web": "npm run dev --prefix web",
+    "dev:api": "npm run dev --prefix api",
+    "dev:admin": "npm run dev --prefix superadmin"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
