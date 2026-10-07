@@ -1,6 +1,6 @@
 const express = require('express');
 const prisma = require('../prisma');
-const { verifyPassword } = require('../auth/password');
+const { hashPassword, verifyPassword } = require('../auth/password');
 const { createSessionToken, hashSessionToken, sessionExpiry } = require('../auth/session');
 const { requireAuth } = require('../middleware/auth');
 
@@ -15,6 +15,60 @@ function publicUser(user) {
     role: user.role,
   };
 }
+
+async function startSession(userId) {
+  const token = createSessionToken();
+
+  await prisma.session.create({
+    data: {
+      tokenHash: hashSessionToken(token),
+      userId,
+      expiresAt: sessionExpiry(),
+    },
+  });
+
+  return token;
+}
+
+router.post('/register', async (req, res, next) => {
+  try {
+    const name = String(req.body.name || '').trim();
+    const lastName = String(req.body.lastName || '').trim();
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const password = String(req.body.password || '');
+
+    if (!name || !lastName || !email || !password) {
+      return res.status(400).json({ ok: false, message: 'Completa todos los campos' });
+    }
+
+    if (password.length < 10) {
+      return res.status(400).json({ ok: false, message: 'La contraseña debe tener al menos 10 caracteres' });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+
+    if (existingUser) {
+      return res.status(409).json({ ok: false, message: 'Ya existe una cuenta con este correo' });
+    }
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        lastName,
+        email,
+        passwordHash: hashPassword(password),
+        role: 'USER',
+        status: 'ACTIVE',
+      },
+    });
+
+    const token = await startSession(user.id);
+
+    res.status(201).json({ ok: true, token, user: publicUser(user) });
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.post('/login', async (req, res, next) => {
   try {
@@ -31,15 +85,7 @@ router.post('/login', async (req, res, next) => {
       return res.status(401).json({ ok: false, message: 'Credenciales inválidas' });
     }
 
-    const token = createSessionToken();
-
-    await prisma.session.create({
-      data: {
-        tokenHash: hashSessionToken(token),
-        userId: user.id,
-        expiresAt: sessionExpiry(),
-      },
-    });
+    const token = await startSession(user.id);
 
     res.json({ ok: true, token, user: publicUser(user) });
   } catch (error) {
