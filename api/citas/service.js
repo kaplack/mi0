@@ -1,16 +1,10 @@
 const crypto = require('node:crypto');
 const prisma = require('../prisma');
 const v = require('./validation');
+const { access, scopeProfessional } = require('./access');
 const { parts, dayBounds, bookableDate, availableSlots, nextDay } = require('./availability');
 const professionalInclude = { schedules: { orderBy: [{ weekday: 'asc' }, { startMinute: 'asc' }] } };
 const receiptView = a => ({ status: a.status, startsAt: a.startsAt, endsAt: a.endsAt, expiresAt: a.expiresAt });
-async function access(userId, workspaceId, admin = false, db = prisma) {
-  v.id(workspaceId);
-  const membership = await db.membership.findUnique({ where: { userId_workspaceId: { userId, workspaceId } }, include: { workspace: { select: { status: true } } } });
-  if (!membership || membership.workspace.status !== 'ACTIVE') throw v.fail(403, 'No tienes acceso a este espacio activo');
-  if (admin && !['OWNER', 'ADMIN'].includes(membership.role)) throw v.fail(403, 'Solo el propietario o administrador puede configurar Mi Cita');
-  return membership;
-}
 async function publicClinic(code, db = prisma) {
   if (typeof code !== 'string' || !/^[a-f0-9]{24}$/.test(code)) throw v.fail(404, 'Consultorio no disponible');
   const clinic = await db.citaClinic.findUnique({ where: { code }, include: { workspace: { select: { status: true } } } });
@@ -92,8 +86,8 @@ async function receipt(code, requestKey) {
 async function workspace(userId, workspaceId) {
   const membership = await access(userId, workspaceId);
   const clinic = await prisma.citaClinic.findUnique({ where: { workspaceId } });
-  const professionals = clinic ? await prisma.citaProfessional.findMany({ where: { clinicId: clinic.id }, include: professionalInclude, orderBy: [{ active: 'desc' }, { name: 'asc' }] }) : [];
-  return { role: membership.role, clinic, professionals, today: parts(new Date(), clinic?.timezone || 'America/Lima').date };
+  const professionals = clinic ? await prisma.citaProfessional.findMany({ where: { clinicId: clinic.id, ...(membership.professionalId ? { id: membership.professionalId } : {}) }, include: professionalInclude, orderBy: [{ active: 'desc' }, { name: 'asc' }] }) : [];
+  return { role: membership.role, accessRole: membership.accessRole, professionalId: membership.professionalId, clinic, professionals, today: parts(new Date(), clinic?.timezone || 'America/Lima').date };
 }
 async function saveSettings(userId, workspaceId, body) {
   const data = v.settings(body);
@@ -122,7 +116,7 @@ async function saveProfessional(userId, workspaceId, professionalId, body) {
   });
 }
 async function agenda(userId, workspaceId, query) {
-  await access(userId, workspaceId);
+  const membership = await access(userId, workspaceId);
   const clinic = await prisma.citaClinic.findUnique({ where: { workspaceId } });
   if (!clinic) throw v.fail(404, 'Configura primero el consultorio');
   await expirePending(prisma, clinic.id);
@@ -130,7 +124,7 @@ async function agenda(userId, workspaceId, query) {
   const pending = query?.pending === 'true';
   let bounds;
   if (!pending) bounds = dayBounds(v.date(query?.date ?? parts(now, clinic.timezone).date), clinic.timezone);
-  const professionalId = query?.professionalId ? v.id(query.professionalId) : undefined;
+  const professionalId = scopeProfessional(membership, query?.professionalId);
   const cursor = query?.cursor ? v.id(query.cursor) : undefined;
   const appointments = await prisma.citaAppointment.findMany({
     where: { clinicId: clinic.id, ...(professionalId ? { professionalId } : {}), ...(pending ? { status: 'PENDING', expiresAt: { gt: now } } : { startsAt: { gte: bounds.first, lt: bounds.last } }) },
@@ -141,12 +135,12 @@ async function agenda(userId, workspaceId, query) {
   return { appointments: visible, nextCursor: appointments.length > 100 ? visible[99].id : null };
 }
 async function daySummary(userId, workspaceId, query = {}) {
-  await access(userId, workspaceId);
+  const membership = await access(userId, workspaceId);
   const range = query.days ?? '7';
   if (!['7', '30'].includes(range)) throw v.fail(400, 'Elige próximos 7 días o próximos 30 días');
   const clinic = await prisma.citaClinic.findUnique({ where: { workspaceId } });
   if (!clinic) throw v.fail(404, 'Configura primero el consultorio');
-  const professionalId = query.professionalId ? v.id(query.professionalId) : null;
+  const professionalId = scopeProfessional(membership, query.professionalId);
   if (professionalId && !await prisma.citaProfessional.findFirst({ where: { id: professionalId, clinicId: clinic.id }, select: { id: true } })) throw v.fail(404, 'Profesional no disponible');
   const now = new Date();
   await expirePending(prisma, clinic.id, now);
@@ -178,8 +172,8 @@ async function transition(userId, workspaceId, appointmentId, action) {
   v.id(appointmentId);
   if (!['CONFIRMED', 'CANCELLED'].includes(action)) throw v.fail(400, 'Selecciona confirmar o cancelar');
   return locked(workspaceId, async (tx, clinic, now) => {
-    await access(userId, workspaceId, false, tx);
-    const appointment = await tx.citaAppointment.findFirst({ where: { id: appointmentId, clinicId: clinic.id } });
+    const membership = await access(userId, workspaceId, false, tx);
+    const appointment = await tx.citaAppointment.findFirst({ where: { id: appointmentId, clinicId: clinic.id, ...(membership.professionalId ? { professionalId: membership.professionalId } : {}) } });
     if (!appointment) throw v.fail(404, 'Cita no disponible');
     if (appointment.status === action) return { appointment };
     if (appointment.status === 'EXPIRED') return { conflict: 'Esta solicitud venció y liberó el horario. El paciente debe solicitar una nueva cita' };

@@ -3,7 +3,7 @@ import { useCitaResource, useCitaMutation } from './useCitaData'
 import { CitaStatus, CitaIcon } from './CitaUi'
 import { dateLabel } from './citaUtils'
 import { CitaDayOverview } from './CitaDayOverview'
-export function CitaAgenda({ workspaceId, clinic, professionals, pending, today }) {
+export function CitaAgenda({ workspaceId, clinic, professionals, pending, today, ownProfessional }) {
   const [date, setDate] = useState(today)
   const [range, setRange] = useState(() => localStorage.getItem('mi0_cita_agenda_range') === '30' ? 30 : 7)
   const agendaRef = useRef(null)
@@ -18,8 +18,8 @@ export function CitaAgenda({ workspaceId, clinic, professionals, pending, today 
   function changeRange(days) { setRange(days); localStorage.setItem('mi0_cita_agenda_range', String(days)) }
   function selectDay(day) { filter(setDate, day); agendaRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' }) }
   function filter(setter, value) { setter(value); setCursor(''); setSelected(null) }
-  return <><div className="cita-heading"><div><h2>{pending ? 'Solicitudes pendientes' : 'Agenda diaria'}</h2><p>{pending ? 'Confirma o cancela las solicitudes antes de su vencimiento.' : 'Tus citas, ordenadas por horario.'}</p></div><button className="cita-secondary" onClick={reload}>Actualizar</button></div>
-    <div className={pending ? "cita-filters" : "cita-filters cita-agenda-filters"}><label>Profesional<select value={professionalId} onChange={e => filter(setProfessionalId, e.target.value)}><option value="">Todos los profesionales</option>{professionals.map(p => <option key={p.id} value={p.id}>{p.name}{p.active ? '' : ' (inactivo)'}</option>)}</select></label>{!pending && <details className="cita-date-picker"><summary><CitaIcon name="agenda" /><span>Ir a una fecha</span></summary><label>Fecha<input type="date" required value={date} onChange={e => { if (e.target.value) filter(setDate, e.target.value) }} /></label></details>}</div>
+  return <><div className="cita-heading"><div><h2>{pending ? 'Solicitudes pendientes' : ownProfessional ? 'Mi agenda' : 'Agenda diaria'}</h2><p>{pending ? 'Confirma o cancela las solicitudes antes de su vencimiento.' : 'Tus citas, ordenadas por horario.'}</p></div><button className="cita-secondary" onClick={reload}>Actualizar</button></div>
+    <div className={pending || ownProfessional ? "cita-filters" : "cita-filters cita-agenda-filters"}>{!ownProfessional && <label>Profesional<select value={professionalId} onChange={e => filter(setProfessionalId, e.target.value)}><option value="">Todos los profesionales</option>{professionals.map(p => <option key={p.id} value={p.id}>{p.name}{p.active ? '' : ' (inactivo)'}</option>)}</select></label>}{!pending && <details className={ownProfessional ? "cita-date-picker cita-own-date-picker" : "cita-date-picker"}><summary><CitaIcon name="agenda" /><span>Ir a una fecha</span></summary><label>Fecha<input type="date" required value={date} onChange={e => { if (e.target.value) filter(setDate, e.target.value) }} /></label></details>}</div>
     {!pending && <CitaDayOverview range={range} onRangeChange={changeRange} resource={summary} selectedDate={date} onSelectDay={selectDay} />}
     {notice && <p role="status" className="cita-notice">{notice}</p>}
     <small>Horarios del consultorio · {clinic.timezone}</small>

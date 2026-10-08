@@ -1,6 +1,7 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
 const service = require('../citas/service');
+const invitations = require('../citas/invitations');
 const { rateLimit } = require('../citas/maintenance');
 const router = express.Router();
 const handle = (fn, status = 200) => async (req, res, next) => {
@@ -11,7 +12,13 @@ router.get('/public/:code', handle(req => service.publicInfo(req.params.code)));
 router.get('/public/:code/availability', handle(req => service.publicSlots(req.params.code, req.query.professionalId, req.query.date)));
 router.post('/public/:code/appointments', rateLimit({ limit: 10, windowMs: 600000 }), handle(req => service.reserve(req.params.code, req.body), 201));
 router.post('/public/:code/receipt', handle(req => service.receipt(req.params.code, req.body?.requestKey)));
+router.use('/invitations', rateLimit({ limit: 180, windowMs: 60000 }));
+router.get('/invitations/:token', handle(req => invitations.info(req.params.token)));
+router.post('/invitations/:token/accept', requireAuth, handle(req => invitations.accept(req.auth.user.id, req.params.token)));
 router.use(requireAuth);
+router.get('/workspace/:workspaceId/accesses', handle(req => invitations.list(req.auth.user.id, req.params.workspaceId)));
+router.post('/workspace/:workspaceId/professionals/:professionalId/invitation', handle(req => invitations.create(req.auth.user.id, req.params.workspaceId, req.params.professionalId, req.body), 201));
+router.delete('/workspace/:workspaceId/professionals/:professionalId/access', handle(req => invitations.revoke(req.auth.user.id, req.params.workspaceId, req.params.professionalId)));
 router.get('/workspace/:workspaceId', handle(req => service.workspace(req.auth.user.id, req.params.workspaceId)));
 router.put('/workspace/:workspaceId/settings', handle(req => service.saveSettings(req.auth.user.id, req.params.workspaceId, req.body)));
 router.get('/workspace/:workspaceId/day-summary', handle(req => service.daySummary(req.auth.user.id, req.params.workspaceId, req.query)));

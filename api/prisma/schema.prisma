@@ -43,6 +43,7 @@ model User {
   publicationRequests RafflePublication[] @relation("PublicationRequester")
   publicationReviews RafflePublication[] @relation("PublicationReviewer")
   memberships Membership[]
+  citaAccesses CitaProfessionalAccess[]
   turnOperators TurnOperator[]
   turnCalls TurnTicket[] @relation("TurnCalledBy")
   dashboardRequests TurnDashboardPayment[] @relation("DashboardRequester")
@@ -323,6 +324,8 @@ model CitaClinic {
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
   workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  accesses          CitaProfessionalAccess[]
+  invitations       CitaInvitation[]
   professionals     CitaProfessional[]
   appointments      CitaAppointment[]
 
@@ -339,6 +342,8 @@ model CitaProfessional {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
   clinic          CitaClinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  accesses        CitaProfessionalAccess[]
+  invitations     CitaInvitation[]
   schedules       CitaSchedule[]
   appointments    CitaAppointment[]
 
@@ -381,4 +386,34 @@ model CitaAppointment {
   @@index([clinicId, startsAt])
   @@index([status, expiresAt])
   @@map("cita_appointments")
+}
+
+model CitaProfessionalAccess {
+  id             String @id @default(uuid()) @db.Uuid
+  clinicId       String @map("clinic_id") @db.Uuid
+  userId         String @map("user_id") @db.Uuid
+  professionalId String @map("professional_id") @db.Uuid
+  active         Boolean @default(true)
+  createdAt      DateTime @default(now()) @map("created_at")
+  clinic         CitaClinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  professional   CitaProfessional @relation(fields: [clinicId, professionalId], references: [clinicId, id], onDelete: Cascade)
+  @@unique([clinicId, userId])
+  @@map("cita_professional_accesses")
+}
+model CitaInvitation {
+  id             String @id @default(uuid()) @db.Uuid
+  clinicId       String @map("clinic_id") @db.Uuid
+  professionalId String @map("professional_id") @db.Uuid
+  email          String @db.VarChar(254)
+  tokenHash      String @unique @map("token_hash") @db.Char(64)
+  status         String @default("PENDING") @db.VarChar(16)
+  expiresAt      DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt      DateTime @default(now()) @map("created_at")
+  acceptedAt     DateTime? @map("accepted_at")
+  clinic         CitaClinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  professional   CitaProfessional @relation(fields: [clinicId, professionalId], references: [clinicId, id], onDelete: Cascade)
+  @@unique([clinicId, email])
+  @@index([professionalId, status])
+  @@map("cita_invitations")
 }

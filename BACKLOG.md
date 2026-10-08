@@ -220,3 +220,12 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Agenda: selector de fecha oculto inicialmente en «Ir a una fecha»; conserva consulta de fechas pasadas/futuras y filtro profesional visible. Verificación mínima: lint del componente y build; revisión visual a cargo del usuario.
 
 - Ajuste visual de Agenda: profesional y «Ir a una fecha» en columnas iguales; botón con icono calendario, altura de 44 px y controles apilados en móvil. Verificación mínima: lint del componente y build; revisión visual del usuario.
+
+### Mi Cita · acceso profesional por invitación completado
+
+- Cuentas e invitaciones del workspace reutilizadas: enlace ligado al correo/profesional, registro o login, aceptación explícita y entrada a Mi agenda. Enlace vence en 7 días, hash en BD y regeneración/cancelación invalidan el anterior.
+- Gestión completa para administrador/asistente (OWNER/ADMIN y MEMBER sin vinculación); profesional MEMBER vinculado accede solo a sus citas, confirma/cancela propias y comparte QR/enlace preseleccionado. Aislamiento aplicado en API, incluidas agenda, pendientes, resumen y mutaciones.
+- Cancelar invitación y retirar acceso desde ficha. Revocación conserva citas y un registro de denegación para evitar acceso de gestión por omisión. Una cuenta por profesional; una vinculación por cuenta/consultorio.
+- Migración 20261008180000_cita_professional_invitations aditiva, aplicada a mi0 local/public, migrate status al día y Prisma generado. API local reiniciada y disponible en 3000. No se tocaron bases remotas.
+- Verificado: 11 pruebas HTTP/PostgreSQL, un único recorrido nuevo desktop de invitación/registro/agenda/QR/revocación, lint y build. Sin suites visuales adicionales. Primera ejecución del recorrido corrigió únicamente un selector de etiqueta Correo; segunda correcta.
+- Entrega en feature/mi-cita-mvp y PR #2, sin merge. Revisión visual del usuario.

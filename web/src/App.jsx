@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage'
 import { Mi0Page } from './pages/Mi0Page'
 import { TurnoInvitation } from './microapps/mi-turno/TurnoInvitation'
 import { MiTurno } from './microapps/mi-turno/MiTurno'
+import { CitaInvitation } from './microapps/mi-cita/CitaInvitation'
 import { MiCita } from './microapps/mi-cita/MiCita'
 import { Sorteos } from './microapps/sorteos/Sorteos'
 import { SorteosAvanzado } from './microapps/sorteos-avanzado/SorteosAvanzado'
@@ -32,6 +33,7 @@ function App() {
   const turnoMatch = pathname.match(/^\/turno\/([^/]+)\/?$/)
   const displayMatch = pathname.match(/^\/turno\/([^/]+)\/pantalla\/?$/)
   const managerMatch = pathname.match(/^\/mi-turno(?:\/([^/]+)\/(configuracion|operacion|qr|operadores|dashboard))?\/?$/)
+  const citaInvitationMatch = pathname.match(/^\/mi-cita\/invitacion\/([a-f0-9]{64})\/?$/)
   const citaMatch = pathname.match(/^\/cita\/([a-f0-9]{24})\/?$/)
   const citaManagerMatch = pathname.match(/^\/mi-cita(?:\/([^/]+)(?:\/(agenda|pendientes|profesionales|configuracion|qr))?)?\/?$/)
   const publicMatch = pathname.match(/^\/s\/([^/]+)\/?$/)
@@ -67,6 +69,7 @@ function App() {
   if (authMode) return <AuthPage mode={authMode} onModeChange={setAuthMode} onAuthenticated={nextUser => {
     setUser(nextUser); setConsoleOpen(true); setAuthMode(null)
   }} onClose={() => { setAuthMode(null); setOpenAdvancedRequested(false) }} />
+  if (citaInvitationMatch) return <CitaInvitation token={citaInvitationMatch[1]} />
   if (citaMatch) return <MiCita code={citaMatch[1]} />
   if (citaManagerMatch) return <MiCita workspaceId={citaManagerMatch[1]} page={citaManagerMatch[2]} onNavigate={navigate} onLogin={() => setAuthMode('login')} />
   if (activeMicroapp === 'mi-cita') return <MiCita onBack={() => setActiveMicroapp(null)} onLogin={() => setAuthMode('login')} onNavigate={navigate} />

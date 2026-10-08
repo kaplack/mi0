@@ -5,11 +5,11 @@ Microapp de reservas integrada en cuentas y espacios de mi0.app. El paciente sol
 ## Configuración y operación
 
 1. Abrir **Mi Cita** desde Mi0 con un workspace activo.
-2. OWNER/ADMIN configura nombre, zona horaria (America/Lima por defecto), confirmación manual o vencimiento de 2/6/12/24 horas.
+2. El personal de gestión configura nombre, zona horaria (America/Lima por defecto), confirmación manual o vencimiento de 2/6/12/24 horas.
 3. **Solicitar DNI al reservar** está desactivado por defecto. Si se activa, el paciente debe ingresar ocho dígitos. Sin la opción, no se muestra ni se almacena un DNI enviado por el cliente. Cambiarla no modifica citas existentes.
 4. Crear profesionales con especialidad, duración de 10 a 240 minutos y bloques semanales, incluyendo mañana/tarde si se necesita. Desactivar o modificar horarios conserva las citas existentes; revisar la agenda y contactar pacientes afectados.
 5. Descargar el QR PNG o copiar el enlace desde **QR y enlace**. Usar la dirección pública de la web para compartirlo con pacientes.
-6. MEMBER abre **Pendientes** por defecto; puede consultar agenda/disponibilidad, contactar por WhatsApp y confirmar/cancelar. OWNER/ADMIN abre Agenda por defecto y tiene acceso a configuración y QR.
+6. Administrador y asistente tienen acceso completo a Mi Cita y abren Agenda por defecto. Un MEMBER vinculado como profesional solo accede a sus citas y su QR. Los roles e invitaciones de otras microapps no se modifican.
 
 La solicitud pública requiere nombre y teléfono con código de país; un celular peruano de nueve dígitos se normaliza con +51. El formulario nunca informa que una solicitud pendiente esté confirmada. La página de recepción actualiza el estado mientras permanece abierta. No se almacena información personal en URLs ni almacenamiento del navegador; al cerrar/recargar la página el consultorio sigue gestionando la solicitud por teléfono.
 
@@ -48,7 +48,7 @@ La API conserva DATABASE_URL, CORS_ORIGIN y la configuración existente. No nece
 
 ## Privacidad y protección
 
-Solo miembros del workspace activo acceden a datos personales; OWNER/ADMIN son los únicos que cambian configuración/profesionales. Los endpoints públicos tienen respuestas explícitas sin datos de otros pacientes y `Cache-Control: no-store`. El DNI no aparece en el mensaje WhatsApp.
+Solo miembros del workspace activo acceden a datos personales. OWNER/ADMIN y MEMBER sin vinculación profesional tienen acceso de gestión; los profesionales vinculados solo acceden a sus propias citas y no pueden cambiar configuración, profesionales ni invitaciones. Los endpoints públicos tienen respuestas explícitas sin datos de otros pacientes y `Cache-Control: no-store`. El DNI no aparece en el mensaje WhatsApp.
 
 Límites públicos por IP: 180 peticiones/minuto; reservas 10 intentos/10 minutos por consultorio/IP. Los contadores tienen memoria acotada por proceso y no confían en `X-Forwarded-For`. Con varios procesos o un proxy, configurar límites en el ingress conservando la política de confianza del proxy; no se habilita `trust proxy` globalmente. El límite persistente por teléfono impide más de tres solicitudes pendientes o veinte solicitudes en 24 horas dentro del consultorio. Incluye un campo señuelo de formulario. No se registran nombre, DNI o teléfono en logs.
 
@@ -78,3 +78,15 @@ Las casillas verdes tienen citas confirmadas; las ámbar solo pendientes activas
 GET /api/citas/workspace/:workspaceId/day-summary acepta days=7|30 y professionalId opcional. Verifica la pertenencia al workspace y agrega en PostgreSQL sin devolver datos personales ni aplicar el límite de paginación diaria. No requiere migración adicional. El resumen se actualiza cada 15 segundos y al confirmar/cancelar o pulsar Actualizar.
 
 El selector manual de fecha se despliega desde «Ir a una fecha», para consultar fechas pasadas o fuera del resumen. El filtro de profesional permanece visible.
+
+## Invitación de profesionales
+
+En Profesionales, abrir «Invitar a ver su agenda», ingresar el correo y generar el enlace. Compartirlo manualmente; no se envía correo. El profesional abre /mi-cita/invitacion/:token, inicia sesión o se registra con ese correo y acepta. La aceptación crea la membresía MEMBER si falta y lo vincula al profesional ya configurado. Abre Mi agenda, puede confirmar/cancelar sus citas y descargar su QR/enlace con el profesional preseleccionado. No se agrega un sistema de cuentas ni roles globales nuevo.
+
+El enlace vence en siete días, se almacena solo su hash y requiere aceptación explícita con el correo correcto. Generar otro enlace invalida el anterior. Solo hay una cuenta activa por profesional y una vinculación por cuenta en cada consultorio. Las cuentas OWNER/ADMIN del workspace mantienen la gestión y no pueden ser invitadas como profesionales.
+
+Cancelar invitación invalida el enlace; Retirar acceso revoca la entrada a Mi Cita conservando citas y membresía del workspace. El registro de acceso revocado se mantiene para impedir que la cuenta obtenga permisos de gestión por omisión. Se puede invitar otra cuenta después. Desactivar la atención de un profesional conserva su acceso a las citas existentes; retirar acceso es una acción separada.
+
+Migración adicional: 20261008180000_cita_professional_invitations. Agrega únicamente tablas de accesos/invitaciones, claves foráneas y unicidad de asignación activa. Ejecutar migrate deploy y db:generate también para esta ampliación. Aplicada únicamente a mi0 local/public; validada desde cero en esquemas aislados.
+
+Verificación de la ampliación: 11 pruebas backend correctas (incluyen aislamiento, invitaciones concurrentes, registro, correo incorrecto, revocación, enlaces reemplazados/vencidos/cancelados). Un recorrido nuevo de navegador desktop con API/DB reales cubre generar invitación desde ficha, registro/aceptación, Mi agenda, confirmación propia, QR preseleccionado y revocación. Lint y build correctos. No se repitieron las suites visuales/mobile ni las regresiones de otras microapps; revisión visual a cargo del usuario.

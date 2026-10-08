@@ -174,3 +174,9 @@
   .cita-agenda-filters { grid-template-columns: minmax(0, 1fr); }
   .cita-date-picker { margin-top: 0; }
 }
+
+.cita-professional-invite,.cita-invitation-share { display: flex; flex-direction: column; gap: 12px; }
+.cita-professional-invite { border-top: 1px solid var(--border); padding-top: 16px; }
+.cita-invitation-share { border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+
+.cita-own-date-picker { margin-top: 0; width: 100%; }

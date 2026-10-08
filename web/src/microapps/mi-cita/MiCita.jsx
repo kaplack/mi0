@@ -44,26 +44,27 @@ function CitaWorkspace({ workspace, workspaces, requestedPage, onNavigate }) {
     if (menuOpen && !drawer.open) drawer.showModal()
     else if (!menuOpen && drawer.open) drawer.close()
   }, [menuOpen])
-  const canConfigure = ['OWNER', 'ADMIN'].includes(state.data?.role || workspace.role)
-  const page = requestedPage || (canConfigure ? 'agenda' : 'pendientes')
+  const isProfessional = state.data?.accessRole === 'PROFESSIONAL'
+  const canConfigure = state.data?.accessRole === 'MANAGEMENT'
+  const page = requestedPage || 'agenda'
   const clinic = state.data?.clinic
   function navigate(path) { setMenuOpen(false); if (onNavigate) onNavigate(path); else location.href = path }
   function toggleCollapse() { setCollapsed(value => { localStorage.setItem('mi0_cita_sidebar', value ? 'expanded' : 'collapsed'); return !value }) }
-  const sidebarProps = { workspace, workspaces, page, canConfigure, onNavigate: navigate }
+  const sidebarProps = { workspace, workspaces, page, canConfigure, isProfessional, onNavigate: navigate }
   return <main className={'cita-workspace' + (!canConfigure && smallScreen ? ' cita-assistant-workspace' : '')}>
     <section className="cita-intro"><span className="cita-kicker">{clinic?.name || workspace.name}</span><h1>Mi Cita</h1><p>Tu agenda organizada, una cita a la vez.</p>{canConfigure && smallScreen && <button className="cita-admin-menu-toggle cita-secondary" aria-label="Abrir menú" aria-expanded={menuOpen} aria-controls="cita-admin-drawer" onClick={() => setMenuOpen(true)}><CitaIcon name="menu" /></button>}</section>
     {canConfigure && <dialog id="cita-admin-drawer" className="cita-admin-drawer" ref={drawerRef} aria-label="Menú de administración" onCancel={() => setMenuOpen(false)} onClose={() => setMenuOpen(false)}><CitaSidebar {...sidebarProps} drawer collapsed={false} onCollapse={() => setMenuOpen(false)} /></dialog>}
     <div className={'cita-layout' + (smallScreen ? ' cita-mobile-layout' : collapsed ? ' is-collapsed' : '')}>{!smallScreen && <div className="cita-sidebar-area"><CitaSidebar {...sidebarProps} collapsed={collapsed} onCollapse={toggleCollapse} /></div>}
       <section className="cita-panel cita-content" aria-label={citaPages[page]}><span className="cita-eyebrow">MI CITA / {citaPages[page]?.toUpperCase()}</span>
         {state.error && <p className="cita-error" role="alert">{state.error} <button onClick={state.reload}>Reintentar</button></p>}
-        {!state.data ? !state.error && <p role="status">Cargando consultorio…</p> : ['configuracion', 'qr'].includes(page) && !canConfigure ? <p>Solo el propietario o administrador puede acceder a esta sección.</p>
+        {!state.data ? !state.error && <p role="status">Cargando consultorio…</p> : ['configuracion', 'profesionales'].includes(page) && !canConfigure ? <p>Esta sección está disponible únicamente para el personal de gestión.</p>
           : page === 'configuracion' ? <CitaSettings key={clinic?.id || 'new'} workspaceId={workspace.id} clinic={clinic} workspaceName={workspace.name} reload={state.reload} />
           : !clinic ? <div className="cita-empty"><h2>Empecemos con tu consultorio</h2><p>Mi Cita todavía no está configurada.</p>{canConfigure ? <CitaNavLink workspaceId={workspace.id} page={page} target="configuracion" onNavigate={navigate}>Configurar Mi Cita →</CitaNavLink> : <p>Pide al administrador que configure el consultorio.</p>}</div>
           : page === 'profesionales' ? <CitaProfessionals workspaceId={workspace.id} clinic={clinic} professionals={state.data.professionals} today={state.data.today} canConfigure={canConfigure} reload={state.reload} />
-          : page === 'qr' ? <CitaQr clinic={clinic} />
-          : <CitaAgenda key={page} workspaceId={workspace.id} clinic={clinic} professionals={state.data.professionals} pending={page === 'pendientes'} today={state.data.today} />}
+          : page === 'qr' ? <CitaQr clinic={clinic} professional={isProfessional ? state.data.professionals[0] : null} />
+          : <CitaAgenda key={page} workspaceId={workspace.id} clinic={clinic} professionals={state.data.professionals} ownProfessional={isProfessional ? state.data.professionals[0] : null} pending={page === 'pendientes'} today={state.data.today} />}
       </section>
     </div>
-    {!canConfigure && smallScreen && <nav className="cita-assistant-nav" aria-label="Navegación de la asistente">{['agenda', 'pendientes', 'profesionales'].map(target => <CitaNavLink key={target} workspaceId={workspace.id} page={page} target={target} onNavigate={navigate} />)}</nav>}
+    {!canConfigure && smallScreen && <nav className="cita-assistant-nav" aria-label={isProfessional ? 'Navegación del profesional' : 'Navegación de la asistente'}>{(isProfessional ? ['agenda', 'qr'] : ['agenda', 'pendientes', 'profesionales']).map(target => <CitaNavLink key={target} workspaceId={workspace.id} page={page} target={target} onNavigate={navigate}>{isProfessional && target === 'agenda' ? 'Mi agenda' : undefined}</CitaNavLink>)}</nav>}
   </main>
 }

@@ -84,11 +84,11 @@ test('patient booking without DNI, assistant confirmation/cancellation, receipt 
   await expect(page.getByText('Pendiente de confirmación', { exact: true })).toBeVisible()
   const assistant = await context.newPage()
   await login(assistant, f.memberToken)
-  await assistant.goto('/mi-cita/' + f.workspaceId)
+  await assistant.goto('/mi-cita/' + f.workspaceId + '/pendientes')
   await expect(assistant.getByRole('heading', { name: 'Solicitudes pendientes' })).toBeVisible()
-  if (mobile) await expect(assistant.getByRole('navigation', { name: 'Navegación de la asistente' })).toBeVisible()
+  if (mobile) await expect(assistant.getByRole('button', { name: 'Abrir menú', exact: true })).toBeVisible()
   else await expect(assistant.getByRole('complementary', { name: 'Menú de Mi Cita' })).toBeVisible()
-  await expect(assistant.getByRole('link', { name: 'Configuración', exact: true })).toHaveCount(0)
+  if (!mobile) await expect(assistant.getByRole('link', { name: 'Configuración', exact: true })).toBeVisible()
   await details(assistant, patientName, mobile)
   await expect(assistant.getByRole('dialog', { name: 'Detalles de la cita' })).toBeVisible()
   await assistant.screenshot({ path: testInfo.outputPath('detalles.png') })
@@ -102,7 +102,7 @@ test('patient booking without DNI, assistant confirmation/cancellation, receipt 
   await expect(assistant.getByRole('status')).toContainText('Cita confirmada')
   await page.getByRole('button', { name: 'Actualizar estado' }).click()
   await expect(page.getByRole('heading', { name: 'Cita confirmada' })).toBeVisible()
-  await assistant.getByRole('link', { name: 'Agenda', exact: true }).click()
+  await navigateSection(assistant, 'Agenda', mobile)
   await assistant.getByText('Ir a una fecha', { exact: true }).click()
   await assistant.getByLabel('Fecha', { exact: true }).fill(f.tomorrow)
   await details(assistant, patientName, mobile)
@@ -115,7 +115,7 @@ test('patient booking without DNI, assistant confirmation/cancellation, receipt 
   await expect(page.getByText('Cancelada', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Solicitar otra cita' })).toBeVisible()
   await assistant.goto('/mi-cita/' + f.workspaceId + '/configuracion')
-  await expect(assistant.getByText('Solo el propietario o administrador puede acceder a esta sección.')).toBeVisible()
+  await expect(assistant.getByRole('heading', { name: 'Configuración del consultorio' })).toBeVisible()
   await assistant.close()
 })
 test('required DNI flow validates and empty day is actionable', async ({ page, request }) => {
@@ -175,7 +175,7 @@ test('next 7 and 30 days persist, filter and update colors when managing appoint
   expect(created.status()).toBe(201);
   await login(page, f.memberToken);
   await page.goto('/mi-cita/' + f.workspaceId);
-  await page.getByRole('link', {name:'Agenda',exact:true}).click();
+  await navigateSection(page, 'Agenda', mobile);
   const ranges = page.getByRole('group', {name:'Rango de agenda'});
   await expect(ranges.getByRole('button')).toHaveCount(2);
   await expect(page.locator('.cita-day')).toHaveCount(7);
@@ -205,4 +205,45 @@ test('next 7 and 30 days persist, filter and update colors when managing appoint
   if (mobile) await page.setViewportSize({width:320,height:740});
   await overflow(page);
   await page.screenshot({path:testInfo.outputPath('proximos-7.png'),fullPage:true});
+});
+
+test('professional invitation registration, own agenda, personalized QR and revoked access', async ({ page, browser, request }) => {
+  const f=readFixture(); await config(request,f,false);
+  const headers={Authorization:'Bearer '+f.ownerToken};
+  const result=await request.post(apiUrl+'/workspace/'+f.workspaceId+'/professionals',{headers,data:{name:'Profesional invitado',specialty:'Podología',active:true,durationMinutes:30,schedules:[{weekday:new Date(f.tomorrow+'T12:00:00Z').getUTCDay(),startMinute:540,endMinute:720}]}});
+  expect(result.status()).toBe(201); const professional=(await result.json()).professional;
+  const availability=await request.get(apiUrl+'/public/'+f.code+'/availability?professionalId='+professional.id+'&date='+f.tomorrow);
+  const slots=(await availability.json()).slots;
+  expect((await request.post(apiUrl+'/public/'+f.code+'/appointments',{data:{professionalId:professional.id,startsAt:slots[0].startsAt,requestKey:crypto.randomUUID(),patientName:'Paciente propio',phone:'+51987654321'}})).status()).toBe(201);
+  await login(page,f.ownerToken);await page.goto('/mi-cita/'+f.workspaceId+'/profesionales');
+  const card=page.locator('article').filter({has:page.getByRole('heading',{name:professional.name,exact:true})});
+  await card.getByRole('button',{name:'Invitar a ver su agenda'}).click();
+  const email='prof-'+crypto.randomUUID()+'@test.invalid';
+  await card.getByLabel('Correo del profesional').fill(email);await card.getByRole('button',{name:'Generar invitación',exact:true}).click();
+  const link=await card.getByLabel('Enlace de invitación').inputValue();
+  const context=await browser.newContext();const guest=await context.newPage();
+  try {
+    await guest.goto(link);await expect(guest.getByRole('heading',{name:'Iniciar sesión',exact:true})).toBeVisible();
+    await guest.getByRole('button',{name:'Créala aquí'}).click();
+    await guest.getByLabel('Nombre',{exact:true}).fill('Profesional');await guest.getByLabel('Apellido',{exact:true}).fill('Invitado');
+    await expect(guest.getByLabel('Correo', {exact:true})).toHaveValue(email);
+    await guest.getByLabel('Contraseña').fill('test-password-1234');await guest.getByRole('button',{name:'Crear cuenta',exact:true}).click();
+    await guest.getByRole('button',{name:'Aceptar invitación'}).click();
+    await expect(guest.getByRole('heading',{name:'Mi agenda',exact:true})).toBeVisible();
+    await expect(guest.getByRole('combobox',{name:'Profesional',exact:true})).toHaveCount(0);
+    await guest.locator('.cita-day').nth(1).click();
+    await expect(guest.getByText('Paciente propio',{exact:true}).first()).toBeVisible();
+    await expect(guest.getByText('Paciente de Prueba',{exact:true})).toHaveCount(0);
+    await details(guest,'Paciente propio',false);await guest.getByRole('button',{name:'Confirmar cita',exact:true}).click();
+    await expect(guest.getByRole('status')).toContainText('Cita confirmada');
+    await guest.getByRole('link',{name:'QR y enlace',exact:true}).click();
+    await expect(guest.getByRole('img',{name:/QR para solicitar/})).toBeVisible();
+    const publicLink=guest.locator('.cita-qr a[target="_blank"]');
+    await expect(publicLink).toHaveAttribute('href',new RegExp('professionalId='+professional.id));
+    await guest.goto(await publicLink.getAttribute('href'));
+    await expect(guest.getByRole('combobox',{name:'Profesional',exact:true})).toHaveValue(professional.id);
+    await page.reload();await card.getByRole('button',{name:'Retirar acceso',exact:true}).click();await card.getByRole('button',{name:'Sí, retirar acceso',exact:true}).click();
+    await expect(card.getByRole('button',{name:'Invitar a ver su agenda'})).toBeVisible();
+    await guest.goto('/mi-cita/'+f.workspaceId+'/agenda');await expect(guest.getByRole('alert')).toContainText('Tu acceso a Mi Cita fue retirado');
+  } finally {await context.close();}
 });

@@ -10,7 +10,7 @@ export function CitaPublic({ code }) {
   return <BookingForm key={code} code={code} clinic={state.data} onReceipt={setReceipt} reloadClinic={state.reload} />
 }
 function BookingForm({ code, clinic, onReceipt, reloadClinic }) {
-  const [professionalId, setProfessional] = useState('')
+  const [professionalId, setProfessional] = useState(() => { const selected = new URLSearchParams(location.search).get('professionalId'); return clinic.professionals.some(p => p.id === selected) ? selected : '' })
   const [date, setDate] = useState(clinic.today)
   const [chosen, setChosen] = useState(null)
   const [patientName, setName] = useState('')

@@ -1,16 +1,20 @@
+import { CitaProfessionalInvite } from './CitaProfessionalInvite'
 import { useState } from 'react'
 import { useCitaMutation, useCitaResource } from './useCitaData'
 import { weekdays, minuteLabel, timeMinute } from './citaUtils'
 export function CitaProfessionals({ workspaceId, clinic, professionals, canConfigure, today, reload }) {
+  const accesses = useCitaResource(canConfigure ? '/citas/workspace/' + workspaceId + '/accesses' : null)
   const [editing, setEditing] = useState(null)
   const [notice, setNotice] = useState('')
   return <><div className="cita-heading"><div><h2>Profesionales</h2><p>{canConfigure ? 'Organiza sus días, horarios y duración de cita.' : 'Consulta los horarios disponibles de cada profesional.'}</p></div>{canConfigure && editing === null && <button onClick={() => { setNotice(''); setEditing('new') }}>Agregar profesional</button>}</div>
+    {accesses.error && <p className="cita-error" role="alert">{accesses.error} <button className="cita-secondary" onClick={accesses.reload}>Reintentar</button></p>}
     {notice && <p role="status" className="cita-notice">{notice}</p>}
     {editing !== null && canConfigure ? <ProfessionalForm key={editing} workspaceId={workspaceId} professional={professionals.find(p => p.id === editing)} onCancel={() => setEditing(null)} onSaved={result => { setEditing(null); setNotice(result.futureAppointments ? `Cambios guardados. Hay ${result.futureAppointments} citas futuras que conservan su horario. Revísalas en Agenda si es necesario.` : 'Profesional guardado.'); reload() }} />
       : professionals.length ? <div className="cita-professionals">{professionals.map(professional => <article key={professional.id} className="cita-card"><div className="cita-heading"><div><h3>{professional.name}</h3><p>{professional.specialty} · {professional.durationMinutes} min</p></div><span className="cita-tag">{professional.active ? 'Activo' : 'Inactivo'}</span></div>
         <ul className="cita-schedule-summary">{professional.schedules.map(row => <li key={row.id || row.weekday + '-' + row.startMinute}>{weekdays[row.weekday]} <strong>{minuteLabel(row.startMinute)}–{minuteLabel(row.endMinute)}</strong></li>)}</ul>
         {!professional.schedules.length && <p>No tiene horarios configurados.</p>}
         {canConfigure ? <button className="cita-secondary" onClick={() => { setNotice(''); setEditing(professional.id) }}>Editar {professional.name}</button> : professional.active && <ProfessionalAvailability code={clinic.code} professional={professional} today={today} />}
+        {canConfigure && accesses.data && <CitaProfessionalInvite workspaceId={workspaceId} professional={professional} accessData={accesses.data} reload={accesses.reload} />}
       </article>)}</div> : <div className="cita-empty"><h3>Aún no hay profesionales</h3><p>{canConfigure ? 'Agrega el primer profesional y sus horarios para recibir solicitudes.' : 'Pide al administrador que agregue profesionales y horarios.'}</p></div>}
   </>
 }
