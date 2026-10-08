@@ -229,3 +229,5 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Migración 20261008180000_cita_professional_invitations aditiva, aplicada a mi0 local/public, migrate status al día y Prisma generado. API local reiniciada y disponible en 3000. No se tocaron bases remotas.
 - Verificado: 11 pruebas HTTP/PostgreSQL, un único recorrido nuevo desktop de invitación/registro/agenda/QR/revocación, lint y build. Sin suites visuales adicionales. Primera ejecución del recorrido corrigió únicamente un selector de etiqueta Correo; segunda correcta.
 - Entrega en feature/mi-cita-mvp y PR #2, sin merge. Revisión visual del usuario.
+
+- Mi Cita identifica cada espacio por el nombre del consultorio configurado. La invitación comparte el workspace existente; no duplica consultorio ni citas. Al abrir sin workspace se prioriza uno configurado frente al espacio personal vacío; accesos revocados se excluyen del selector. Verificación mínima: recorrido de invitación actualizado, lint y build.

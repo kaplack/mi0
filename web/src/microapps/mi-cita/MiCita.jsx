@@ -18,11 +18,11 @@ export function MiCita({ code, workspaceId, page, onBack, onLogin, onNavigate })
 }
 function CitaManager({ workspaceId, page, onLogin, onNavigate }) {
   const loggedIn = Boolean(localStorage.getItem(TOKEN_KEY))
-  const state = useCitaResource(loggedIn ? '/workspaces' : null)
+  const state = useCitaResource(loggedIn ? '/citas/workspaces' : null)
   if (!loggedIn) return <main className="cita-public-main"><section className="cita-panel"><h1>Mi Cita</h1><p>Inicia sesión para configurar tu consultorio y gestionar las citas.</p><button onClick={onLogin}>Iniciar sesión</button></section></main>
   if (!state.data) return <main className="cita-public-main"><section className="cita-panel">{state.error ? <><p className="cita-error" role="alert">{state.error}</p><button onClick={state.reload}>Reintentar</button><button className="cita-secondary" onClick={onLogin}>Iniciar sesión</button></> : <p role="status">Cargando espacios…</p>}</section></main>
   const workspaces = state.data.workspaces || []
-  const workspace = workspaces.find(w => w.id === workspaceId) || (!workspaceId ? workspaces[0] : null)
+  const workspace = workspaces.find(w => w.id === workspaceId) || (!workspaceId ? workspaces.find(w => w.configured) || workspaces[0] : null)
   if (!workspace) return <main className="cita-public-main"><section className="cita-panel"><h1>Mi Cita</h1><p>No tienes acceso a este espacio activo.</p><a href="/">Volver a Mi0</a></section></main>
   return <CitaWorkspace key={workspace.id} workspace={workspace} workspaces={workspaces} requestedPage={page} onNavigate={onNavigate} />
 }

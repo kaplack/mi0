@@ -230,6 +230,10 @@ test('professional invitation registration, own agenda, personalized QR and revo
     await guest.getByLabel('Contraseña').fill('test-password-1234');await guest.getByRole('button',{name:'Crear cuenta',exact:true}).click();
     await guest.getByRole('button',{name:'Aceptar invitación'}).click();
     await expect(guest.getByRole('heading',{name:'Mi agenda',exact:true})).toBeVisible();
+    await expect(guest.getByRole('combobox',{name:'Espacio',exact:true})).toHaveValue(f.workspaceId);
+    await expect(guest.getByRole('combobox',{name:'Espacio',exact:true}).locator('option:checked')).toHaveText('Consultorio Vida');
+    await guest.goto('/mi-cita');
+    await expect(guest.getByRole('heading',{name:'Mi agenda',exact:true})).toBeVisible();
     await expect(guest.getByRole('combobox',{name:'Profesional',exact:true})).toHaveCount(0);
     await guest.locator('.cita-day').nth(1).click();
     await expect(guest.getByText('Paciente propio',{exact:true}).first()).toBeVisible();
@@ -244,6 +248,6 @@ test('professional invitation registration, own agenda, personalized QR and revo
     await expect(guest.getByRole('combobox',{name:'Profesional',exact:true})).toHaveValue(professional.id);
     await page.reload();await card.getByRole('button',{name:'Retirar acceso',exact:true}).click();await card.getByRole('button',{name:'Sí, retirar acceso',exact:true}).click();
     await expect(card.getByRole('button',{name:'Invitar a ver su agenda'})).toBeVisible();
-    await guest.goto('/mi-cita/'+f.workspaceId+'/agenda');await expect(guest.getByRole('alert')).toContainText('Tu acceso a Mi Cita fue retirado');
+    await guest.goto('/mi-cita/'+f.workspaceId+'/agenda');await expect(guest.getByText('No tienes acceso a este espacio activo.',{exact:true})).toBeVisible();
   } finally {await context.close();}
 });

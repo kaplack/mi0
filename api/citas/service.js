@@ -83,6 +83,11 @@ async function receipt(code, requestKey) {
   if (!found) throw v.fail(404, 'Solicitud no disponible');
   return { receipt: receiptView(found) };
 }
+async function workspaces(userId) {
+  const memberships = await prisma.membership.findMany({ where: { userId, workspace: { status: 'ACTIVE' } }, orderBy: { createdAt: 'asc' }, include: { workspace: { include: { citaClinic: { include: { accesses: { where: { userId }, select: { active: true } } } } } } } });
+  const visible = memberships.filter(m => ['OWNER', 'ADMIN'].includes(m.role) || !m.workspace.citaClinic?.accesses.some(a => !a.active));
+  return { workspaces: visible.map(m => ({ id: m.workspaceId, name: m.workspace.citaClinic?.name || m.workspace.name, role: m.role, configured: Boolean(m.workspace.citaClinic) })) };
+}
 async function workspace(userId, workspaceId) {
   const membership = await access(userId, workspaceId);
   const clinic = await prisma.citaClinic.findUnique({ where: { workspaceId } });
@@ -185,4 +190,4 @@ async function transition(userId, workspaceId, appointmentId, action) {
     return { appointment: await tx.citaAppointment.findUnique({ where: { id: appointmentId } }) };
   }).then(result => { if (result.conflict) throw v.fail(409, result.conflict); const { requestKey, ...appointment } = result.appointment; return { appointment }; });
 }
-module.exports = { publicInfo, publicSlots, reserve, receipt, workspace, saveSettings, saveProfessional, agenda, daySummary, transition, expirePending };
+module.exports = { publicInfo, publicSlots, reserve, receipt, workspaces, workspace, saveSettings, saveProfessional, agenda, daySummary, transition, expirePending };

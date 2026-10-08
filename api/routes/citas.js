@@ -16,6 +16,7 @@ router.use('/invitations', rateLimit({ limit: 180, windowMs: 60000 }));
 router.get('/invitations/:token', handle(req => invitations.info(req.params.token)));
 router.post('/invitations/:token/accept', requireAuth, handle(req => invitations.accept(req.auth.user.id, req.params.token)));
 router.use(requireAuth);
+router.get('/workspaces', handle(req => service.workspaces(req.auth.user.id)));
 router.get('/workspace/:workspaceId/accesses', handle(req => invitations.list(req.auth.user.id, req.params.workspaceId)));
 router.post('/workspace/:workspaceId/professionals/:professionalId/invitation', handle(req => invitations.create(req.auth.user.id, req.params.workspaceId, req.params.professionalId, req.body), 201));
 router.delete('/workspace/:workspaceId/professionals/:professionalId/access', handle(req => invitations.revoke(req.auth.user.id, req.params.workspaceId, req.params.professionalId)));
