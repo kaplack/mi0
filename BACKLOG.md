@@ -245,3 +245,5 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Separación local autorizada: Cosa nostra movida del workspace 41463cd1-c265-4f0e-bbe2-3208bfc203b6 al 2794b8af-abfd-4ad8-a578-c37d465935a5. Se preservan queue/code, cuatro tickets, invitación, operador y ventanilla 1 de Alan. Consultorio conserva profesionales/accesos y tres citas. Membresías OWNER/ADMIN y operadores de Mi Turno trasladadas por copia; permisos de Mi Cita quedan en origen. No se tocó ninguna BD remota.
 - Mantenimiento explícito local en api/scripts/separate-turno-workspace.cjs, transaccional con comprobaciones de conservación; no se aplica automáticamente a otros negocios que comparten microapps.
 - Verificación mínima: lint/build y único recorrido desktop de invitación/Inicio/apps propias/agenda/QR/revocación. Primera ejecución detectó nombres accesibles del menú con iconos incluidos; corregidos mediante aria-hidden. Revisión visual del usuario.
+
+- Inicio: accesos compactos sin recuadro interno; botón ajustado al icono/nombre y hover sobre ambos. El espacio libre de la tarjeta ya no activa la app. Verificación mínima: build; visual del usuario.

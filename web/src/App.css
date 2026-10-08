@@ -264,8 +264,9 @@ footer .logo { font-size: 22px; } footer span { margin-left: auto; }
 .console-space-heading h3 { margin:0; font-size:18px; overflow-wrap:anywhere; }
 .console-space-heading>span,.console-space-empty { font-size:12px; color:var(--text-secondary); }
 .console-shortcuts { display:grid; grid-template-columns:repeat(auto-fit,minmax(90px,1fr)); gap:12px; }
-.console-shortcut { display:flex; flex-direction:column; align-items:center; gap:10px; border:1px solid var(--border); border-radius:12px; padding:16px 8px; min-height:100px; background:var(--surface); color:var(--text-primary); font:inherit; font-size:13px; cursor:pointer; }
-.console-shortcut:hover:not(:disabled) { background:var(--background); border-color:var(--primary-dark); }
+.console-shortcut { display:flex; flex-direction:column; align-items:center; justify-self:center; width:max-content; max-width:100%; gap:8px; border:0; border-radius:8px; padding:4px; background:transparent; color:var(--text-primary); font:inherit; font-size:13px; cursor:pointer; }
+.console-shortcut:hover:not(:disabled) { color:var(--primary-dark); }
+.console-shortcut:hover:not(:disabled) .console-shortcut-icon { background:var(--primary-dark); color:var(--surface); }
 .console-shortcut:focus-visible { outline:3px solid var(--primary-dark); outline-offset:3px; }
 .console-shortcut:disabled { opacity:.5; cursor:default; }
 .console-shortcut-icon { width:44px; height:44px; display:grid; place-items:center; border-radius:12px; background:var(--text-primary); color:var(--primary); font-size:22px; }
