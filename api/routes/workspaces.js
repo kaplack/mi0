@@ -15,6 +15,7 @@ router.get('/', async (req, res, next) => {
       include: {
         workspace: {
           include: {
+            citaClinic: { select: { name: true } },
             modules: {
               where: { active: true },
               include: { module: true },
@@ -28,7 +29,7 @@ router.get('/', async (req, res, next) => {
       .filter(({ workspace }) => workspace.status === 'ACTIVE')
       .map(({ role, workspace }) => ({
         id: workspace.id,
-        name: workspace.name,
+        name: workspace.name === 'Mi espacio' && workspace.citaClinic ? workspace.citaClinic.name : workspace.name,
         type: workspace.type,
         role,
         modules: workspace.modules

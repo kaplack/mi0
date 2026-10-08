@@ -247,7 +247,9 @@ test('professional invitations bind account, enforce all scopes and preserve den
   assert.equal((await request('GET',f.root,professional)).status,403);
 });
 test('invitation renewal, expiration, cancellation, foreign professional and registration', async () => {
-  const f=await fixture();const g=await fixture();const route=f.root+'/professionals/'+f.professional.id+'/invitation';
+  const f=await fixture();const g=await fixture();
+  await db.workspace.update({where:{id:f.w.id},data:{name:'Mi espacio'}});
+  const route=f.root+'/professionals/'+f.professional.id+'/invitation';
   assert.equal((await request('POST',f.root+'/professionals/'+g.professional.id+'/invitation',owner,{email:outsider.email})).status,404);
   assert.equal((await request('POST',route,owner,{email:'bad'})).status,400);
   assert.equal((await request('POST',route,owner,{email:owner.email})).status,409);
@@ -258,6 +260,13 @@ test('invitation renewal, expiration, cancellation, foreign professional and reg
   assert.equal(registered.status,201);const account=await registered.json();
   assert.equal((await request('POST','/invitations/'+second.data.token+'/accept',{token:account.token})).status,200);
   assert.equal((await request('GET',f.root,{token:account.token})).data.accessRole,'PROFESSIONAL');
+  const listingResponse=await fetch(base.replace('/citas','/workspaces'),{headers:{Authorization:'Bearer '+account.token}});
+  assert.equal(listingResponse.status,200);
+  const listing=(await listingResponse.json()).workspaces;
+  assert.equal(listing.find(w=>w.id===f.w.id).name,f.clinic.name);
+  assert.ok(listing.some(w=>w.name==='Mi espacio'&&w.id!==f.w.id));
+  assert.deepEqual(listing.find(w=>w.id===f.w.id).modules.map(m=>m.code),['mi-cita']);
+  assert.deepEqual(listing.find(w=>w.name==='Mi espacio'&&w.id!==f.w.id).modules,[]);
   await request('DELETE',f.root+'/professionals/'+f.professional.id+'/access',owner);
   const expired=await request('POST',route,owner,{email});await db.citaInvitation.updateMany({where:{clinicId:f.clinic.id,email},data:{expiresAt:new Date(Date.now()-1000)}});
   assert.equal((await request('POST','/invitations/'+expired.data.token+'/accept',{token:account.token})).status,410);

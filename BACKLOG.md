@@ -231,3 +231,7 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Entrega en feature/mi-cita-mvp y PR #2, sin merge. Revisión visual del usuario.
 
 - Mi Cita identifica cada espacio por el nombre del consultorio configurado. La invitación comparte el workspace existente; no duplica consultorio ni citas. Al abrir sin workspace se prioriza uno configurado frente al espacio personal vacío; accesos revocados se excluyen del selector. Verificación mínima: recorrido de invitación actualizado, lint y build.
+
+- Mi0 principal: el listado global identifica un workspace de nombre genérico «Mi espacio» por su consultorio configurado. Espacio personal sin consultorio y nombres personalizados se conservan. Verificado con una prueba HTTP/PostgreSQL del registro/invitación/listado; sin revisión visual adicional.
+
+- Mi0: Mis microapps renderiza únicamente modules activos del espacio seleccionado; se retiran tarjetas fijas de Mi Turno/Mi Cita/Sorteos Avanzado. Estado vacío y acceso a Explorar conservados. Comprobación mínima: listado por espacio en prueba de invitación, lint y build.

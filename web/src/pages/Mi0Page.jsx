@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../services/api'
+import { tools } from '../data/catalog'
 
 export function Mi0Page({ user, onLogout, onExplore, onOpenMicroapp, openAdvancedRequested }) {
   const [workspaces, setWorkspaces] = useState([])
@@ -22,7 +23,7 @@ export function Mi0Page({ user, onLogout, onExplore, onOpenMicroapp, openAdvance
   }, [onOpenMicroapp, openAdvancedRequested])
 
   const activeWorkspace = workspaces.find((workspace) => workspace.id === activeId) || workspaces[0]
-  const otherModules = activeWorkspace?.modules?.filter(module => !['sorteos-avanzado', 'mi-turno', 'mi-cita'].includes(module.code)) || []
+  const modules = activeWorkspace?.modules || []
 
   return (
     <div className="console-shell">
@@ -72,7 +73,7 @@ export function Mi0Page({ user, onLogout, onExplore, onOpenMicroapp, openAdvance
               <div className="console-welcome">
                 <span>MI0</span>
                 <h1>Hola, {user.name}</h1>
-                <p>{activeWorkspace?.type === 'PERSONAL' ? 'Este es tu espacio personal.' : 'Estás en ' + activeWorkspace?.name + '.'}</p>
+                <p>{activeWorkspace?.type === 'PERSONAL' && activeWorkspace?.name === 'Mi espacio' && activeWorkspace?.role === 'OWNER' ? 'Este es tu espacio personal.' : 'Estás en ' + activeWorkspace?.name + '.'}</p>
               </div>
 
               <div className="console-section-heading">
@@ -80,27 +81,15 @@ export function Mi0Page({ user, onLogout, onExplore, onOpenMicroapp, openAdvance
                 <button type="button" onClick={onExplore}>Explorar microapps →</button>
               </div>
 
-              {activeWorkspace && <article className="console-app-card" style={{ marginBottom: 20 }}>
-                <div>★</div><h3>Sorteos Avanzado</h3><p>Varios premios y resultados guardados. Publica y comparte por S/4.90.</p>
-                <button className="primary-button" type="button" onClick={() => onOpenMicroapp('sorteos-avanzado', activeWorkspace)}>Abrir →</button>
-              </article>}
-              <article className="console-app-card" style={{ marginBottom: 20 }}>
-                <div>◷</div><h3>Mi Turno</h3><p>Cola virtual, ventanillas y pantalla pública para tu negocio.</p>
-                <button className="primary-button" type="button" onClick={() => onOpenMicroapp('mi-turno', activeWorkspace)}>Abrir →</button>
-              </article>
-              <article className="console-app-card" style={{ marginBottom: 20 }}>
-                <div>▦</div><h3>Mi Cita</h3><p>Solicitudes de citas, profesionales y agenda para tu consultorio.</p>
-                <button className="primary-button" type="button" onClick={() => onOpenMicroapp('mi-cita', activeWorkspace)}>Abrir →</button>
-              </article>
-              {otherModules.length ? (
-                <div className="console-app-grid">
-                  {otherModules.map((module) => (
-                    <article key={module.id} className="console-app-card">
-                      <div>0_</div><h3>{module.name}</h3><p>{module.description}</p>
-                    </article>
-                  ))}
-                </div>
-              ) : null}
+              {modules.length ? <div className="console-app-grid">
+                {modules.map(module => {
+                  const tool = tools.find(item => item.code === module.code)
+                  return <article key={module.id} className="console-app-card">
+                    <div>{tool?.icon || '0_'}</div><h3>{module.name}</h3><p>{module.description || tool?.description}</p>
+                    {tool?.available && <button className="primary-button" type="button" onClick={() => onOpenMicroapp(module.code, activeWorkspace)}>Abrir →</button>}
+                  </article>
+                })}
+              </div> : <div className="console-empty"><h3>Este espacio aún no tiene microapps</h3><p>Explora las herramientas disponibles para empezar.</p></div>}
             </>
           )}
         </section>
