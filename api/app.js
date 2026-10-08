@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const workspaceRoutes = require('./routes/workspaces');
 const raffleRoutes = require('./routes/raffles');
+const turnRoutes = require('./routes/turnos');
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/raffles', raffleRoutes);
+app.use('/api/turnos', turnRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({
