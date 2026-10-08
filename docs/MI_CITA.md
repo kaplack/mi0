@@ -1,0 +1,70 @@
+# Mi Cita
+
+Microapp de reservas integrada en cuentas y espacios de mi0.app. El paciente solicita una cita desde `/cita/:code`; el personal confirma o cancela desde `/mi-cita/:workspaceId`.
+
+## Configuración y operación
+
+1. Abrir **Mi Cita** desde Mi0 con un workspace activo.
+2. OWNER/ADMIN configura nombre, zona horaria (America/Lima por defecto), confirmación manual o vencimiento de 2/6/12/24 horas.
+3. **Solicitar DNI al reservar** está desactivado por defecto. Si se activa, el paciente debe ingresar ocho dígitos. Sin la opción, no se muestra ni se almacena un DNI enviado por el cliente. Cambiarla no modifica citas existentes.
+4. Crear profesionales con especialidad, duración de 10 a 240 minutos y bloques semanales, incluyendo mañana/tarde si se necesita. Desactivar o modificar horarios conserva las citas existentes; revisar la agenda y contactar pacientes afectados.
+5. Descargar el QR PNG o copiar el enlace desde **QR y enlace**. Usar la dirección pública de la web para compartirlo con pacientes.
+6. MEMBER abre **Pendientes** por defecto; puede consultar agenda/disponibilidad, contactar por WhatsApp y confirmar/cancelar. OWNER/ADMIN abre Agenda por defecto y tiene acceso a configuración y QR.
+
+La solicitud pública requiere nombre y teléfono con código de país; un celular peruano de nueve dígitos se normaliza con +51. El formulario nunca informa que una solicitud pendiente esté confirmada. La página de recepción actualiza el estado mientras permanece abierta. No se almacena información personal en URLs ni almacenamiento del navegador; al cerrar/recargar la página el consultorio sigue gestionando la solicitud por teléfono.
+
+## Reglas de disponibilidad
+
+- Horarios calculados en servidor con `Intl` en la zona del consultorio. Solo fechas desde hoy hasta 180 días adelante; turnos ajustados a duración del profesional.
+- PENDING bloquea provisionalmente; CONFIRMED ocupa; CANCELLED/EXPIRED libera.
+- Cada solicitud guarda `expiresAt = min(inicio de cita, creación + plazo)`; en modo manual vence al inicio. Cambiar el plazo afecta nuevas solicitudes.
+- Consultar disponibilidad, agenda, recepción o gestionar citas vence solicitudes pasadas. El servidor ejecuta además una limpieza cada 60 segundos, incluso sin navegador abierto. Al consultar se aplica el reloj actual, sin esperar al proceso periódico.
+- Configuración, profesionales, reservas y transiciones se serializan mediante advisory lock transaccional por workspace. Se vuelve a calcular disponibilidad dentro de la transacción.
+- PostgreSQL rechaza cualquier solapamiento activo mediante una restricción de exclusión GiST. Profesionales distintos pueden atender en simultáneo.
+- `requestKey` UUID v4 permite reintentar un envío sin crear dos citas. El endpoint de recepción usa ese identificador en POST y devuelve únicamente estado y horario.
+- Agenda diaria y pendientes tienen páginas de hasta 100 registros, ordenadas por inicio e id.
+
+## Arquitectura
+
+Backend: `api/routes/citas.js` adapta HTTP; `api/citas/service.js` administra permisos, casos de uso y transacciones; `validation.js` valida entradas; `availability.js` convierte horarios y calcula espacios; `maintenance.js` limita solicitudes y ejecuta vencimientos. Usa el cliente Prisma y la autenticación existentes.
+
+Frontend: `web/src/microapps/mi-cita/` contiene composición, navegación y pantallas separadas por responsabilidad. `useCitaData.js` conserva estado del servidor y mutaciones; `web/src/services/citas.js` encapsula escrituras HTTP. Los estilos `.cita-*` usan variables globales, sin importar CSS ni lógica de colas de Mi Turno. Sidebar desktop colapsable persistente; drawer de administrador y barra inferior de asistente hasta 760px.
+
+## Persistencia y despliegue
+
+Modelos independientes: CitaClinic, CitaProfessional, CitaSchedule y CitaAppointment; estados PENDING/CONFIRMED/CANCELLED/EXPIRED y fechas de cada transición. Claves compuestas impiden asociar una cita a un profesional de otro consultorio.
+
+Migración: `20261008170000_mi_cita`. Agrega tablas, restricciones y el módulo `mi-cita`; no altera datos de Mi Turno/Sorteos. Requiere la extensión PostgreSQL **btree_gist**, instalada por la migración con `CREATE EXTENSION IF NOT EXISTS ... WITH SCHEMA public`; el usuario de migraciones debe poder instalarla o un administrador debe habilitarla previamente. No hay Redis ni servicios nuevos.
+
+Antes de arrancar la API con esta versión:
+
+```sh
+npm run db:migrate:deploy --prefix api
+npm run db:generate --prefix api
+npm run build --prefix web
+```
+
+La API conserva DATABASE_URL, CORS_ORIGIN y la configuración existente. No necesita credenciales WhatsApp: usa enlaces `wa.me`. No se cambian bases remotas como parte del desarrollo/pruebas.
+
+## Privacidad y protección
+
+Solo miembros del workspace activo acceden a datos personales; OWNER/ADMIN son los únicos que cambian configuración/profesionales. Los endpoints públicos tienen respuestas explícitas sin datos de otros pacientes y `Cache-Control: no-store`. El DNI no aparece en el mensaje WhatsApp.
+
+Límites públicos por IP: 180 peticiones/minuto; reservas 10 intentos/10 minutos por consultorio/IP. Los contadores tienen memoria acotada por proceso y no confían en `X-Forwarded-For`. Con varios procesos o un proxy, configurar límites en el ingress conservando la política de confianza del proxy; no se habilita `trust proxy` globalmente. El límite persistente por teléfono impide más de tres solicitudes pendientes o veinte solicitudes en 24 horas dentro del consultorio. Incluye un campo señuelo de formulario. No se registran nombre, DNI o teléfono en logs.
+
+## Verificación reproducible
+
+```sh
+npm run test:citas --prefix api
+npm run test:citas:ui --prefix web
+npm run lint --prefix web
+npm run build --prefix web
+node --test api/routes/turnos.test.js
+npm run test:raffles --prefix api
+```
+
+Las pruebas de citas solo aceptan PostgreSQL local `/mi0`; crean un esquema temporal aleatorio, aplican todas las migraciones y lo eliminan al terminar. No escriben citas/cuentas en el esquema de uso habitual. La extensión btree_gist puede permanecer instalada en public, sin datos de prueba.
+
+La suite de navegador usa API real en 3002 y Vite en 5175, Chrome instalado y Playwright. `ui-server.cjs` crea su esquema y el teardown de Playwright detiene el proceso periódico y elimina esquema/fixture también en Windows; `.cita-fixture.json` contiene sesiones temporales y está ignorado por Git. El runner existente de Mi Turno excluye esta suite, que tiene su propia configuración. Si un cierre forzado interrumpe la limpieza, verificar y eliminar exclusivamente esquemas `mi0_citas_ui_*` generados para la ejecución, nunca el esquema public.
+
+Fuera del alcance: pagos, historias clínicas, recordatorios, calendarios externos, reportes y monetización.

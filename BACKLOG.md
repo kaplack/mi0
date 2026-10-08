@@ -1,7 +1,7 @@
 # mi0.app · Backlog
 
 **Actualizado:** 8 de octubre de 2026
-**Fase actual:** Sorteos Simple y Sorteos Avanzado implementados; validación de uso y preparación de producción.
+**Fase actual:** Sorteos, Mi Turno y Mi Cita implementados; verificación local y preparación de producción.
 
 ## Objetivo actual
 
@@ -114,7 +114,7 @@ Sorteos continúa siendo la primera herramienta gratuita. Las hipótesis previas
 | Generador de contraseñas | Idea futura; fuera del home |
 | Compresor de imágenes | Idea futura; fuera del home |
 | Renombrador de archivos | Idea futura; fuera del home |
-| Matrículas, Citas, Sellos, Huéspedes, Acuerdos, Calendario e Incidentes | Ideas futuras; sin orden de implementación confirmado |
+| Matrículas, Sellos, Huéspedes, Acuerdos, Calendario e Incidentes | Ideas futuras; sin orden de implementación confirmado |
 
 ### Referencia conservada: Matrículas
 
@@ -197,3 +197,15 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 
 - Vista previa local desactivada tras validar la presentación del Dashboard.
   Se restaura explicación y contratación para negocios sin pago vigente.
+## Mi Cita · MVP, 8 de octubre de 2026
+
+- Implementado en feature/mi-cita-mvp: configuración, profesionales/horarios, agenda/pendientes, QR PNG y solicitud pública sin registro. OWNER/ADMIN configuran; MEMBER opera y consulta disponibilidad.
+- DNI configurable, desactivado por defecto; no se almacena si no se solicita. Pendientes vencen al inicio o antes según plazo 2/6/12/24 horas; cambios de política afectan nuevas solicitudes.
+- Disponibilidad en zona horaria (Lima por defecto), transacciones con advisory lock y restricción de exclusión GiST/btree_gist contra solapamientos. Limpieza periódica en servidor y al consultar/gestionar.
+- Evidencia: ocho pruebas HTTP con PostgreSQL aislado correctas (incluido vencimiento sin navegador/reintentos); lint y build web correctos. Mi Turno (7) y Sorteos Avanzado (6) pasan sus pruebas PostgreSQL.
+- Navegador con API/DB reales: configuración, profesionales, descarga QR y navegación desktop/móvil correctas; solicitud con/sin DNI y confirmación/cancelación por MEMBER correctas. Capturas revisadas sin desbordamientos. Detalles ahora en diálogo accesible; recorrido focalizado confirmado.
+- Migración aplicada a PostgreSQL local y validada desde cero en esquemas temporales; esquema local al día. Fixtures/esquemas temporales eliminados. No se modificó ninguna base remota.
+- Ocho recorridos de navegador correctos entre escritorio y móvil (6 principales + 2 de recuperación tras respuesta perdida), copia de enlace, descarga QR y cierre con Escape. Navegación Mi Turno desktop/móvil verificada (2 pruebas).
+- Entrega preparada en feature/mi-cita-mvp para revisión mediante PR hacia main; sin merge ni despliegue remoto.
+- Guía operativa y despliegue: docs/MI_CITA.md. La migración requiere btree_gist disponible en PostgreSQL.
+- Entorno: los procesos funcionan fuera del sandbox; dentro falla el arranque.

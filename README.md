@@ -34,7 +34,7 @@ La web combina herramientas de acceso directo con una base para gestionar microa
 - Listado de espacios y módulos activos del usuario.
 - Panel de superadmin con resumen y consultas de usuarios, organizaciones y módulos.
 
-El catálogo público es estático y muestra Sorteos y Sorteos Avanzado. Las herramientas sin implementar se conservan como ideas futuras fuera del home. Sorteos Avanzado está disponible desde el home con cuenta y desde el espacio elegido en Mi0. La activación de otros módulos sigue siendo una función de la API.
+El catálogo público muestra Sorteos, Sorteos Avanzado, Mi Turno y Mi Cita. Las herramientas sin implementar se conservan como ideas futuras fuera del home. Sorteos Avanzado está disponible desde el home con cuenta y desde el espacio elegido en Mi0. La activación de otros módulos sigue siendo una función de la API.
 
 ## Estado actual
 
@@ -111,7 +111,7 @@ La prioridad es consolidar Sorteos, observar uso real y elegir la siguiente micr
 
 Las ideas futuras incluyen generador QR, conversor de unidades, notas rápidas, extractor de texto, calculadora de fechas, generador de contraseñas, compresor de imágenes y renombrador de archivos.
 
-Matrículas, Citas, Tarjeta de Sellos, Servicios para Huéspedes, Acuerdos, Calendario e Incidentes se conservan como ideas futuras. Matrículas dejó de ser el primer MVP; su demo previa puede servir de referencia si se retoma.
+Matrículas, Tarjeta de Sellos, Servicios para Huéspedes, Acuerdos, Calendario e Incidentes se conservan como ideas futuras. Matrículas dejó de ser el primer MVP; su demo previa puede servir de referencia si se retoma.
 
 Sorteos se presenta como gratuita. Las hipótesis anteriores de S/19.90 al mes, S/199 al año y 14 días de prueba quedan como referencias por validar para futuras herramientas de pago; no son un requisito del lanzamiento de Sorteos.
 
@@ -126,3 +126,7 @@ Sorteos se presenta como gratuita. Las hipótesis anteriores de S/19.90 al mes, 
 Consulta [BACKLOG.md](BACKLOG.md) para conocer prioridades, criterios de aceptación y pendientes.
 
 **Actualizado:** 7 de octubre de 2026.
+
+## Mi Cita
+
+Reservas públicas sin registro mediante QR, agenda y profesionales por workspace, confirmación/cancelación por el personal y DNI configurable (desactivado por defecto). Conserva los roles y el sistema visual de Mi Turno. Consulta [la guía de Mi Cita](docs/MI_CITA.md) para configuración, arquitectura, migración PostgreSQL y pruebas.
