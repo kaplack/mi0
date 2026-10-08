@@ -45,6 +45,8 @@ model User {
   memberships Membership[]
   turnOperators TurnOperator[]
   turnCalls TurnTicket[] @relation("TurnCalledBy")
+  dashboardRequests TurnDashboardPayment[] @relation("DashboardRequester")
+  dashboardReviews TurnDashboardPayment[] @relation("DashboardReviewer")
 
   @@map("users")
 }
@@ -215,6 +217,8 @@ model RafflePublication {
 }
 
 model TurnQueue {
+  dashboardUntil DateTime?
+  dashboardPayments TurnDashboardPayment[]
   id          String @id @default(uuid()) @db.Uuid
   workspaceId String @unique @db.Uuid
   code        String @unique @db.VarChar(16)
@@ -243,11 +247,13 @@ model TurnTicket {
   calledAt  DateTime?
   calledById String? @db.Uuid
   calledBy User? @relation("TurnCalledBy", fields: [calledById], references: [id], onDelete: SetNull)
+  endedAt   DateTime?
   servedAt  DateTime?
   queue     TurnQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
   @@unique([queueId, number])
   @@index([queueId, status, number])
   @@index([queueId, clientKey, status])
+  @@index([queueId, createdAt])
 }
 
 model TurnOperator {
@@ -274,4 +280,26 @@ model TurnInvitation {
   acceptedAt DateTime?
   queue      TurnQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
   @@unique([queueId, email])
+}
+
+
+model TurnDashboardPayment {
+  id String @id @default(uuid()) @db.Uuid
+  queueId String @db.Uuid
+  requestedById String @db.Uuid
+  reviewedById String? @db.Uuid
+  plan String @db.VarChar(16)
+  amountCents Int
+  reference String @unique @db.VarChar(80)
+  status String @default("PENDING") @db.VarChar(16)
+  requestedAt DateTime @default(now())
+  reviewedAt DateTime?
+  rejectionReason String? @db.VarChar(300)
+  validFrom DateTime?
+  validUntil DateTime?
+  queue TurnQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
+  requestedBy User @relation("DashboardRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  reviewedBy User? @relation("DashboardReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  @@index([queueId, requestedAt])
+  @@index([status, requestedAt])
 }

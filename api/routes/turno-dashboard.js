@@ -1,0 +1,13 @@
+const express = require('express');
+const prisma = require('../prisma');
+const { requireAuth } = require('../middleware/auth');
+const { requireSuperadmin } = require('../middleware/superadmin');
+const service = require('../turnos/dashboard');
+const router = express.Router();
+router.use('/workspace/:workspaceId/dashboard', requireAuth);
+router.get('/workspace/:workspaceId/dashboard/subscription', async (req, res, next) => { try { res.set('Cache-Control', 'no-store').json(await service.subscription(req.auth.user.id, req.params.workspaceId)); } catch(error) { next(error); } });
+router.post('/workspace/:workspaceId/dashboard/payments', async (req, res, next) => { try { res.status(201).json({ payment: await service.requestPayment(req.auth.user.id, req.params.workspaceId, req.body) }); } catch(error) { next(error); } });
+router.get('/workspace/:workspaceId/dashboard', async (req, res, next) => { try { res.set('Cache-Control', 'no-store').json(await service.metrics(req.auth.user.id, req.params.workspaceId, req.query)); } catch(error) { next(error); } });
+router.get('/dashboard/payments/pending', requireAuth, requireSuperadmin, async (req, res, next) => { try { res.json({ payments: await prisma.turnDashboardPayment.findMany({ where: { status: 'PENDING' }, orderBy: { requestedAt: 'asc' }, select: { id: true, reference: true, plan: true, amountCents: true, requestedAt: true, queue: { select: { name: true } }, requestedBy: { select: { name: true, email: true } } } }) }); } catch(error) { next(error); } });
+router.post('/dashboard/payments/:id/review', requireAuth, requireSuperadmin, async (req, res, next) => { try { res.json({ payment: await service.reviewPayment(req.auth.user.id, req.params.id, req.body?.action, req.body?.reason) }); } catch(error) { next(error); } });
+module.exports = router;

@@ -180,7 +180,8 @@ router.post('/workspace/:workspaceId/finish', async (req, res, next) => {
       const current = await tx.turnTicket.findFirst({ where: { id: ticketId, queueId: queue.id, status: 'CALLED' } });
       if (!current) throw fail(409, 'Este turno ya no está en atención. Actualiza la pantalla');
       await allowCounter(tx, req.auth.user.id, queue, current.counter);
-      return tx.turnTicket.update({ where: { id: current.id }, data: { status: action, servedAt: action === 'SERVED' ? new Date() : null } });
+      const endedAt = new Date();
+      return tx.turnTicket.update({ where: { id: current.id }, data: { status: action, endedAt, servedAt: action === 'SERVED' ? endedAt : null } });
     });
     res.json({ ticket });
   } catch (error) { next(error); }
@@ -192,7 +193,7 @@ router.post('/workspace/:workspaceId/close', async (req, res, next) => {
     if (!queue) throw fail(404, 'Configura el negocio primero');
     const result = await prisma.$transaction(async tx => {
       await lock(tx, queue.id);
-      return tx.turnTicket.updateMany({ where: { queueId: queue.id, status: active }, data: { status: 'EXPIRED' } });
+      return tx.turnTicket.updateMany({ where: { queueId: queue.id, status: active }, data: { status: 'EXPIRED', endedAt: new Date() } });
     });
     res.json({ expired: result.count });
   } catch (error) { next(error); }

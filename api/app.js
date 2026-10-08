@@ -43,6 +43,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/raffles', raffleRoutes);
 app.use('/api/turnos', require('./routes/turno-operators'));
+app.use('/api/turnos', require('./routes/turno-dashboard'));
 app.use('/api/turnos', turnRoutes);
 
 app.get('/api/health', (req, res) => {

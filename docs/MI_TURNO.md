@@ -126,3 +126,59 @@ No asigna automáticamente ventanillas a miembros existentes.
 Comprobación mínima de ambos casos y los permisos:
 
     node --test --test-name-pattern "operator invitations" api/routes/turnos.test.js
+
+### Tiempos para reportes
+
+Cada turno conserva `createdAt` (registro), `calledAt` (llamado), `servedAt`
+(atención completada) y `endedAt` (finalización, ausencia o vencimiento).
+Espera hasta el llamado: `calledAt - createdAt`. Duración de una atención
+completada: `servedAt - calledAt`; incluye el tiempo para acercarse a la
+ventanilla. Ausentes y vencidos no se incluyen en el promedio de atención.
+Un cierre asigna el mismo `endedAt` a todos los turnos pendientes de esa
+jornada. Los registros históricos sin fecha conocida permanecen en null;
+la migración recupera `endedAt` únicamente cuando existe `servedAt`.
+
+
+### Dashboard contratado
+
+Ruta `/mi-turno/:workspaceId/dashboard`, exclusiva para OWNER/ADMIN.
+Todo el Dashboard requiere pago vigente por negocio: mensual S/10 (un mes
+calendario) o anual S/79 (12 meses calendario). Ambos incluyen las mismas
+funciones. No hay renovación automática; aprobar una renovación suma su
+periodo desde el vencimiento actual o desde la aprobación si ya venció.
+Los meses se calculan en hora de Lima, ajustando al último día disponible.
+
+Reutiliza `YAPE_PHONE` y `YAPE_NAME` de la API. Si faltan, muestra los planes
+pero no admite solicitudes de pago. El administrador del negocio registra
+el número de operación; el superadmin verifica el depósito real en Yape y
+aprueba o rechaza en «Pagos de Dashboard». Una solicitud pendiente no da
+acceso. Precios y vigencia los decide el servidor. Solo una solicitud
+pendiente por negocio; referencias únicas dentro de pagos de Dashboard.
+Aprobaciones concurrentes no extienden dos veces el mismo pago.
+
+API: `GET /api/turnos/workspace/:id/dashboard/subscription`,
+`POST /api/turnos/workspace/:id/dashboard/payments` (`plan`: MONTHLY/ANNUAL,
+`reference`), `GET /api/turnos/workspace/:id/dashboard?from=YYYY-MM-DD&to=YYYY-MM-DD`.
+Superadmin: `GET /api/turnos/dashboard/payments/pending` y
+`POST /api/turnos/dashboard/payments/:id/review` (`action`: approve/reject,
+`reason` obligatorio al rechazar). Estadísticas sin vigencia: HTTP 402.
+
+Los filtros incluyen los turnos registrados en ambas fechas, hasta 366 días,
+en America/Lima. Resultados por estado actual, incluyendo pendientes.
+Espera promedio usa turnos llamados con tiempos válidos; atención promedio
+solo SERVED con tiempos válidos. Se muestra el tamaño de las muestras y
+se excluyen tiempos históricos incompletos. Demanda por hora usa la hora
+de registro; las ventanillas usan los nombres de configuración actuales.
+CSV exporta resumen, desglose por ventanilla y demanda por hora, sin nombres
+ni documentos de clientes. El historial sigue guardándose sin suscripción;
+al vencer se bloquean los datos del Dashboard, no la operación diaria.
+
+Migración: `npm run db:migrate:deploy --prefix api` y
+`npm run db:generate --prefix api`. Verificación focalizada:
+`node --test --test-name-pattern "paid dashboard" api/routes/turnos.test.js`
+y `npm run test:turnos:ui --prefix web -- dashboard.spec.js`.
+
+Vista previa local: `TURN_DASHBOARD_PREVIEW=true` en `api/.env` permite
+ver estadísticas sin pago, exclusivamente fuera de producción y con
+PostgreSQL en localhost. Conserva permisos OWNER/ADMIN y no altera pagos
+ni vigencias. Desactivar con `TURN_DASHBOARD_PREVIEW=false`.

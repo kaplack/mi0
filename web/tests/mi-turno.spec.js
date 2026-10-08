@@ -48,7 +48,7 @@ test('configuration saves document policy and named windows; QR downloads a prin
   await expect(page.getByRole('status')).toHaveText('Configuración guardada.')
   expect(calls.find(call => call.pathname.endsWith('/settings')).payload.counterNames).toEqual(['Ventanilla 1', 'Documentos'])
   expect(calls.find(call => call.pathname.endsWith('/settings')).payload.documentMode).toBe('NONE')
-  if (await page.getByRole('button', { name: '☰ Menú de Mi Turno', exact: true }).isVisible()) await page.getByRole('button', { name: '☰ Menú de Mi Turno', exact: true }).click()
+  if (await page.getByRole('button', { name: 'Abrir menú', exact: true }).isVisible()) await page.getByRole('button', { name: 'Abrir menú', exact: true }).click()
   await page.getByRole('link', { name: 'QR y cartel', exact: true }).click()
   await expect(page.getByRole('img', { name: 'QR para tomar un turno en Oficina de atención' })).toBeVisible()
   const event = page.waitForEvent('download')
@@ -66,7 +66,7 @@ test('operator completes the last ticket; configuration and public monitor have 
   await page.goto('/mi-turno/' + workspaceId + '/operacion')
   await expect(page.getByRole('heading', { name: 'Ana Prueba' })).toBeVisible()
   await expect(page.getByText('DNI: 12345678', { exact: true })).toBeVisible()
-  if (await page.getByRole('button', { name: '☰ Menú de Mi Turno', exact: true }).isVisible()) await page.getByRole('button', { name: '☰ Menú de Mi Turno', exact: true }).click()
+  if (await page.getByRole('button', { name: 'Abrir menú', exact: true }).isVisible()) await page.getByRole('button', { name: 'Abrir menú', exact: true }).click()
   await expect(page.getByRole('link', { name: 'Configuración', exact: true })).toHaveAttribute('href', '/mi-turno/' + workspaceId + '/configuracion')
   await page.screenshot({ path: testInfo.outputPath('operation.png'), fullPage: true })
   await page.getByRole('button', { name: 'Finalizar atención' }).click()
@@ -112,20 +112,15 @@ test('unsigned operator can open login while preserving the operation URL', asyn
   await expect(page.getByLabel('Contraseña', { exact: true })).toBeVisible()
   await expect(page).toHaveURL('/mi-turno/' + workspaceId + '/operacion')
 })
-test('sidebar layout opens, collapses and navigates to the QR section', async ({ page }, testInfo) => {
+test('admin menu opens and navigates to the QR section', async ({ page }, testInfo) => {
   await mockApi(page)
   await page.goto('/mi-turno/' + workspaceId + '/operacion')
   await expect(page.getByRole('heading', { name: 'Ana Prueba' })).toBeVisible()
   await noOverflow(page)
   await page.screenshot({ path: testInfo.outputPath('sidebar-operation.png'), fullPage: true })
-  const mobileToggle = page.getByRole('button', { name: '☰ Menú de Mi Turno', exact: true })
-  if (await mobileToggle.isVisible()) {
-    await mobileToggle.click()
-    await expect(page.getByRole('button', { name: 'Cerrar menú', exact: true })).toHaveAttribute('aria-expanded', 'true')
-  } else {
-    await page.getByRole('button', { name: 'Colapsar menú', exact: true }).click()
-    await expect(page.getByRole('button', { name: 'Expandir menú', exact: true })).toBeVisible()
-    await page.getByRole('button', { name: 'Expandir menú', exact: true }).click()
+  if (await page.getByRole('button', { name: 'Abrir menú', exact: true }).isVisible()) {
+    await page.getByRole('button', { name: 'Abrir menú', exact: true }).click()
+    await expect(page.getByRole('dialog', { name: 'Menú de administración' })).toBeVisible()
   }
   await page.getByRole('link', { name: 'QR y cartel', exact: true }).click()
   await expect(page.getByRole('img', { name: 'QR para tomar un turno en Oficina de atención' })).toBeVisible()

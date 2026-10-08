@@ -1,6 +1,6 @@
 # mi0.app · Backlog
 
-**Actualizado:** 7 de octubre de 2026
+**Actualizado:** 8 de octubre de 2026
 **Fase actual:** Sorteos Simple y Sorteos Avanzado implementados; validación de uso y preparación de producción.
 
 ## Objetivo actual
@@ -166,3 +166,34 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - «Publicar y compartir» abre un modal; S/4.90 aparece dentro. Incluye datos Yape, operación y envío, con Escape/cierre, control de foco y bloqueo durante el envío.
 - No hay cambios de API, esquema ni migraciones. Sorteos Simple conserva su funcionamiento.
 - Lint y compilación de la web correctos; recorrido de navegador aprobado en escritorio y móvil: pausa entre premios, copia del sorteo, modal, envío y publicación.
+
+## Mi Turno · Dashboard de pago
+
+- Implementado: acceso completo por negocio, S/10 mensual o S/79 anual,
+  renovación manual mediante Yape y revisión en superadmin. Sin pago
+  confirmado no se muestran métricas. OWNER/ADMIN; operadores excluidos.
+- Tiempos de registro, llamado, finalización, ausencia y vencimiento guardados.
+  Filtros por fechas de registro en Lima, métricas, demanda por hora,
+  resumen por ventanilla y CSV sin datos identificatorios.
+- Migraciones de tiempos y Dashboard aplicadas en PostgreSQL local.
+- Verificado: build web y superadmin; prueba focalizada de permisos,
+  pagos, aprobación concurrente, renovación y cálculos; recorrido UI con
+  API simulada en escritorio y móvil, descarga CSV y sin desbordamiento.
+- Pendiente: validación manual del depósito real y revisión por superadmin;
+  configurar YAPE_PHONE/YAPE_NAME en el entorno donde se vayan a cobrar pagos.
+  No hay pasarela automática ni débitos recurrentes.
+
+- Vista previa del Dashboard habilitada temporalmente en api/.env para
+  revisión visual local, sin alterar pagos/vigencias. Solo fuera de producción
+  y con DB localhost; desactivar TURN_DASHBOARD_PREVIEW tras los ajustes.
+
+- Navegación por rol: administrador con menú lateral modal desde ☰/✕
+  a la altura de Mi Turno; operador con barra inferior fija (Operación, QR,
+  pantalla pública). Build y recorrido focalizado desktop/móvil correctos.
+
+- Ajuste confirmado: navegación por rol nueva solo en pantallas de hasta
+  760px. Escritorio conserva sidebar colapsable para ambos roles. Prueba
+  focalizada desktop/móvil correcta.
+
+- Vista previa local desactivada tras validar la presentación del Dashboard.
+  Se restaura explicación y contratación para negocios sin pago vigente.

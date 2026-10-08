@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { DashboardPayments } from './DashboardPayments'
 import { Publications } from './Publications'
 import './App.css'
 
@@ -148,6 +149,7 @@ function App() {
           {error && <p className="error" role="alert">{error}</p>}
 
           <Publications api={api} />
+          <DashboardPayments api={api} />
           {section && (
             <section className="data-panel">
               <div className="panel-heading">

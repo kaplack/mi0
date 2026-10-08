@@ -203,3 +203,99 @@ test('operator invitations handle registered and new accounts and reject other w
   await request('DELETE', route + '/invitations/' + cancelled.id, owner);
   assert.equal((await request('GET', '/invitations/' + revoked.data.token)).status, 410);
 });
+
+
+test('ticket timings persist completed, absent and expired outcomes', async () => {
+  const { queue, route } = await fixture();
+  for (let i = 0; i < 4; i++) await join(queue);
+  let records = await db.turnTicket.findMany({ where: { queueId: queue.id }, orderBy: { number: 'asc' } });
+  records.forEach(ticket => { assert.ok(ticket.createdAt); assert.equal(ticket.calledAt, null); assert.equal(ticket.endedAt, null); });
+  const served = (await request('POST', route + '/next', member, { counter: 1 })).data.ticket;
+  const completed = await request('POST', route + '/finish', member, { ticketId: served.id, action: 'SERVED' });
+  assert.equal(completed.status, 200);
+  assert.equal(completed.data.ticket.endedAt, completed.data.ticket.servedAt);
+  assert.equal(completed.data.ticket.calledAt, served.calledAt);
+  const absent = (await request('POST', route + '/next', member, { counter: 1 })).data.ticket;
+  assert.equal((await request('POST', route + '/finish', member, { ticketId: absent.id, action: 'ABSENT' })).status, 200);
+  await request('POST', route + '/next', member, { counter: 1 });
+  assert.equal((await request('POST', route + '/close', owner)).data.expired, 2);
+  records = await db.turnTicket.findMany({ where: { queueId: queue.id }, orderBy: { number: 'asc' } });
+  assert.deepEqual(records.map(ticket => ticket.status), ['SERVED', 'ABSENT', 'EXPIRED', 'EXPIRED']);
+  records.forEach(ticket => {
+    assert.ok(ticket.endedAt >= ticket.createdAt);
+    if (ticket.calledAt) assert.ok(ticket.endedAt >= ticket.calledAt);
+    if (ticket.status !== 'SERVED') assert.equal(ticket.servedAt, null);
+  });
+  assert.equal(records[3].calledAt, null);
+  assert.equal(records[2].endedAt.getTime(), records[3].endedAt.getTime());
+  await request('POST', route + '/close', owner);
+  assert.equal((await request('POST', route + '/finish', member, { ticketId: served.id, action: 'SERVED' })).status, 409);
+  const unchanged = await db.turnTicket.findMany({ where: { queueId: queue.id }, orderBy: { number: 'asc' } });
+  assert.deepEqual(unchanged.map(ticket => ticket.endedAt), records.map(ticket => ticket.endedAt));
+});
+
+
+test('paid dashboard protects metrics and validates manual monthly and annual renewals', async () => {
+  const { queue, route } = await fixture();
+  const dashboard = route + '/dashboard';
+  const reviewer = await actor('dashboard-reviewer');
+  await db.user.update({ where: { id: reviewer.id }, data: { role: 'SUPERADMIN' } });
+  const oldPhone = process.env.YAPE_PHONE, oldName = process.env.YAPE_NAME;
+  const oldPreview = process.env.TURN_DASHBOARD_PREVIEW;
+  process.env.TURN_DASHBOARD_PREVIEW = 'false';
+  process.env.YAPE_PHONE = '999999999'; process.env.YAPE_NAME = 'Pruebas';
+  try {
+    const range = '?from=2026-10-01&to=2026-10-01';
+    assert.equal((await request('GET', dashboard + range)).status, 401);
+    assert.equal((await request('GET', dashboard + range, member)).status, 403);
+    assert.equal((await request('GET', dashboard + '/subscription', outsider)).status, 403);
+    assert.equal((await request('GET', dashboard + range, owner)).status, 402);
+    const info = await request('GET', dashboard + '/subscription', owner);
+    assert.equal(info.data.active, false);
+    assert.deepEqual(info.data.plans.map(plan => plan.amountCents), [1000, 7900]);
+    assert.ok(!('summary' in info.data));
+    assert.equal((await request('POST', dashboard + '/payments', owner, { plan: 'FREE', reference: 'DASH-INVALID' })).status, 400);
+    const payment = await request('POST', dashboard + '/payments', owner, { plan: 'MONTHLY', reference: 'DASH-MONTHLY', amountCents: 1 });
+    assert.equal(payment.status, 201); assert.equal(payment.data.payment.amountCents, 1000);
+    assert.equal((await request('GET', dashboard + range, owner)).status, 402);
+    assert.equal((await request('POST', dashboard + '/payments', owner, { plan: 'ANNUAL', reference: 'DASH-DUPLICATE' })).status, 409);
+    const reviewRoute = '/dashboard/payments/' + payment.data.payment.id + '/review';
+    assert.equal((await request('POST', reviewRoute, owner, { action: 'approve' })).status, 403);
+    const reviewed = await Promise.all([request('POST', reviewRoute, reviewer, { action: 'approve' }), request('POST', reviewRoute, reviewer, { action: 'approve' })]);
+    assert.deepEqual(reviewed.map(item => item.status).sort(), [200, 409]);
+    const firstUntil = (await db.turnQueue.findUnique({ where: { id: queue.id } })).dashboardUntil;
+    await db.turnTicket.createMany({ data: [
+      { queueId: queue.id, number: 100, name: 'Cliente', clientKey: crypto.randomUUID(), status: 'SERVED', counter: 1, createdAt: new Date('2026-10-01T05:00:00Z'), calledAt: new Date('2026-10-01T05:10:00Z'), servedAt: new Date('2026-10-01T05:15:00Z'), endedAt: new Date('2026-10-01T05:15:00Z') },
+      { queueId: queue.id, number: 101, name: 'Cliente', clientKey: crypto.randomUUID(), status: 'SERVED', counter: 1, createdAt: new Date('2026-10-01T06:00:00Z') },
+      { queueId: queue.id, number: 102, name: 'Cliente', clientKey: crypto.randomUUID(), status: 'ABSENT', counter: 2, createdAt: new Date('2026-10-01T07:00:00Z'), calledAt: new Date('2026-10-01T07:20:00Z') },
+      { queueId: queue.id, number: 103, name: 'Cliente', clientKey: crypto.randomUUID(), status: 'EXPIRED', createdAt: new Date('2026-10-01T08:00:00Z') },
+      { queueId: queue.id, number: 104, name: 'Cliente', clientKey: crypto.randomUUID(), status: 'WAITING', createdAt: new Date('2026-10-01T04:59:59Z') },
+      { queueId: queue.id, number: 105, name: 'Cliente', clientKey: crypto.randomUUID(), status: 'WAITING', createdAt: new Date('2026-10-02T05:00:00Z') }
+    ] });
+    const report = await request('GET', dashboard + range, owner);
+    assert.equal(report.status, 200, JSON.stringify(report.data));
+    assert.equal(report.data.summary.total, 4); assert.equal(report.data.summary.served, 2);
+    assert.equal(report.data.summary.waitAverageSeconds, 900); assert.equal(report.data.summary.serviceAverageSeconds, 300);
+    assert.equal(report.data.summary.serviceSamples, 1); assert.equal(report.data.hours[0].count, 1);
+    assert.equal(report.data.counters.length, 2); assert.ok(!JSON.stringify(report.data).includes('clientKey'));
+    assert.equal((await request('GET', dashboard + '?from=2026-02-30&to=2026-10-01', owner)).status, 400);
+    assert.equal((await request('GET', dashboard + '?from=2025-01-01&to=2026-10-01', owner)).status, 400);
+    const annual = await request('POST', dashboard + '/payments', owner, { plan: 'ANNUAL', reference: 'DASH-ANNUAL' });
+    assert.equal(annual.data.payment.amountCents, 7900);
+    const renewed = await request('POST', '/dashboard/payments/' + annual.data.payment.id + '/review', reviewer, { action: 'approve' });
+    assert.equal(renewed.status, 200); assert.equal(renewed.data.payment.validUntil.slice(0, 4), String(firstUntil.getUTCFullYear() + 1));
+    const { addMonths } = require('../turnos/dashboard');
+    assert.equal(addMonths(new Date('2026-01-31T12:00:00Z'), 1).toISOString(), '2026-02-28T12:00:00.000Z');
+    assert.equal(addMonths(new Date('2026-01-31T02:00:00Z'), 1).toISOString(), '2026-03-01T02:00:00.000Z');
+    const beforeReject = renewed.data.payment.validUntil;
+    const rejected = await request('POST', dashboard + '/payments', owner, { plan: 'MONTHLY', reference: 'DASH-REJECTED' });
+    assert.equal((await request('POST', '/dashboard/payments/' + rejected.data.payment.id + '/review', reviewer, { action: 'reject', reason: 'Depósito no encontrado' })).status, 200);
+    assert.equal((await request('GET', dashboard + '/subscription', owner)).data.validUntil, beforeReject);
+    await db.turnQueue.update({ where: { id: queue.id }, data: { dashboardUntil: new Date('2020-01-01') } });
+    assert.equal((await request('GET', dashboard + range, owner)).status, 402);
+  } finally {
+    if (oldPreview === undefined) delete process.env.TURN_DASHBOARD_PREVIEW; else process.env.TURN_DASHBOARD_PREVIEW = oldPreview;
+    if (oldPhone === undefined) delete process.env.YAPE_PHONE; else process.env.YAPE_PHONE = oldPhone;
+    if (oldName === undefined) delete process.env.YAPE_NAME; else process.env.YAPE_NAME = oldName;
+  }
+});

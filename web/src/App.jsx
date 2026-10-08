@@ -30,7 +30,7 @@ function App() {
   const invitationMatch = pathname.match(/^\/mi-turno\/invitacion\/([a-f0-9]{64})\/?$/)
   const turnoMatch = pathname.match(/^\/turno\/([^/]+)\/?$/)
   const displayMatch = pathname.match(/^\/turno\/([^/]+)\/pantalla\/?$/)
-  const managerMatch = pathname.match(/^\/mi-turno(?:\/([^/]+)\/(configuracion|operacion|qr|operadores))?\/?$/)
+  const managerMatch = pathname.match(/^\/mi-turno(?:\/([^/]+)\/(configuracion|operacion|qr|operadores|dashboard))?\/?$/)
   const publicMatch = pathname.match(/^\/s\/([^/]+)\/?$/)
 
   useEffect(() => {
