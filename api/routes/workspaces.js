@@ -15,7 +15,8 @@ router.get('/', async (req, res, next) => {
       include: {
         workspace: {
           include: {
-            citaClinic: { select: { name: true } },
+            citaClinic: { select: { name: true, accesses: { where: { userId: req.auth.user.id, active: true }, select: { id: true } } } },
+            turnQueue: { select: { name: true, operators: { where: { userId: req.auth.user.id }, select: { counter: true } } } },
             modules: {
               where: { active: true },
               include: { module: true },
@@ -29,9 +30,10 @@ router.get('/', async (req, res, next) => {
       .filter(({ workspace }) => workspace.status === 'ACTIVE')
       .map(({ role, workspace }) => ({
         id: workspace.id,
-        name: workspace.name === 'Mi espacio' && workspace.citaClinic ? workspace.citaClinic.name : workspace.name,
+        name: workspace.name === 'Mi espacio' ? workspace.citaClinic?.name || workspace.turnQueue?.name || workspace.name : workspace.name,
         type: workspace.type,
         role,
+        accessLabel: role === 'OWNER' ? 'Propietario' : role === 'ADMIN' ? 'Administrador invitado' : workspace.citaClinic?.accesses.length ? 'Profesional' : workspace.turnQueue?.operators.length ? 'Operador' : 'Acceso invitado',
         modules: workspace.modules
           .filter(({ module }) => module.active)
           .map(({ module }) => ({

@@ -237,3 +237,11 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Mi0: Mis microapps renderiza únicamente modules activos del espacio seleccionado; se retiran tarjetas fijas de Mi Turno/Mi Cita/Sorteos Avanzado. Estado vacío y acceso a Explorar conservados. Comprobación mínima: listado por espacio en prueba de invitación, lint y build.
 
 - Regresión de listado Mi Turno corregida: Alan mantiene Ventanilla 1 de Cosa nostra en el mismo workspace de Podologo Jaiva. Faltaba workspace_modules/mi-turno, por lo que el filtro ocultaba su tarjeta. Migración aditiva registra colas existentes sin modificar operadores ni asociaciones desactivadas; setup activa el módulo transaccionalmente. Prueba puntual de configuración y auditoría local.
+
+### Navegación por espacios completada
+
+- Inicio lista todos los espacios propios e invitados en tarjetas con nombre/rol; accesos de icono + nombre sin descripción ni botón Abrir. Mis microapps lista únicamente espacios OWNER. Espacios vacíos al final; Explorar conserva catálogo.
+- Sin selector en Inicio, Mi Cita ni Mi Turno; dentro de cada microapp se mantiene nombre del espacio, rol y Volver a Inicio. Inicio abre usando el workspace concreto de la tarjeta.
+- Separación local autorizada: Cosa nostra movida del workspace 41463cd1-c265-4f0e-bbe2-3208bfc203b6 al 2794b8af-abfd-4ad8-a578-c37d465935a5. Se preservan queue/code, cuatro tickets, invitación, operador y ventanilla 1 de Alan. Consultorio conserva profesionales/accesos y tres citas. Membresías OWNER/ADMIN y operadores de Mi Turno trasladadas por copia; permisos de Mi Cita quedan en origen. No se tocó ninguna BD remota.
+- Mantenimiento explícito local en api/scripts/separate-turno-workspace.cjs, transaccional con comprobaciones de conservación; no se aplica automáticamente a otros negocios que comparten microapps.
+- Verificación mínima: lint/build y único recorrido desktop de invitación/Inicio/apps propias/agenda/QR/revocación. Primera ejecución detectó nombres accesibles del menú con iconos incluidos; corregidos mediante aria-hidden. Revisión visual del usuario.

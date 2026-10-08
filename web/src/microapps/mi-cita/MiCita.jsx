@@ -12,7 +12,7 @@ import { CitaAgenda } from './CitaAgenda'
 import { CitaQr } from './CitaQr'
 import './MiCita.css'
 export function MiCita({ code, workspaceId, page, onBack, onLogin, onNavigate }) {
-  return <div className="cita"><header className="cita-header"><Logo />{!code && (onBack ? <button className="cita-back" onClick={onBack}>← Volver a Mi0</button> : <a className="cita-back" href="/">← Volver a Mi0</a>)}</header>
+  return <div className="cita"><header className="cita-header"><Logo />{!code && (onBack ? <button className="cita-back" onClick={onBack}>← Volver a Inicio</button> : <a className="cita-back" href="/">← Volver a Inicio</a>)}</header>
     {code ? <main className="cita-public-main"><CitaPublic key={code} code={code} /></main> : <CitaManager workspaceId={workspaceId} page={page} onLogin={onLogin} onNavigate={onNavigate} />}
   </div>
 }
@@ -23,7 +23,7 @@ function CitaManager({ workspaceId, page, onLogin, onNavigate }) {
   if (!state.data) return <main className="cita-public-main"><section className="cita-panel">{state.error ? <><p className="cita-error" role="alert">{state.error}</p><button onClick={state.reload}>Reintentar</button><button className="cita-secondary" onClick={onLogin}>Iniciar sesión</button></> : <p role="status">Cargando espacios…</p>}</section></main>
   const workspaces = state.data.workspaces || []
   const workspace = workspaces.find(w => w.id === workspaceId) || (!workspaceId ? workspaces.find(w => w.configured) || workspaces[0] : null)
-  if (!workspace) return <main className="cita-public-main"><section className="cita-panel"><h1>Mi Cita</h1><p>No tienes acceso a este espacio activo.</p><a href="/">Volver a Mi0</a></section></main>
+  if (!workspace) return <main className="cita-public-main"><section className="cita-panel"><h1>Mi Cita</h1><p>No tienes acceso a este espacio activo.</p><a href="/">Volver a Inicio</a></section></main>
   return <CitaWorkspace key={workspace.id} workspace={workspace} workspaces={workspaces} requestedPage={page} onNavigate={onNavigate} />
 }
 function CitaWorkspace({ workspace, workspaces, requestedPage, onNavigate }) {

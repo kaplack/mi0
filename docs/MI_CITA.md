@@ -96,3 +96,9 @@ Mi Cita muestra el nombre del consultorio en el selector de espacios, incluido e
 En Mi0 principal, si el workspace conserva el nombre genérico «Mi espacio», el listado muestra el nombre del consultorio configurado. Se distingue así del espacio personal sin consultorio. Los nombres personalizados de workspace se conservan.
 
 La migración 20261008190000_register_existing_turno_modules registra Mi Turno en el catálogo y asocia las colas ya configuradas a su workspace, preservando asociaciones explícitamente desactivadas y operadores. El setup de Mi Turno mantiene la asociación para nuevas configuraciones. Esto evita ocultar colas existentes tras filtrar Mis microapps por espacio. Aplicada a mi0 local; una prueba de configuración y la asignación real de Alan verificadas.
+
+## Inicio y espacios propios
+
+Inicio agrupa todos los espacios accesibles (propios e invitados) en tarjetas; Mis microapps solo incluye espacios cuyo rol de workspace es OWNER. Administradores invitados no se consideran propietarios. Cada acceso muestra icono y nombre y abre el workspace concreto. Los selectores internos de Mi Cita y Mi Turno se sustituyen por nombre/rol y Volver a Inicio.
+
+En mi0 local se separó Cosa nostra del consultorio Podologo Jaiva conservando la cola, código QR público, registros e invitaciones, operadores y citas. El script explícito api/scripts/separate-turno-workspace.cjs recibe el UUID de origen y el nombre exacto de la cola; verifica localhost/mi0/public, bloquea y mueve la cola a un nuevo workspace copiando OWNER/ADMIN y operadores. No crea otra cola, no copia pacientes y no realiza separación automática de negocios. Los enlaces privados antiguos de Mi Turno usan el workspace anterior; entrar desde la tarjeta del nuevo espacio para obtener el acceso correcto. Los enlaces públicos de la cola conservan su código.
