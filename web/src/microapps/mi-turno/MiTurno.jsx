@@ -15,7 +15,7 @@ import './MiTurno.css'
 export function MiTurno({ code, publicDisplay = false, workspaceId, page = 'operacion', onBack, onLogin, onNavigate }) {
   return <div className={'turno' + (publicDisplay ? ' turno-monitor' : '')}>
     <header className="turno-header"><Logo />
-      {!code && (onBack ? <button className="turno-back" onClick={onBack}>← Volver a Mi0</button> : <a className="turno-back" href="/">← Volver a Mi0</a>)}
+      {!code && (onBack ? <button className="turno-back" onClick={onBack}>← Volver a Inicio</button> : <a className="turno-back" href="/">← Volver a Inicio</a>)}
     </header>
     {code ? <main className="turno-public-main">{publicDisplay ? <TurnoDisplay key={code} code={code} /> : <TurnoClient key={code} code={code} />}</main>
       : <TurnoManager workspaceId={workspaceId} page={page} onNavigate={onNavigate} onLogin={onLogin} />}
@@ -42,6 +42,7 @@ function TurnoManager({ workspaceId, page, onLogin, onNavigate }) {
 function TurnoWorkspace({ workspace, workspaces, page, onNavigate }) {
   const state = useTurnoData('/turnos/workspace/' + workspace.id)
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('mi0_turno_sidebar') === 'collapsed')
+  const [menuOpen, setMenuOpen] = useState(false)
   const [smallScreen, setSmallScreen] = useState(() => window.matchMedia('(max-width: 760px)').matches)
   useEffect(() => {
     const media = window.matchMedia('(max-width: 760px)')
@@ -49,7 +50,6 @@ function TurnoWorkspace({ workspace, workspaces, page, onNavigate }) {
     media.addEventListener('change', update)
     return () => media.removeEventListener('change', update)
   }, [])
-  const [menuOpen, setMenuOpen] = useState(false)
   const drawerRef = useRef(null)
   useEffect(() => {
     const drawer = drawerRef.current

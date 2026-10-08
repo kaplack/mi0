@@ -1,7 +1,7 @@
 # mi0.app · Backlog
 
 **Actualizado:** 8 de octubre de 2026
-**Fase actual:** Sorteos Simple y Sorteos Avanzado implementados; validación de uso y preparación de producción.
+**Fase actual:** Sorteos, Mi Turno y Mi Cita implementados; verificación local y preparación de producción.
 
 ## Objetivo actual
 
@@ -114,7 +114,7 @@ Sorteos continúa siendo la primera herramienta gratuita. Las hipótesis previas
 | Generador de contraseñas | Idea futura; fuera del home |
 | Compresor de imágenes | Idea futura; fuera del home |
 | Renombrador de archivos | Idea futura; fuera del home |
-| Matrículas, Citas, Sellos, Huéspedes, Acuerdos, Calendario e Incidentes | Ideas futuras; sin orden de implementación confirmado |
+| Matrículas, Sellos, Huéspedes, Acuerdos, Calendario e Incidentes | Ideas futuras; sin orden de implementación confirmado |
 
 ### Referencia conservada: Matrículas
 
@@ -197,3 +197,62 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 
 - Vista previa local desactivada tras validar la presentación del Dashboard.
   Se restaura explicación y contratación para negocios sin pago vigente.
+## Mi Cita · MVP, 8 de octubre de 2026
+
+- Implementado en feature/mi-cita-mvp: configuración, profesionales/horarios, agenda/pendientes, QR PNG y solicitud pública sin registro. OWNER/ADMIN configuran; MEMBER opera y consulta disponibilidad.
+- DNI configurable, desactivado por defecto; no se almacena si no se solicita. Pendientes vencen al inicio o antes según plazo 2/6/12/24 horas; cambios de política afectan nuevas solicitudes.
+- Disponibilidad en zona horaria (Lima por defecto), transacciones con advisory lock y restricción de exclusión GiST/btree_gist contra solapamientos. Limpieza periódica en servidor y al consultar/gestionar.
+- Evidencia: ocho pruebas de backend con PostgreSQL aislado correctas (incluido vencimiento sin navegador/reintentos); lint y build web correctos. Mi Turno (7) y Sorteos Avanzado (6) pasan sus pruebas PostgreSQL.
+- Navegador con API/DB reales: configuración, profesionales, descarga QR y navegación desktop/móvil correctas; solicitud con/sin DNI y confirmación/cancelación por MEMBER correctas. Capturas revisadas sin desbordamientos. Detalles ahora en diálogo accesible; recorrido focalizado confirmado.
+- Migración aplicada a PostgreSQL local y validada desde cero en esquemas temporales; esquema local al día. Fixtures/esquemas temporales eliminados. No se modificó ninguna base remota.
+- Ocho recorridos de navegador correctos entre escritorio y móvil (6 principales + 2 de recuperación tras respuesta perdida), copia de enlace, descarga QR y cierre con Escape. Navegación Mi Turno desktop/móvil verificada (2 pruebas).
+- Entrega preparada en feature/mi-cita-mvp para revisión mediante PR hacia main; sin merge ni despliegue remoto.
+- Guía operativa y despliegue: docs/MI_CITA.md. La migración requiere btree_gist disponible en PostgreSQL.
+- Entorno: los procesos funcionan fuera del sandbox; dentro falla el arranque.
+
+### Mi Cita · vista de próximos días completada
+
+- Se añade resumen autenticado por profesional, agregado en PostgreSQL sin límite de la agenda paginada.
+- Solo próximos 7 y 30 días desde hoy en la zona del consultorio; 7 por defecto y preferencia recordada.
+- Verde: confirmadas; ámbar: solo pendientes; casillas vacías: sin citas activas. Pulsar un día abre su agenda.
+- Verificado: 9 pruebas backend, lint/build y 10 recorridos de navegador correctos (incluidos los 2 nuevos de resumen desktop/móvil). Capturas revisadas; sin desbordamiento hasta 320 px. PR #2 actualizado sin merge.
+
+- Agenda: selector de fecha oculto inicialmente en «Ir a una fecha»; conserva consulta de fechas pasadas/futuras y filtro profesional visible. Verificación mínima: lint del componente y build; revisión visual a cargo del usuario.
+
+- Ajuste visual de Agenda: profesional y «Ir a una fecha» en columnas iguales; botón con icono calendario, altura de 44 px y controles apilados en móvil. Verificación mínima: lint del componente y build; revisión visual del usuario.
+
+### Mi Cita · acceso profesional por invitación completado
+
+- Cuentas e invitaciones del workspace reutilizadas: enlace ligado al correo/profesional, registro o login, aceptación explícita y entrada a Mi agenda. Enlace vence en 7 días, hash en BD y regeneración/cancelación invalidan el anterior.
+- Gestión completa para administrador/asistente (OWNER/ADMIN y MEMBER sin vinculación); profesional MEMBER vinculado accede solo a sus citas, confirma/cancela propias y comparte QR/enlace preseleccionado. Aislamiento aplicado en API, incluidas agenda, pendientes, resumen y mutaciones.
+- Cancelar invitación y retirar acceso desde ficha. Revocación conserva citas y un registro de denegación para evitar acceso de gestión por omisión. Una cuenta por profesional; una vinculación por cuenta/consultorio.
+- Migración 20261008180000_cita_professional_invitations aditiva, aplicada a mi0 local/public, migrate status al día y Prisma generado. API local reiniciada y disponible en 3000. No se tocaron bases remotas.
+- Verificado: 11 pruebas HTTP/PostgreSQL, un único recorrido nuevo desktop de invitación/registro/agenda/QR/revocación, lint y build. Sin suites visuales adicionales. Primera ejecución del recorrido corrigió únicamente un selector de etiqueta Correo; segunda correcta.
+- Entrega en feature/mi-cita-mvp y PR #2, sin merge. Revisión visual del usuario.
+
+- Mi Cita identifica cada espacio por el nombre del consultorio configurado. La invitación comparte el workspace existente; no duplica consultorio ni citas. Al abrir sin workspace se prioriza uno configurado frente al espacio personal vacío; accesos revocados se excluyen del selector. Verificación mínima: recorrido de invitación actualizado, lint y build.
+
+- Mi0 principal: el listado global identifica un workspace de nombre genérico «Mi espacio» por su consultorio configurado. Espacio personal sin consultorio y nombres personalizados se conservan. Verificado con una prueba HTTP/PostgreSQL del registro/invitación/listado; sin revisión visual adicional.
+
+- Mi0: Mis microapps renderiza únicamente modules activos del espacio seleccionado; se retiran tarjetas fijas de Mi Turno/Mi Cita/Sorteos Avanzado. Estado vacío y acceso a Explorar conservados. Comprobación mínima: listado por espacio en prueba de invitación, lint y build.
+
+- Regresión de listado Mi Turno corregida: Alan mantiene Ventanilla 1 de Cosa nostra en el mismo workspace de Podologo Jaiva. Faltaba workspace_modules/mi-turno, por lo que el filtro ocultaba su tarjeta. Migración aditiva registra colas existentes sin modificar operadores ni asociaciones desactivadas; setup activa el módulo transaccionalmente. Prueba puntual de configuración y auditoría local.
+
+### Navegación por espacios completada
+
+- Inicio lista todos los espacios propios e invitados en tarjetas con nombre/rol; accesos de icono + nombre sin descripción ni botón Abrir. Mis microapps lista únicamente espacios OWNER. Espacios vacíos al final; Explorar conserva catálogo.
+- Sin selector en Inicio, Mi Cita ni Mi Turno; dentro de cada microapp se mantiene nombre del espacio, rol y Volver a Inicio. Inicio abre usando el workspace concreto de la tarjeta.
+- Separación local autorizada: Cosa nostra movida del workspace 41463cd1-c265-4f0e-bbe2-3208bfc203b6 al 2794b8af-abfd-4ad8-a578-c37d465935a5. Se preservan queue/code, cuatro tickets, invitación, operador y ventanilla 1 de Alan. Consultorio conserva profesionales/accesos y tres citas. Membresías OWNER/ADMIN y operadores de Mi Turno trasladadas por copia; permisos de Mi Cita quedan en origen. No se tocó ninguna BD remota.
+- Mantenimiento explícito local en api/scripts/separate-turno-workspace.cjs, transaccional con comprobaciones de conservación; no se aplica automáticamente a otros negocios que comparten microapps.
+- Verificación mínima: lint/build y único recorrido desktop de invitación/Inicio/apps propias/agenda/QR/revocación. Primera ejecución detectó nombres accesibles del menú con iconos incluidos; corregidos mediante aria-hidden. Revisión visual del usuario.
+
+- Inicio: accesos compactos sin recuadro interno; botón ajustado al icono/nombre y hover sobre ambos. El espacio libre de la tarjeta ya no activa la app. Verificación mínima: build; visual del usuario.
+
+### Catálogo dentro del panel
+- Explorar microapps mantiene menú lateral y muestra Abrir, Más información y Agregar a mi espacio en cada tarjeta.
+- Fichas con funciones y capturas reales de las cuatro herramientas, generadas con datos de ejemplo en PostgreSQL aislado. Regeneración explícita con UPDATE_MICROAPP_PREVIEWS; las pruebas normales no cambian recursos públicos.
+- Modal de agregado selecciona el espacio PERSONAL propio por defecto, permite elegir espacios OWNER/ADMIN, informa asociaciones existentes y persiste mediante API. Abrir elige entre espacios con la herramienta instalada cuando hay varios; sin instalación conduce al agregado.
+- Migración aditiva registra Sorteos simple, sin activar asociaciones por defecto ni modificar módulos desactivados.
+- Prueba focalizada desktop: navegación interna, selección predeterminada, agregado a dos espacios, duplicados, persistencia, rechazo MEMBER y ficha con Escape. Lint/build; revisión visual del usuario.
+
+- Catálogo: tres acciones compactas con iconos outline, etiquetas accesibles y tooltips al hover/foco; Escape los oculta. Áreas táctiles de 44px. Verificación mínima: lint/build; revisión visual del usuario.

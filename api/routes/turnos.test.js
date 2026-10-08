@@ -35,6 +35,8 @@ async function fixture(documentMode = 'NONE') {
   const setup = await request('POST', '/setup', owner, { workspaceId: workspace.id, name: 'Atención', documentMode, counterNames: ['Ventanilla 1', 'Entrega'] });
   assert.equal(setup.status, 201, JSON.stringify(setup.data));
   await db.turnOperator.create({ data: { queueId: setup.data.queue.id, userId: member.id, counter: 1 } });
+  const installed = await db.workspaceModule.findFirst({where:{workspaceId:workspace.id,module:{code:'mi-turno'}}});
+  assert.equal(installed?.active,true);
   return { workspace, queue: setup.data.queue, route: '/workspace/' + workspace.id };
 }
 async function join(queue, body = {}) {

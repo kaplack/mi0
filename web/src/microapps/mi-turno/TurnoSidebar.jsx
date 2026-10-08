@@ -14,7 +14,7 @@ export function TurnoIcon({ name }) {
   }
   return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
-export function TurnoSidebar({ workspace, workspaces, queue, page, canConfigure, collapsed, onCollapse, reload, onNavigate, drawer = false }) {
+export function TurnoSidebar({ workspace, queue, page, canConfigure, collapsed, onCollapse, reload, onNavigate, drawer = false }) {
   const [closing, setClosing] = useState(false)
   const [confirm, setConfirm] = useState(false)
   const [message, setMessage] = useState('')
@@ -41,8 +41,7 @@ export function TurnoSidebar({ workspace, workspaces, queue, page, canConfigure,
       <button className="turno-collapse" type="button" onClick={onCollapse} aria-label={drawer ? 'Cerrar menú' : collapsed ? 'Expandir menú' : 'Colapsar menú'} aria-expanded={!collapsed} title={drawer ? 'Cerrar menú' : collapsed ? 'Expandir menú' : 'Colapsar menú'}>{drawer ? <span aria-hidden="true">✕</span> : <TurnoIcon name="collapse" />}</button>
     </div>
     <div className="turno-sidebar-space">
-      {workspaces.length > 1 ? <label>Espacio<select disabled={closing} value={workspace.id} onChange={event => { const path = '/mi-turno/' + event.target.value + '/operacion'; if (onNavigate) onNavigate(path); else location.href = path }}>{workspaces.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-        : <><small>ESPACIO</small><strong>{workspace.name}</strong></>}
+      <small>ESPACIO</small><strong>{workspace.name}</strong>
       <span>{canConfigure ? 'Administrador' : 'Operador'}</span>
     </div>
     <nav aria-label="Pantallas de Mi Turno">

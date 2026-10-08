@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:turnos:ui": "playwright test"
+    "test:turnos:ui": "playwright test",
+    "test:citas:ui": "playwright test --config playwright.cita.config.js"
   },
   "dependencies": {
     "qrcode": "^1.5.4",

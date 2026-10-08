@@ -42,3 +42,4 @@ Thumbs.db
 # Browser test output
 web/test-results/
 web/playwright-report/
+web/.cita-fixture.json
