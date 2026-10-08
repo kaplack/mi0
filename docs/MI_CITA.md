@@ -76,3 +76,5 @@ La Agenda incluye únicamente Próximos 7 días y Próximos 30 días, desde hoy 
 Las casillas verdes tienen citas confirmadas; las ámbar solo pendientes activas; las vacías no tienen citas activas. Un punto ámbar indica pendientes junto a confirmadas. El contador incluye ambas; canceladas y vencidas quedan fuera. Una casilla vacía no implica que el profesional atienda o tenga disponibilidad ese día.
 
 GET /api/citas/workspace/:workspaceId/day-summary acepta days=7|30 y professionalId opcional. Verifica la pertenencia al workspace y agrega en PostgreSQL sin devolver datos personales ni aplicar el límite de paginación diaria. No requiere migración adicional. El resumen se actualiza cada 15 segundos y al confirmar/cancelar o pulsar Actualizar.
+
+El selector manual de fecha se despliega desde «Ir a una fecha», para consultar fechas pasadas o fuera del resumen. El filtro de profesional permanece visible.

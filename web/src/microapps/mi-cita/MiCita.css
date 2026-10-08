@@ -159,3 +159,8 @@
   .cita-day-overview h3 { font-size:16px; }
   .cita .cita-day { min-height:80px; }
 }
+
+.cita-date-picker { align-self: start; }
+.cita-date-picker summary { cursor: pointer; color: var(--text-secondary); min-height: 44px; display: flex; align-items: center; text-decoration: underline; text-underline-offset: 3px; }
+.cita-date-picker summary:focus-visible { outline: 2px solid var(--primary-dark); outline-offset: 3px; border-radius: 4px; }
+.cita-date-picker[open] summary { margin-bottom: 8px; }

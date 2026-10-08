@@ -216,3 +216,5 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Solo próximos 7 y 30 días desde hoy en la zona del consultorio; 7 por defecto y preferencia recordada.
 - Verde: confirmadas; ámbar: solo pendientes; casillas vacías: sin citas activas. Pulsar un día abre su agenda.
 - Verificado: 9 pruebas backend, lint/build y 10 recorridos de navegador correctos (incluidos los 2 nuevos de resumen desktop/móvil). Capturas revisadas; sin desbordamiento hasta 320 px. PR #2 actualizado sin merge.
+
+- Agenda: selector de fecha oculto inicialmente en «Ir a una fecha»; conserva consulta de fechas pasadas/futuras y filtro profesional visible. Verificación mínima: lint del componente y build; revisión visual a cargo del usuario.

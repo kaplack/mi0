@@ -103,6 +103,7 @@ test('patient booking without DNI, assistant confirmation/cancellation, receipt 
   await page.getByRole('button', { name: 'Actualizar estado' }).click()
   await expect(page.getByRole('heading', { name: 'Cita confirmada' })).toBeVisible()
   await assistant.getByRole('link', { name: 'Agenda', exact: true }).click()
+  await assistant.getByText('Ir a una fecha', { exact: true }).click()
   await assistant.getByLabel('Fecha', { exact: true }).fill(f.tomorrow)
   await details(assistant, patientName, mobile)
   await assistant.getByRole('button', { name: 'Cancelar cita', exact: true }).click()
