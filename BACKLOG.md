@@ -247,3 +247,10 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Verificación mínima: lint/build y único recorrido desktop de invitación/Inicio/apps propias/agenda/QR/revocación. Primera ejecución detectó nombres accesibles del menú con iconos incluidos; corregidos mediante aria-hidden. Revisión visual del usuario.
 
 - Inicio: accesos compactos sin recuadro interno; botón ajustado al icono/nombre y hover sobre ambos. El espacio libre de la tarjeta ya no activa la app. Verificación mínima: build; visual del usuario.
+
+### Catálogo dentro del panel
+- Explorar microapps mantiene menú lateral y muestra Abrir, Más información y Agregar a mi espacio en cada tarjeta.
+- Fichas con funciones y capturas reales de las cuatro herramientas, generadas con datos de ejemplo en PostgreSQL aislado. Regeneración explícita con UPDATE_MICROAPP_PREVIEWS; las pruebas normales no cambian recursos públicos.
+- Modal de agregado selecciona el espacio PERSONAL propio por defecto, permite elegir espacios OWNER/ADMIN, informa asociaciones existentes y persiste mediante API. Abrir elige entre espacios con la herramienta instalada cuando hay varios; sin instalación conduce al agregado.
+- Migración aditiva registra Sorteos simple, sin activar asociaciones por defecto ni modificar módulos desactivados.
+- Prueba focalizada desktop: navegación interna, selección predeterminada, agregado a dos espacios, duplicados, persistencia, rechazo MEMBER y ficha con Escape. Lint/build; revisión visual del usuario.

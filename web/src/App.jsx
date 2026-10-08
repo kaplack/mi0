@@ -81,7 +81,7 @@ function App() {
   if (publicMatch) return <PublicRaffle code={publicMatch[1]} />
   if (activeMicroapp === 'sorteos') return <Sorteos onBack={() => setActiveMicroapp(null)} />
   if (activeMicroapp === 'sorteos-avanzado' && user && workspace) return <SorteosAvanzado workspace={workspace} onBack={() => { setActiveMicroapp(null); setConsoleOpen(true) }} />
-  if (user && consoleOpen) return <Mi0Page user={user} onLogout={logout} onExplore={() => setConsoleOpen(false)}
+  if (user && consoleOpen) return <Mi0Page user={user} onLogout={logout}
     onOpenMicroapp={openMicroapp} openAdvancedRequested={openAdvancedRequested} />
   return <HomePage user={user} onLogin={() => setAuthMode('login')} onRegister={() => setAuthMode('register')}
     onOpenMi0={() => setConsoleOpen(true)} onLogout={logout} onOpenMicroapp={openMicroapp} />

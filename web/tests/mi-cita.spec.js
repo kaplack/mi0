@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import fs from 'node:fs'
+import process from 'node:process'
 const readFixture = () => JSON.parse(fs.readFileSync(new URL('../.cita-fixture.json', import.meta.url), 'utf8'))
 const apiUrl = 'http://127.0.0.1:3002/api/citas'
 async function login(page, token) { await page.addInitScript(value => localStorage.setItem('mi0_user_token', value), token) }
@@ -258,3 +259,60 @@ test('professional invitation registration, own agenda, personalized QR and revo
     await guest.goto('/mi-cita/'+f.workspaceId+'/agenda');await expect(guest.getByText('No tienes acceso a este espacio activo.',{exact:true})).toBeVisible();
   } finally {await context.close();}
 });
+
+test('explore catalog stays inside console and adds tools to selected spaces', async ({ page, request }) => {
+  const f = readFixture()
+  await login(page, f.ownerToken)
+  await page.goto('/mi-cita/' + f.workspaceId)
+  await expect(page.getByRole('heading', { name: 'Agenda diaria' })).toBeVisible()
+  if (process.env.UPDATE_MICROAPP_PREVIEWS) await page.locator('.cita-content').screenshot({ path: new URL('../public/microapps/mi-cita.png', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1') })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Explorar microapps', exact: true }).click()
+  await expect(page.getByRole('navigation', { name: 'Navegación de Mi0' })).toBeVisible()
+  const card = page.getByRole('article', { name: 'Sorteos', exact: true })
+  await card.getByRole('button', { name: 'Agregar a mi espacio' }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByLabel('Espacio', { exact: true })).toHaveValue(f.personalId)
+  await dialog.getByRole('button', { name: 'Agregar', exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('Sorteos agregada a Mi espacio')
+  await card.getByRole('button', { name: 'Agregar a mi espacio' }).click()
+  await expect(dialog.getByRole('button', { name: 'Agregar', exact: true })).toBeDisabled()
+  await dialog.getByLabel('Espacio', { exact: true }).selectOption(f.workspaceId)
+  await dialog.getByRole('button', { name: 'Agregar', exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('Consultorio Vida')
+  const spaces = await request.get('http://127.0.0.1:3002/api/workspaces', { headers: { Authorization: 'Bearer ' + f.ownerToken } })
+  expect((await spaces.json()).workspaces.filter(space => space.modules.some(module => module.code === 'sorteos'))).toHaveLength(2)
+  const forbidden = await request.post('http://127.0.0.1:3002/api/workspaces/' + f.workspaceId + '/modules/sorteos', { headers: { Authorization: 'Bearer ' + f.memberToken } })
+  expect(forbidden.status()).toBe(403)
+  await card.getByRole('button', { name: 'Abrir', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Sorteos', exact: true })).toBeVisible()
+  if (process.env.UPDATE_MICROAPP_PREVIEWS) await page.locator('main').screenshot({ path: new URL('../public/microapps/sorteos.png', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1') })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Explorar microapps', exact: true }).click()
+  await page.getByRole('article', { name: 'Mi Cita', exact: true }).getByRole('button', { name: 'Más información' }).click()
+  await expect(dialog.getByRole('img')).toBeVisible()
+  expect(await dialog.getByRole('img').evaluate(img => img.naturalWidth)).toBeGreaterThan(0)
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  await page.getByRole('button', { name: 'Inicio', exact: true }).click()
+  await expect(page.getByRole('article', { name: 'Mi espacio', exact: true }).getByRole('button', { name: 'Abrir Sorteos en Mi espacio' })).toBeVisible()
+  if (process.env.UPDATE_MICROAPP_PREVIEWS) {
+    const setup = await request.post('http://127.0.0.1:3002/api/turnos/setup', { headers: { Authorization: 'Bearer ' + f.ownerToken }, data: { workspaceId: f.personalId, name: 'Atención al cliente', documentMode: 'NONE', counterNames: ['Recepción', 'Ventanilla 2'] } })
+    expect(setup.ok()).toBe(true)
+    await page.goto('/mi-turno/' + f.personalId + '/operacion')
+    await expect(page.locator('.turno-content')).toBeVisible()
+    await page.locator('.turno-content').screenshot({ path: new URL('../public/microapps/mi-turno.png', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1') })
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Explorar microapps', exact: true }).click()
+    const advanced = page.getByRole('article', { name: 'Sorteos Avanzado', exact: true })
+    await advanced.getByRole('button', { name: 'Agregar a mi espacio' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Agregar', exact: true }).click()
+    await expect(page.getByRole('status')).toContainText('Sorteos Avanzado agregada')
+    await advanced.getByRole('button', { name: 'Abrir', exact: true }).click()
+    await page.getByRole('button', { name: 'Crear sorteo', exact: true }).click()
+    await page.getByLabel('Nombre del sorteo').fill('Sorteo de aniversario')
+    await page.getByLabel('Participantes', { exact: true }).fill('Ana Pérez\nCarlos Ruiz\nLucía Díaz')
+    await page.locator('.advanced-main').screenshot({ path: new URL('../public/microapps/sorteos-avanzado.png', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1') })
+  }
+
+})

@@ -10,6 +10,7 @@ async function main() {
   const db = isolated.db;
   const owner = await actor(db, 'owner-ui'); const member = await actor(db, 'member-ui');
   const workspace = await db.workspace.create({ data: { name: 'Consultorio Vida', memberships: { create: [{ userId: owner.id, role: 'OWNER' }, { userId: member.id, role: 'MEMBER' }] } } });
+  const personal = await db.workspace.create({ data: { name: 'Mi espacio', type: 'PERSONAL', memberships: { create: { userId: owner.id, role: 'OWNER' } } } });
   const clinic = await db.citaClinic.create({ data: { workspaceId: workspace.id, name: 'Consultorio Vida', code: crypto.randomBytes(12).toString('hex') } });
   const tomorrow = nextDay(parts(new Date(), 'America/Lima').date);
   const weekday = new Date(tomorrow + 'T12:00:00Z').getUTCDay();
@@ -29,7 +30,7 @@ async function main() {
   });
   server = app.listen(3002, '127.0.0.1');
   stopSweep = require('./maintenance').startExpirationSweep({ intervalMs: 1000 });
-  fs.writeFileSync(fixturePath, JSON.stringify({ schema: isolated.schema, ownerToken: owner.token, memberToken: member.token, workspaceId: workspace.id, code: clinic.code, tomorrow, professionals: professionals.map(p => ({ id: p.id, name: p.name })) }));
+  fs.writeFileSync(fixturePath, JSON.stringify({ schema: isolated.schema, personalId: personal.id, ownerToken: owner.token, memberToken: member.token, workspaceId: workspace.id, code: clinic.code, tomorrow, professionals: professionals.map(p => ({ id: p.id, name: p.name })) }));
   console.log('Mi Cita UI API ready on port 3002 (isolated PostgreSQL schema)');
 }
 let stopping = false;
