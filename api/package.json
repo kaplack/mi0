@@ -12,7 +12,8 @@
     "db:migrate:deploy": "node node_modules/prisma/build/index.js migrate deploy",
     "db:studio": "node node_modules/prisma/build/index.js studio",
     "test:raffles": "node --test raffles/raffles.integration.test.js",
-    "create:superadmin": "node scripts/create-superadmin.js"
+    "create:superadmin": "node scripts/create-superadmin.js",
+    "test:citas": "node --test citas/citas.integration.test.js"
   },
   "keywords": [],
   "author": "",

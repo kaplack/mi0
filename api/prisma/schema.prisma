@@ -78,6 +78,7 @@ model Workspace {
   modules     WorkspaceModule[]
   raffles     Raffle[]
   turnQueue   TurnQueue?
+  citaClinic  CitaClinic?
 
   @@map("workspaces")
 }
@@ -302,4 +303,82 @@ model TurnDashboardPayment {
   reviewedBy User? @relation("DashboardReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
   @@index([queueId, requestedAt])
   @@index([status, requestedAt])
+}
+
+enum CitaStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+}
+
+model CitaClinic {
+  id                String @id @default(uuid()) @db.Uuid
+  workspaceId       String @unique @map("workspace_id") @db.Uuid
+  code              String @unique @db.VarChar(24)
+  name              String @db.VarChar(120)
+  timezone          String @default("America/Lima") @db.VarChar(64)
+  requireDni        Boolean @default(false) @map("require_dni")
+  expirationHours   Int? @map("expiration_hours")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  professionals     CitaProfessional[]
+  appointments      CitaAppointment[]
+
+  @@map("cita_clinics")
+}
+
+model CitaProfessional {
+  id              String @id @default(uuid()) @db.Uuid
+  clinicId        String @map("clinic_id") @db.Uuid
+  name            String @db.VarChar(120)
+  specialty       String @db.VarChar(120)
+  durationMinutes Int @default(30) @map("duration_minutes")
+  active          Boolean @default(true)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  clinic          CitaClinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  schedules       CitaSchedule[]
+  appointments    CitaAppointment[]
+
+  @@unique([clinicId, id])
+  @@index([clinicId, active])
+  @@map("cita_professionals")
+}
+
+model CitaSchedule {
+  id             String @id @default(uuid()) @db.Uuid
+  professionalId String @map("professional_id") @db.Uuid
+  weekday        Int
+  startMinute    Int @map("start_minute")
+  endMinute      Int @map("end_minute")
+  professional   CitaProfessional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  @@unique([professionalId, weekday, startMinute])
+  @@map("cita_schedules")
+}
+
+model CitaAppointment {
+  id             String @id @default(uuid()) @db.Uuid
+  clinicId       String @map("clinic_id") @db.Uuid
+  professionalId String @map("professional_id") @db.Uuid
+  requestKey     String @unique @map("request_key") @db.Uuid
+  patientName    String @map("patient_name") @db.VarChar(120)
+  phone          String @db.VarChar(16)
+  dni            String? @db.VarChar(8)
+  startsAt       DateTime @map("starts_at") @db.Timestamptz(3)
+  endsAt         DateTime @map("ends_at") @db.Timestamptz(3)
+  expiresAt      DateTime @map("expires_at") @db.Timestamptz(3)
+  status         CitaStatus @default(PENDING)
+  createdAt      DateTime @default(now()) @map("created_at")
+  confirmedAt    DateTime? @map("confirmed_at")
+  cancelledAt    DateTime? @map("cancelled_at")
+  expiredAt      DateTime? @map("expired_at")
+  clinic         CitaClinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  professional   CitaProfessional @relation(fields: [clinicId, professionalId], references: [clinicId, id], onDelete: Restrict)
+
+  @@index([clinicId, startsAt])
+  @@index([status, expiresAt])
+  @@map("cita_appointments")
 }
