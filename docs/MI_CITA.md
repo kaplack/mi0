@@ -68,3 +68,11 @@ Las pruebas de citas solo aceptan PostgreSQL local `/mi0`; crean un esquema temp
 La suite de navegador usa API real en 3002 y Vite en 5175, Chrome instalado y Playwright. `ui-server.cjs` crea su esquema y el teardown de Playwright detiene el proceso periódico y elimina esquema/fixture también en Windows; `.cita-fixture.json` contiene sesiones temporales y está ignorado por Git. El runner existente de Mi Turno excluye esta suite, que tiene su propia configuración. Si un cierre forzado interrumpe la limpieza, verificar y eliminar exclusivamente esquemas `mi0_citas_ui_*` generados para la ejecución, nunca el esquema public.
 
 Fuera del alcance: pagos, historias clínicas, recordatorios, calendarios externos, reportes y monetización.
+
+## Vista de próximos días
+
+La Agenda incluye únicamente Próximos 7 días y Próximos 30 días, desde hoy según la zona horaria del consultorio. El rango inicial es 7 y la preferencia se guarda en el navegador. El filtro de profesional se aplica al resumen y a la agenda diaria. Pulsar una casilla selecciona su fecha y muestra las citas de ese día.
+
+Las casillas verdes tienen citas confirmadas; las ámbar solo pendientes activas; las vacías no tienen citas activas. Un punto ámbar indica pendientes junto a confirmadas. El contador incluye ambas; canceladas y vencidas quedan fuera. Una casilla vacía no implica que el profesional atienda o tenga disponibilidad ese día.
+
+GET /api/citas/workspace/:workspaceId/day-summary acepta days=7|30 y professionalId opcional. Verifica la pertenencia al workspace y agrega en PostgreSQL sin devolver datos personales ni aplicar el límite de paginación diaria. No requiere migración adicional. El resumen se actualiza cada 15 segundos y al confirmar/cancelar o pulsar Actualizar.

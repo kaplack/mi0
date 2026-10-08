@@ -1,7 +1,7 @@
 const crypto = require('node:crypto');
 const prisma = require('../prisma');
 const v = require('./validation');
-const { parts, dayBounds, bookableDate, availableSlots } = require('./availability');
+const { parts, dayBounds, bookableDate, availableSlots, nextDay } = require('./availability');
 const professionalInclude = { schedules: { orderBy: [{ weekday: 'asc' }, { startMinute: 'asc' }] } };
 const receiptView = a => ({ status: a.status, startsAt: a.startsAt, endsAt: a.endsAt, expiresAt: a.expiresAt });
 async function access(userId, workspaceId, admin = false, db = prisma) {
@@ -140,6 +140,39 @@ async function agenda(userId, workspaceId, query) {
   const visible = appointments.slice(0, 100).map(({ requestKey, ...a }) => a);
   return { appointments: visible, nextCursor: appointments.length > 100 ? visible[99].id : null };
 }
+async function daySummary(userId, workspaceId, query = {}) {
+  await access(userId, workspaceId);
+  const range = query.days ?? '7';
+  if (!['7', '30'].includes(range)) throw v.fail(400, 'Elige próximos 7 días o próximos 30 días');
+  const clinic = await prisma.citaClinic.findUnique({ where: { workspaceId } });
+  if (!clinic) throw v.fail(404, 'Configura primero el consultorio');
+  const professionalId = query.professionalId ? v.id(query.professionalId) : null;
+  if (professionalId && !await prisma.citaProfessional.findFirst({ where: { id: professionalId, clinicId: clinic.id }, select: { id: true } })) throw v.fail(404, 'Profesional no disponible');
+  const now = new Date();
+  await expirePending(prisma, clinic.id, now);
+  const today = parts(now, clinic.timezone).date;
+  const days = [];
+  for (let day = today; days.length < Number(range); day = nextDay(day)) days.push({ date: day, confirmed: 0, pending: 0, total: 0 });
+  const first = dayBounds(today, clinic.timezone).first;
+  const last = dayBounds(days.at(-1).date, clinic.timezone).last;
+  // Aggregate in PostgreSQL: no patient fields, and no daily pagination limit.
+  const counts = await prisma.$queryRaw`
+    SELECT to_char("starts_at" AT TIME ZONE ${clinic.timezone}, 'YYYY-MM-DD') AS "date",
+      (count(*) FILTER (WHERE "status" = 'CONFIRMED'))::int AS "confirmed",
+      (count(*) FILTER (WHERE "status" = 'PENDING'))::int AS "pending"
+    FROM "cita_appointments"
+    WHERE "clinic_id" = ${clinic.id}::uuid
+      AND "starts_at" >= ${first} AND "starts_at" < ${last}
+      AND (${professionalId}::uuid IS NULL OR "professional_id" = ${professionalId}::uuid)
+      AND ("status" = 'CONFIRMED' OR ("status" = 'PENDING' AND "expires_at" > ${now}))
+    GROUP BY 1
+  `;
+  const byDate = new Map(counts.map(row => [row.date, row]));
+  return { today, timezone: clinic.timezone, days: days.map(day => {
+    const row = byDate.get(day.date);
+    return row ? { date: day.date, confirmed: row.confirmed, pending: row.pending, total: row.confirmed + row.pending } : day;
+  }) };
+}
 async function transition(userId, workspaceId, appointmentId, action) {
   await access(userId, workspaceId);
   v.id(appointmentId);
@@ -158,4 +191,4 @@ async function transition(userId, workspaceId, appointmentId, action) {
     return { appointment: await tx.citaAppointment.findUnique({ where: { id: appointmentId } }) };
   }).then(result => { if (result.conflict) throw v.fail(409, result.conflict); const { requestKey, ...appointment } = result.appointment; return { appointment }; });
 }
-module.exports = { publicInfo, publicSlots, reserve, receipt, workspace, saveSettings, saveProfessional, agenda, transition, expirePending };
+module.exports = { publicInfo, publicSlots, reserve, receipt, workspace, saveSettings, saveProfessional, agenda, daySummary, transition, expirePending };

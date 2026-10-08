@@ -2,26 +2,35 @@ import { useEffect, useRef, useState } from 'react'
 import { useCitaResource, useCitaMutation } from './useCitaData'
 import { CitaStatus } from './CitaUi'
 import { dateLabel } from './citaUtils'
+import { CitaDayOverview } from './CitaDayOverview'
 export function CitaAgenda({ workspaceId, clinic, professionals, pending, today }) {
   const [date, setDate] = useState(today)
+  const [range, setRange] = useState(() => localStorage.getItem('mi0_cita_agenda_range') === '30' ? 30 : 7)
+  const agendaRef = useRef(null)
   const [professionalId, setProfessionalId] = useState('')
   const [cursor, setCursor] = useState('')
   const [selected, setSelected] = useState(null)
   const [notice, setNotice] = useState('')
   const path = '/citas/workspace/' + workspaceId + '/appointments?' + new URLSearchParams({ ...(pending ? { pending: 'true' } : { date }), ...(professionalId ? { professionalId } : {}), ...(cursor ? { cursor } : {}) })
   const state = useCitaResource(path, 15000)
+  const summary = useCitaResource(pending ? null : '/citas/workspace/' + workspaceId + '/day-summary?' + new URLSearchParams({ days: String(range), ...(professionalId ? { professionalId } : {}) }), 15000)
+  function reload() { state.reload(); summary.reload() }
+  function changeRange(days) { setRange(days); localStorage.setItem('mi0_cita_agenda_range', String(days)) }
+  function selectDay(day) { filter(setDate, day); agendaRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' }) }
   function filter(setter, value) { setter(value); setCursor(''); setSelected(null) }
-  return <><div className="cita-heading"><div><h2>{pending ? 'Solicitudes pendientes' : 'Agenda diaria'}</h2><p>{pending ? 'Confirma o cancela las solicitudes antes de su vencimiento.' : 'Tus citas, ordenadas por horario.'}</p></div><button className="cita-secondary" onClick={state.reload}>Actualizar</button></div>
+  return <><div className="cita-heading"><div><h2>{pending ? 'Solicitudes pendientes' : 'Agenda diaria'}</h2><p>{pending ? 'Confirma o cancela las solicitudes antes de su vencimiento.' : 'Tus citas, ordenadas por horario.'}</p></div><button className="cita-secondary" onClick={reload}>Actualizar</button></div>
     <div className="cita-filters">{!pending && <label>Fecha<input type="date" required value={date} onChange={e => { if (e.target.value) filter(setDate, e.target.value) }} /></label>}<label>Profesional<select value={professionalId} onChange={e => filter(setProfessionalId, e.target.value)}><option value="">Todos los profesionales</option>{professionals.map(p => <option key={p.id} value={p.id}>{p.name}{p.active ? '' : ' (inactivo)'}</option>)}</select></label></div>
+    {!pending && <CitaDayOverview range={range} onRangeChange={changeRange} resource={summary} selectedDate={date} onSelectDay={selectDay} />}
     {notice && <p role="status" className="cita-notice">{notice}</p>}
     <small>Horarios del consultorio · {clinic.timezone}</small>
     {state.error && <p className="cita-error" role="alert">{state.error} <button className="cita-secondary" onClick={state.reload}>Reintentar</button></p>}
+    {!pending && <div ref={agendaRef} className="cita-day-detail-heading"><h3 aria-live="polite">Citas del {new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(date + 'T12:00:00Z'))}</h3></div>}
     {!state.data ? !state.error && <p role="status">Cargando citas…</p> : !state.data.appointments.length ? <div className="cita-empty"><h3>{pending ? 'No hay solicitudes pendientes' : 'No hay citas para esta fecha'}</h3><p>{pending ? 'Las nuevas solicitudes aparecerán aquí.' : 'Prueba otra fecha o cambia el filtro de profesional.'}</p></div> : <>
       <table className="cita-table"><thead><tr><th>Horario</th><th>Paciente</th><th>Profesional</th><th>Estado</th><th>Gestión</th></tr></thead><tbody>{state.data.appointments.map(a => <tr key={a.id}><td>{dateLabel(a.startsAt, clinic.timezone, pending)}</td><td>{a.patientName}</td><td>{a.professional.name}</td><td><CitaStatus status={a.status} /></td><td><button className="cita-secondary" onClick={() => setSelected(a)}>Ver detalles</button></td></tr>)}</tbody></table>
       <div className="cita-appointment-cards">{state.data.appointments.map(a => <article className="cita-card" key={a.id}><div className="cita-heading"><strong>{dateLabel(a.startsAt, clinic.timezone, pending)}</strong><CitaStatus status={a.status} /></div><h3>{a.patientName}</h3><p>{a.professional.name} · {a.professional.specialty}</p><button className="cita-secondary" onClick={() => setSelected(a)}>Ver detalles</button></article>)}</div>
     </>}
     {(cursor || state.data?.nextCursor) && <div className="cita-actions">{cursor && <button className="cita-secondary" onClick={() => setCursor('')}>Volver al inicio</button>}{state.data?.nextCursor && <button className="cita-secondary" onClick={() => setCursor(state.data.nextCursor)}>Ver siguientes citas</button>}</div>}
-    {selected && <AppointmentDetails key={selected.id} appointment={state.data?.appointments.find(a => a.id === selected.id) || selected} clinic={clinic} workspaceId={workspaceId} close={() => setSelected(null)} reload={state.reload} onChanged={status => { setSelected(null); setNotice(status === 'CONFIRMED' ? 'Cita confirmada.' : 'Cita cancelada. El horario quedó disponible.') }} />}
+    {selected && <AppointmentDetails key={selected.id} appointment={state.data?.appointments.find(a => a.id === selected.id) || selected} clinic={clinic} workspaceId={workspaceId} close={() => setSelected(null)} reload={reload} onChanged={status => { setSelected(null); setNotice(status === 'CONFIRMED' ? 'Cita confirmada.' : 'Cita cancelada. El horario quedó disponible.') }} />}
   </>
 }
 function AppointmentDetails({ appointment: a, clinic, workspaceId, close, reload, onChanged }) {

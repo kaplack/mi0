@@ -163,3 +163,45 @@ test('expiration sweep runs without an open browser and retries retain their ori
     assert.equal(state.status, 'EXPIRED'); assert.ok(state.expiredAt);
   } finally { stop(); }
 });
+
+test('day summary counts all active appointments by clinic date and scopes access and ranges', async () => {
+  const f = await fixture();
+  const today = parts(new Date(), f.settings.timezone).date;
+  const offset = n => { let day = today; while (n--) day = nextDay(day); return day; };
+  const seed = (day, minute, status = 'CONFIRMED', professionalId = f.professional.id) => {
+    const startsAt = instants(day, minute, f.settings.timezone)[0];
+    return { clinicId: f.clinic.id, professionalId, requestKey: crypto.randomUUID(), patientName: 'Privado', phone: '+51987654321', dni: '12345678', startsAt, endsAt: new Date(startsAt.getTime() + 600000), expiresAt: status === 'EXPIRED' ? new Date(Date.now() - 1000) : startsAt, status };
+  };
+  const p2 = await request('POST', f.root + '/professionals', owner, { ...f.professionalBody, name: 'Otro' });
+  await db.citaAppointment.createMany({ data: [
+    ...Array.from({length: 105}, (_, i) => seed(f.day, i * 10)),
+    seed(f.day, 1410, 'PENDING'), seed(f.day, 1120, 'CANCELLED'), seed(f.day, 1140, 'EXPIRED'),
+    { ...seed(f.day, 1160, 'PENDING'), expiresAt: new Date(Date.now() - 1000) },
+    seed(f.day, 0, 'CONFIRMED', p2.data.professional.id),
+    seed(offset(6), 540), seed(offset(7), 540), seed(offset(29), 540), seed(offset(30), 540)
+  ] });
+  for (const user of [owner, adminActor, member]) {
+    const result = await request('GET', f.root + '/day-summary', user);
+    assert.equal(result.status, 200, JSON.stringify(result.data));
+    assert.equal(result.data.days.length, 7);
+    assert.equal(result.data.days[0].date, today);
+    assert.equal(result.data.days[6].date, offset(6));
+    assert.deepEqual(result.data.days[1], {date: f.day, confirmed:106, pending:1, total:107});
+    assert.equal(result.data.days[0].total, 0);
+    assert.ok(!JSON.stringify(result.data).includes('phone'));
+    assert.ok(!JSON.stringify(result.data).includes('12345678'));
+  }
+  const thirty = await request('GET', f.root + '/day-summary?days=30&professionalId=' + f.professional.id, member);
+  assert.equal(thirty.data.days.length, 30);
+  assert.equal(thirty.data.days[1].total, 106);
+  assert.equal(thirty.data.days[7].total, 1);
+  assert.equal(thirty.data.days[29].total, 1);
+  assert.equal(thirty.data.days.reduce((n,d) => n+d.total,0), 109);
+  assert.equal((await request('GET', f.root + '/day-summary?days=14', owner)).status, 400);
+  assert.equal((await request('GET', f.root + '/day-summary')).status, 401);
+  assert.equal((await request('GET', f.root + '/day-summary', outsider)).status, 403);
+  const other = await fixture();
+  assert.equal((await request('GET', f.root + '/day-summary?professionalId=' + other.professional.id, owner)).status, 404);
+  await db.workspace.update({where:{id:f.w.id},data:{status:'INACTIVE'}});
+  assert.equal((await request('GET', f.root + '/day-summary', owner)).status, 403);
+});

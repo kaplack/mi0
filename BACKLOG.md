@@ -209,3 +209,10 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Entrega preparada en feature/mi-cita-mvp para revisión mediante PR hacia main; sin merge ni despliegue remoto.
 - Guía operativa y despliegue: docs/MI_CITA.md. La migración requiere btree_gist disponible en PostgreSQL.
 - Entorno: los procesos funcionan fuera del sandbox; dentro falla el arranque.
+
+### Mi Cita · vista de próximos días completada
+
+- Se añade resumen autenticado por profesional, agregado en PostgreSQL sin límite de la agenda paginada.
+- Solo próximos 7 y 30 días desde hoy en la zona del consultorio; 7 por defecto y preferencia recordada.
+- Verde: confirmadas; ámbar: solo pendientes; casillas vacías: sin citas activas. Pulsar un día abre su agenda.
+- Verificado: 9 pruebas backend, lint/build y 10 recorridos de navegador correctos (incluidos los 2 nuevos de resumen desktop/móvil). Capturas revisadas; sin desbordamiento hasta 320 px. PR #2 actualizado sin merge.

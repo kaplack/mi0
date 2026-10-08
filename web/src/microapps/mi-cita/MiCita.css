@@ -130,3 +130,32 @@
 .cita-details-dialog { width:min(600px,calc(100vw - 32px)); max-height:calc(100dvh - 48px); padding:0; border:1px solid var(--border); border-radius:16px; background:var(--surface); color:var(--text-primary); font:inherit; box-shadow:0 24px 80px #0003; overflow-y:auto; }
 .cita-details-dialog::backdrop { background:rgba(15,23,42,.45); }
 .cita-details-dialog .cita-details { border:0; border-radius:0; padding:24px; background:var(--surface); }
+.cita-day-overview { display:grid; gap:14px; padding:6px 0 20px; border-bottom:1px solid var(--border); }
+.cita-day-overview .cita-heading { flex-wrap:wrap; }
+.cita-range-switch { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.cita-range-switch button { font-size:12px; padding:10px 12px; }
+.cita-days-grid { display:grid; grid-template-columns:repeat(7,minmax(48px,1fr)); gap:8px; }
+.cita .cita-day { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:86px; min-width:0; padding:8px 4px; border:1px solid var(--border); background:var(--surface); color:var(--text-secondary); font-weight:400; }
+.cita .cita-day-confirmed { background:#e9fff8; border-color:#b6eddc; color:#087f62; }
+.cita .cita-day-pending { background:#fff3d6; border-color:#f5dca6; color:#8a5200; }
+.cita .cita-day.is-selected { box-shadow:0 0 0 2px var(--primary-dark); }
+.cita-day-weekday { font-size:10px; text-transform:uppercase; letter-spacing:.04em; }
+.cita-day-date { display:flex; align-items:baseline; justify-content:center; gap:4px; }
+.cita-day-date strong { font-size:22px; line-height:1.1; color:var(--text-primary); }
+.cita-day-date>span,.cita-day-count { font-size:10px; line-height:1.5; }
+.cita-day-count { font-weight:600; }
+.cita-day-pending-dot { position:absolute; top:7px; right:7px; width:7px; height:7px; background:#d18b16; border-radius:50%; }
+.cita-days-legend { display:flex; flex-wrap:wrap; gap:10px 16px; font-size:11px; color:var(--text-secondary); }
+.cita-days-legend>span { display:inline-flex; align-items:center; gap:6px; }
+.cita-days-legend i { width:10px; height:10px; border-radius:3px; border:1px solid var(--border); }
+.cita-legend-confirmed { background:#e9fff8; border-color:#b6eddc!important; }
+.cita-legend-pending { background:#fff3d6; border-color:#f5dca6!important; }
+.cita-legend-empty { background:var(--surface); }
+.cita-day-detail-heading { scroll-margin-top:20px; }
+.cita-day-detail-heading h3 { font-size:16px; }
+@media(max-width:760px) {
+  .cita-days-grid { grid-template-columns:repeat(auto-fit,minmax(48px,1fr)); gap:6px; }
+  .cita-range-switch { width:100%; }
+  .cita-day-overview h3 { font-size:16px; }
+  .cita .cita-day { min-height:80px; }
+}

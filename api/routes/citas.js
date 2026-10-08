@@ -14,6 +14,7 @@ router.post('/public/:code/receipt', handle(req => service.receipt(req.params.co
 router.use(requireAuth);
 router.get('/workspace/:workspaceId', handle(req => service.workspace(req.auth.user.id, req.params.workspaceId)));
 router.put('/workspace/:workspaceId/settings', handle(req => service.saveSettings(req.auth.user.id, req.params.workspaceId, req.body)));
+router.get('/workspace/:workspaceId/day-summary', handle(req => service.daySummary(req.auth.user.id, req.params.workspaceId, req.query)));
 router.get('/workspace/:workspaceId/appointments', handle(req => service.agenda(req.auth.user.id, req.params.workspaceId, req.query)));
 router.post('/workspace/:workspaceId/professionals', handle(req => service.saveProfessional(req.auth.user.id, req.params.workspaceId, null, req.body), 201));
 router.put('/workspace/:workspaceId/professionals/:professionalId', handle(req => service.saveProfessional(req.auth.user.id, req.params.workspaceId, req.params.professionalId, req.body)));

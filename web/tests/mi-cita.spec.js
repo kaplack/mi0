@@ -160,3 +160,48 @@ test('lost booking response recovers the real receipt without a duplicate reques
   expect(matching).toHaveLength(1)
   expect(matching[0].patientName).toBe('Paciente Respuesta Perdida')
 })
+
+test('next 7 and 30 days persist, filter and update colors when managing appointments', async ({ page, request }, testInfo) => {
+  const f = readFixture(); const mobile = testInfo.project.name === 'mobile';
+  await config(request, f, false);
+  const professionalResponse = await request.post(apiUrl + '/workspace/' + f.workspaceId + '/professionals', {headers:{Authorization:'Bearer '+f.ownerToken},data:{name:'Profesional resumen '+testInfo.project.name,specialty:'Podología',active:true,durationMinutes:30,schedules:[{weekday:new Date(f.tomorrow+'T12:00:00Z').getUTCDay(),startMinute:540,endMinute:720}]}});
+  expect(professionalResponse.status()).toBe(201);
+  const professionalId = (await professionalResponse.json()).professional.id;
+  const availability = await request.get(apiUrl + '/public/' + f.code + '/availability?professionalId=' + professionalId + '&date=' + f.tomorrow);
+  const slots = (await availability.json()).slots;
+  const patientName = 'Resumen ' + testInfo.project.name;
+  const created = await request.post(apiUrl + '/public/' + f.code + '/appointments', {data:{professionalId:professionalId, startsAt:slots[0].startsAt, requestKey:crypto.randomUUID(),patientName,phone:'+51987654321'}});
+  expect(created.status()).toBe(201);
+  await login(page, f.memberToken);
+  await page.goto('/mi-cita/' + f.workspaceId);
+  await page.getByRole('link', {name:'Agenda',exact:true}).click();
+  const ranges = page.getByRole('group', {name:'Rango de agenda'});
+  await expect(ranges.getByRole('button')).toHaveCount(2);
+  await expect(page.locator('.cita-day')).toHaveCount(7);
+  await page.getByRole('combobox', {name:'Profesional',exact:true}).selectOption(professionalId);
+  const tomorrowLabel = new Intl.DateTimeFormat('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(f.tomorrow+'T12:00:00Z'));
+  const exactDay = page.getByRole('button', {name:new RegExp('^'+tomorrowLabel+':')});
+  await expect(exactDay).toHaveClass(/cita-day-pending/);
+  await exactDay.click();
+  await expect(page.getByLabel('Fecha', {exact:true})).toHaveValue(f.tomorrow);
+  await details(page, patientName, mobile);
+  await page.getByRole('button',{name:'Confirmar cita',exact:true}).click();
+  await expect(exactDay).toHaveClass(/cita-day-confirmed/);
+  await ranges.getByRole('button',{name:'Próximos 30 días',exact:true}).click();
+  await expect(page.locator('.cita-day')).toHaveCount(30);
+  await overflow(page);
+  await page.screenshot({path:testInfo.outputPath('proximos-30.png'),fullPage:true});
+  await page.reload();
+  await expect(ranges.getByRole('button',{name:'Próximos 30 días',exact:true})).toHaveAttribute('aria-pressed','true');
+  await page.getByRole('combobox', {name:'Profesional',exact:true}).selectOption(professionalId);
+  await exactDay.click();
+  await details(page, patientName, mobile);
+  await page.getByRole('button',{name:'Cancelar cita',exact:true}).click();
+  await page.getByRole('button',{name:'Sí, cancelar cita',exact:true}).click();
+  await expect(exactDay).toHaveClass(/cita-day-empty/);
+  await ranges.getByRole('button',{name:'Próximos 7 días',exact:true}).click();
+  await expect(page.locator('.cita-day')).toHaveCount(7);
+  if (mobile) await page.setViewportSize({width:320,height:740});
+  await overflow(page);
+  await page.screenshot({path:testInfo.outputPath('proximos-7.png'),fullPage:true});
+});
