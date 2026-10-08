@@ -289,3 +289,9 @@ footer .logo { font-size: 22px; } footer span { margin-left: auto; }
 .explore-dialog figure { margin:20px 0; }
 .explore-preview { width:100%; height:auto; border:1px solid var(--border); border-radius:12px; }
 .explore-dialog figcaption { color:var(--text-secondary); font-size:13px; margin-top:8px; }
+
+.explore-card-actions { flex-wrap:nowrap; gap:10px; }
+.explore-card-actions .explore-icon-button { position:relative; display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; padding:0; flex:none; }
+.explore-icon-button:hover { border-color:var(--primary-dark); }
+.explore-icon-button:focus-visible { outline:3px solid var(--primary-dark); outline-offset:3px; }
+.explore-tooltip { position:absolute; bottom:calc(100% + 8px); left:0; z-index:5; width:max-content; max-width:220px; padding:7px 10px; border-radius:8px; background:var(--text-primary); color:var(--surface); font-size:12px; line-height:1.4; box-shadow:0 4px 12px rgba(15,23,42,.15); pointer-events:none; }

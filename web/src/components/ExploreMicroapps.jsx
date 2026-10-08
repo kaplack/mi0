@@ -7,6 +7,15 @@ const features = {
   sorteos: ['Pega tu lista de participantes.', 'Elige un ganador al azar.', 'Úsalo rápidamente, sin configurar un negocio.'],
   'sorteos-avanzado': ['Organiza sorteos con varios premios.', 'Guarda tus resultados en tu espacio.', 'Publica y comparte el resultado por S/4.90.'],
 }
+function ActionButton({ label, icon, primary, onClick }) {
+  const [tooltip, setTooltip] = useState(false)
+  return <button type="button" className={'explore-icon-button' + (primary ? ' primary-button' : '')} aria-label={label} onClick={() => { setTooltip(false); onClick() }} onMouseEnter={() => setTooltip(true)} onMouseLeave={() => setTooltip(false)} onFocus={() => setTooltip(true)} onBlur={() => setTooltip(false)} onKeyDown={event => { if (event.key === 'Escape') setTooltip(false) }}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {icon === 'open' ? <><path d="M5 12h14m-6-6 6 6-6 6" /></> : icon === 'info' ? <><circle cx="12" cy="12" r="9" /><path d="M12 11v6m0-10v.01" /></> : <><rect x="3" y="3" width="18" height="18" rx="4" /><path d="M12 7v10M7 12h10" /></>}
+    </svg>
+    {tooltip && <span className="explore-tooltip" role="tooltip">{label}</span>}
+  </button>
+}
 function Modal({ title, children, onClose, busy }) {
   const ref = useRef(null)
   useEffect(() => { const dialog = ref.current; dialog.showModal(); return () => dialog.close() }, [])
@@ -52,7 +61,7 @@ export function ExploreMicroapps({ workspaces, onWorkspacesChange, onOpen }) {
     {notice && <p role="status">{notice}</p>}
     <div className="explore-grid">{tools.filter(tool => (tool.title + ' ' + tool.category).toLocaleLowerCase().includes(query.toLocaleLowerCase().trim())).map(tool => <article className="tool-card explore-card" key={tool.code} aria-label={tool.title}>
       <div className={'tool-icon ' + tool.tone} aria-hidden="true">{tool.icon}</div><span className={'tag ' + tool.tone}>{tool.category}</span><h2>{tool.title}</h2><p>{tool.description}</p>
-      <div className="explore-actions"><button className="primary-button" onClick={() => open(tool)}>Abrir</button><button onClick={() => show(tool, 'info')}>Más información</button><button onClick={() => show(tool, 'add')}>Agregar a mi espacio</button></div>
+      <div className="explore-actions explore-card-actions"><ActionButton label="Abrir" icon="open" primary onClick={() => open(tool)} /><ActionButton label="Más información" icon="info" onClick={() => show(tool, 'info')} /><ActionButton label="Agregar a mi espacio" icon="add" onClick={() => show(tool, 'add')} /></div>
     </article>)}</div>
     {!tools.some(tool => (tool.title + ' ' + tool.category).toLocaleLowerCase().includes(query.toLocaleLowerCase().trim())) && <p>No encontramos microapps con ese nombre.</p>}
     {modal && <Modal title={modal.kind === 'info' ? modal.tool.title : (modal.kind === 'open' ? 'Abrir ' : 'Agregar ') + modal.tool.title} onClose={() => setModal(null)} busy={busy}>

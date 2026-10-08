@@ -254,3 +254,5 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Modal de agregado selecciona el espacio PERSONAL propio por defecto, permite elegir espacios OWNER/ADMIN, informa asociaciones existentes y persiste mediante API. Abrir elige entre espacios con la herramienta instalada cuando hay varios; sin instalación conduce al agregado.
 - Migración aditiva registra Sorteos simple, sin activar asociaciones por defecto ni modificar módulos desactivados.
 - Prueba focalizada desktop: navegación interna, selección predeterminada, agregado a dos espacios, duplicados, persistencia, rechazo MEMBER y ficha con Escape. Lint/build; revisión visual del usuario.
+
+- Catálogo: tres acciones compactas con iconos outline, etiquetas accesibles y tooltips al hover/foco; Escape los oculta. Áreas táctiles de 44px. Verificación mínima: lint/build; revisión visual del usuario.
