@@ -3,6 +3,7 @@ import './App.css'
 import { AuthPage } from './pages/AuthPage'
 import { HomePage } from './pages/HomePage'
 import { Mi0Page } from './pages/Mi0Page'
+import { MiTurno } from './microapps/mi-turno/MiTurno'
 import { Sorteos } from './microapps/sorteos/Sorteos'
 import { SorteosAvanzado } from './microapps/sorteos-avanzado/SorteosAvanzado'
 import { PublicRaffle } from './microapps/sorteos-avanzado/PublicRaffle'
@@ -15,6 +16,7 @@ function App() {
   const [activeMicroapp, setActiveMicroapp] = useState(null)
   const [workspace, setWorkspace] = useState(null)
   const [openAdvancedRequested, setOpenAdvancedRequested] = useState(false)
+  const turnoMatch = window.location.pathname.match(/^\/turno\/([^/]+)\/?$/)
   const publicMatch = window.location.pathname.match(/^\/s\/([^/]+)\/?$/)
 
   useEffect(() => {
@@ -43,6 +45,8 @@ function App() {
     } else setActiveMicroapp(code)
   }, [user])
 
+  if (turnoMatch) return <MiTurno code={turnoMatch[1]} />
+  if (activeMicroapp === 'mi-turno') return <MiTurno onBack={() => setActiveMicroapp(null)} />
   if (publicMatch) return <PublicRaffle code={publicMatch[1]} />
   if (activeMicroapp === 'sorteos') return <Sorteos onBack={() => setActiveMicroapp(null)} />
   if (activeMicroapp === 'sorteos-avanzado' && user && workspace) return <SorteosAvanzado workspace={workspace} onBack={() => { setActiveMicroapp(null); setConsoleOpen(true) }} />
