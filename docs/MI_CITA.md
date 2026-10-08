@@ -94,3 +94,5 @@ Verificación de la ampliación: 11 pruebas backend correctas (incluyen aislamie
 Mi Cita muestra el nombre del consultorio en el selector de espacios, incluido el acceso por invitación, aunque el workspace compartido conserve otro nombre general. Al abrir /mi-cita se prioriza un consultorio configurado frente al espacio personal vacío. Aceptar comparte el workspace existente; no crea otra agenda ni copia profesionales.
 
 En Mi0 principal, si el workspace conserva el nombre genérico «Mi espacio», el listado muestra el nombre del consultorio configurado. Se distingue así del espacio personal sin consultorio. Los nombres personalizados de workspace se conservan.
+
+La migración 20261008190000_register_existing_turno_modules registra Mi Turno en el catálogo y asocia las colas ya configuradas a su workspace, preservando asociaciones explícitamente desactivadas y operadores. El setup de Mi Turno mantiene la asociación para nuevas configuraciones. Esto evita ocultar colas existentes tras filtrar Mis microapps por espacio. Aplicada a mi0 local; una prueba de configuración y la asignación real de Alan verificadas.

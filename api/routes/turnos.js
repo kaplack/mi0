@@ -107,10 +107,14 @@ router.post('/setup', async (req, res, next) => {
     const { workspaceId } = req.body || {};
     await access(req.auth.user.id, workspaceId, true);
     const data = settings(req.body);
-    const existing = await prisma.turnQueue.findUnique({ where: { workspaceId } });
-    if (existing) return res.json({ queue: existing });
-    const queue = await prisma.turnQueue.create({ data: { workspaceId, ...data, code: crypto.randomBytes(6).toString('hex') } });
-    res.status(201).json({ queue });
+    const result = await prisma.$transaction(async tx => {
+      const existing = await tx.turnQueue.findUnique({ where: { workspaceId } });
+      const queue = existing || await tx.turnQueue.create({ data: { workspaceId, ...data, code: crypto.randomBytes(6).toString('hex') } });
+      const module = await tx.module.findUnique({ where: { code: 'mi-turno' } });
+      if (module?.active) await tx.workspaceModule.upsert({ where: { workspaceId_moduleId: { workspaceId, moduleId: module.id } }, create: { workspaceId, moduleId: module.id }, update: { active: true } });
+      return { queue, created: !existing };
+    });
+    res.status(result.created ? 201 : 200).json({ queue: result.queue });
   } catch (error) { next(error); }
 });
 router.get('/workspace/:workspaceId', async (req, res, next) => {

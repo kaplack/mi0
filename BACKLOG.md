@@ -235,3 +235,5 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Mi0 principal: el listado global identifica un workspace de nombre genérico «Mi espacio» por su consultorio configurado. Espacio personal sin consultorio y nombres personalizados se conservan. Verificado con una prueba HTTP/PostgreSQL del registro/invitación/listado; sin revisión visual adicional.
 
 - Mi0: Mis microapps renderiza únicamente modules activos del espacio seleccionado; se retiran tarjetas fijas de Mi Turno/Mi Cita/Sorteos Avanzado. Estado vacío y acceso a Explorar conservados. Comprobación mínima: listado por espacio en prueba de invitación, lint y build.
+
+- Regresión de listado Mi Turno corregida: Alan mantiene Ventanilla 1 de Cosa nostra en el mismo workspace de Podologo Jaiva. Faltaba workspace_modules/mi-turno, por lo que el filtro ocultaba su tarjeta. Migración aditiva registra colas existentes sin modificar operadores ni asociaciones desactivadas; setup activa el módulo transaccionalmente. Prueba puntual de configuración y auditoría local.
