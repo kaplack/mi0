@@ -43,6 +43,8 @@ model User {
   publicationRequests RafflePublication[] @relation("PublicationRequester")
   publicationReviews RafflePublication[] @relation("PublicationReviewer")
   memberships Membership[]
+  turnOperators TurnOperator[]
+  turnCalls TurnTicket[] @relation("TurnCalledBy")
 
   @@map("users")
 }
@@ -70,6 +72,7 @@ model Workspace {
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")
   memberships Membership[]
+
   modules     WorkspaceModule[]
   raffles     Raffle[]
   turnQueue   TurnQueue?
@@ -217,9 +220,13 @@ model TurnQueue {
   code        String @unique @db.VarChar(16)
   name        String @db.VarChar(120)
   lastNumber  Int @default(0)
+  documentMode String @default("NONE") @db.VarChar(16)
+  counterNames Json @default("[\"Ventanilla 1\"]")
   createdAt   DateTime @default(now())
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   tickets     TurnTicket[]
+  operators   TurnOperator[]
+  invitations TurnInvitation[]
 }
 
 model TurnTicket {
@@ -228,13 +235,43 @@ model TurnTicket {
   number    Int
   name      String @db.VarChar(80)
   clientKey String @db.VarChar(80)
+  documentType String? @db.VarChar(8)
+  documentNumber String? @db.VarChar(20)
   status    String @default("WAITING") @db.VarChar(16)
   counter   Int?
   createdAt DateTime @default(now())
   calledAt  DateTime?
+  calledById String? @db.Uuid
+  calledBy User? @relation("TurnCalledBy", fields: [calledById], references: [id], onDelete: SetNull)
   servedAt  DateTime?
   queue     TurnQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
   @@unique([queueId, number])
   @@index([queueId, status, number])
   @@index([queueId, clientKey, status])
+}
+
+model TurnOperator {
+  id        String @id @default(uuid()) @db.Uuid
+  queueId   String @db.Uuid
+  userId    String @db.Uuid
+  counter   Int
+  createdAt DateTime @default(now())
+  queue     TurnQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([queueId, userId])
+  @@index([queueId, counter])
+}
+
+model TurnInvitation {
+  id         String @id @default(uuid()) @db.Uuid
+  queueId    String @db.Uuid
+  email      String @db.VarChar(254)
+  counter    Int
+  tokenHash  String @unique @db.Char(64)
+  status     String @default("PENDING") @db.VarChar(16)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  acceptedAt DateTime?
+  queue      TurnQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
+  @@unique([queueId, email])
 }

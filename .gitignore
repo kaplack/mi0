@@ -39,3 +39,6 @@ Thumbs.db
 # Prisma / local databases
 *.db
 *.db-journal
+# Browser test output
+web/test-results/
+web/playwright-report/

@@ -22,7 +22,7 @@ export function Mi0Page({ user, onLogout, onExplore, onOpenMicroapp, openAdvance
   }, [onOpenMicroapp, openAdvancedRequested])
 
   const activeWorkspace = workspaces.find((workspace) => workspace.id === activeId) || workspaces[0]
-  const otherModules = activeWorkspace?.modules?.filter(module => module.code !== 'sorteos-avanzado') || []
+  const otherModules = activeWorkspace?.modules?.filter(module => !['sorteos-avanzado', 'mi-turno'].includes(module.code)) || []
 
   return (
     <div className="console-shell">
@@ -84,6 +84,10 @@ export function Mi0Page({ user, onLogout, onExplore, onOpenMicroapp, openAdvance
                 <div>★</div><h3>Sorteos Avanzado</h3><p>Varios premios y resultados guardados. Publica y comparte por S/4.90.</p>
                 <button className="primary-button" type="button" onClick={() => onOpenMicroapp('sorteos-avanzado', activeWorkspace)}>Abrir →</button>
               </article>}
+              <article className="console-app-card" style={{ marginBottom: 20 }}>
+                <div>◷</div><h3>Mi Turno</h3><p>Cola virtual, ventanillas y pantalla pública para tu negocio.</p>
+                <button className="primary-button" type="button" onClick={() => onOpenMicroapp('mi-turno', activeWorkspace)}>Abrir →</button>
+              </article>
               {otherModules.length ? (
                 <div className="console-app-grid">
                   {otherModules.map((module) => (

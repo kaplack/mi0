@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { api, TOKEN_KEY } from '../services/api'
 
-export function AuthPage({ mode, onModeChange, onAuthenticated, onClose }) {
+export function AuthPage({ mode, onModeChange, onAuthenticated, onClose, initialEmail = '', description }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -35,13 +35,13 @@ export function AuthPage({ mode, onModeChange, onAuthenticated, onClose }) {
         <div className="auth-brand">mi<span>0</span><small>.app</small></div>
         <span className="auth-kicker">{registering ? 'EMPIEZA EN SEGUNDOS' : 'BIENVENIDO'}</span>
         <h1>{registering ? 'Crear cuenta' : 'Iniciar sesión'}</h1>
-        <p>{registering ? 'Crea tu cuenta para usar tus microapps.' : 'Entra a tus microapps.'}</p>
+        <p>{description || (registering ? 'Crea tu cuenta para usar tus microapps.' : 'Entra a tus microapps.')}</p>
         <form onSubmit={submit}>
           {registering && <div className="auth-name-row">
             <label>Nombre<input name="name" autoComplete="given-name" required /></label>
             <label>Apellido<input name="lastName" autoComplete="family-name" required /></label>
           </div>}
-          <label>Correo<input name="email" type="email" autoComplete="email" required /></label>
+          <label>Correo<input name="email" defaultValue={initialEmail} type="email" autoComplete="email" required /></label>
           <label>Contraseña<input name="password" type="password" minLength={registering ? 10 : undefined} autoComplete={registering ? 'new-password' : 'current-password'} required /></label>
           {registering && <small className="auth-hint">Mínimo 10 caracteres.</small>}
           {error && <p className="auth-error" role="alert">{error}</p>}
