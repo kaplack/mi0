@@ -160,7 +160,17 @@
   .cita .cita-day { min-height:80px; }
 }
 
-.cita-date-picker { align-self: start; }
-.cita-date-picker summary { cursor: pointer; color: var(--text-secondary); min-height: 44px; display: flex; align-items: center; text-decoration: underline; text-underline-offset: 3px; }
-.cita-date-picker summary:focus-visible { outline: 2px solid var(--primary-dark); outline-offset: 3px; border-radius: 4px; }
-.cita-date-picker[open] summary { margin-bottom: 8px; }
+.cita-agenda-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.cita-agenda-filters > label { min-width: 0; line-height: 21px; }
+.cita-agenda-filters > label > select { height: 44px; }
+.cita-date-picker { margin-top: 29px; min-width: 0; }
+.cita-date-picker summary { cursor: pointer; color: var(--text-primary); height: 44px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; list-style: none; }
+.cita-date-picker summary::-webkit-details-marker { display: none; }
+.cita-date-picker summary:hover { background: var(--background); }
+.cita-date-picker summary:focus-visible { outline: 3px solid var(--primary-dark); outline-offset: 3px; }
+.cita-date-picker summary svg { flex-shrink: 0; }
+.cita-date-picker[open] summary { margin-bottom: 12px; }
+@media (max-width: 760px) {
+  .cita-agenda-filters { grid-template-columns: minmax(0, 1fr); }
+  .cita-date-picker { margin-top: 0; }
+}

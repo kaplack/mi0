@@ -218,3 +218,5 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Verificado: 9 pruebas backend, lint/build y 10 recorridos de navegador correctos (incluidos los 2 nuevos de resumen desktop/móvil). Capturas revisadas; sin desbordamiento hasta 320 px. PR #2 actualizado sin merge.
 
 - Agenda: selector de fecha oculto inicialmente en «Ir a una fecha»; conserva consulta de fechas pasadas/futuras y filtro profesional visible. Verificación mínima: lint del componente y build; revisión visual a cargo del usuario.
+
+- Ajuste visual de Agenda: profesional y «Ir a una fecha» en columnas iguales; botón con icono calendario, altura de 44 px y controles apilados en móvil. Verificación mínima: lint del componente y build; revisión visual del usuario.
