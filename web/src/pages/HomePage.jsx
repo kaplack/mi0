@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
 import { Logo } from '../components/Logo'
+import { SiteHeader, SiteFooter } from '../components/SiteLayout'
 import { MicroappCard } from '../components/MicroappCard'
 import { categories, tools } from '../data/catalog'
 
 export function HomePage({ user, onLogin, onRegister, onOpenMi0, onLogout, onOpenMicroapp }) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('Todas')
-  const [menuOpen, setMenuOpen] = useState(false)
 
   const filtered = useMemo(() => tools.filter((tool) => {
     const matchesCategory = category === 'Todas' || tool.category === category
@@ -16,33 +16,7 @@ export function HomePage({ user, onLogin, onRegister, onOpenMi0, onLogout, onOpe
 
   return (
     <div className="app-shell">
-      <header className="site-header">
-        <Logo />
-        <nav className={menuOpen ? 'main-nav open' : 'main-nav'}>
-          <a className="active" href="#herramientas">Herramientas</a>
-          <a href="#como-funciona">Cómo funciona</a>
-          <a href="#acerca">Acerca de</a>
-          <div className="mobile-auth-actions">
-            {user ? <>
-              <button type="button" onClick={() => { onOpenMi0(); setMenuOpen(false) }}>Mi0</button>
-              <button type="button" onClick={() => { onLogout(); setMenuOpen(false) }}>Salir</button>
-            </> : <>
-              <button type="button" onClick={() => { onLogin(); setMenuOpen(false) }}>Iniciar sesión</button>
-              <button className="mobile-create-account" type="button" onClick={() => { onRegister(); setMenuOpen(false) }}>Crear cuenta</button>
-            </>}
-          </div>
-        </nav>
-        <div className="header-actions">
-          {user ? <>
-            <button className="secondary-button" onClick={onOpenMi0}>Mi0</button>
-            <button className="secondary-button" onClick={onLogout}>Salir</button>
-          </> : <>
-            <button className="secondary-button" onClick={onLogin}>Iniciar sesión</button>
-            <button className="primary-button" onClick={onRegister}>Crear cuenta</button>
-          </>}
-        </div>
-        <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menú">☰</button>
-      </header>
+      <SiteHeader user={user} onLogin={onLogin} onRegister={onRegister} onOpenMi0={onOpenMi0} onLogout={onLogout} />
 
       <main>
         <section className="hero-section">
@@ -69,15 +43,9 @@ export function HomePage({ user, onLogin, onRegister, onOpenMi0, onLogout, onOpe
           </div>
         </section>
 
-        <section className="benefits" id="como-funciona">
-          <div><b>ϟ</b><h3>Sencillas de usar</h3><p>Sin configuraciones complicadas.</p></div>
-          <div><b>▯</b><h3>En la web y en tu dispositivo</h3><p>Úsalas desde el navegador o instálalas como PWA.</p></div>
-          <div><b>☁</b><h3>Siempre contigo</h3><p>Tus herramientas, donde las necesites.</p></div>
-          <div><b>♡</b><h3>En constante crecimiento</h3><p>Nuevas herramientas todos los meses.</p></div>
-        </section>
       </main>
 
-      <footer id="acerca"><Logo /><p>Pequeñas herramientas para grandes ideas.</p><span>© 2026 mi0.app</span></footer>
+      <SiteFooter />
       <nav className="mobile-nav"><a className="active" href="#">⌂<small>Inicio</small></a><a href="#herramientas">▦<small>Explorar</small></a><a href="#herramientas">♡<small>Favoritos</small></a><a href="#acerca">⚙<small>Ajustes</small></a></nav>
     </div>
   )

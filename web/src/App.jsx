@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import './App.css'
 import { AuthPage } from './pages/AuthPage'
 import { HomePage } from './pages/HomePage'
+import { AboutPage } from './pages/AboutPage'
+import { HowItWorksPage } from './pages/HowItWorksPage'
 import { Mi0Page } from './pages/Mi0Page'
 import { TurnoInvitation } from './microapps/mi-turno/TurnoInvitation'
 import { MiTurno } from './microapps/mi-turno/MiTurno'
@@ -69,6 +71,12 @@ function App() {
   if (authMode) return <AuthPage mode={authMode} onModeChange={setAuthMode} onAuthenticated={nextUser => {
     setUser(nextUser); setConsoleOpen(true); setAuthMode(null)
   }} onClose={() => { setAuthMode(null); setOpenAdvancedRequested(false) }} />
+  if (/^\/quienes-somos\/?$/.test(pathname)) return <AboutPage user={user}
+    onLogin={() => setAuthMode('login')} onRegister={() => setAuthMode('register')}
+    onOpenMi0={() => { setConsoleOpen(true); navigate('/') }} onLogout={logout} />
+  if (/^\/como-funciona\/?$/.test(pathname)) return <HowItWorksPage user={user}
+    onLogin={() => setAuthMode('login')} onRegister={() => setAuthMode('register')}
+    onOpenMi0={() => { setConsoleOpen(true); navigate('/') }} onLogout={logout} />
   if (citaInvitationMatch) return <CitaInvitation token={citaInvitationMatch[1]} />
   if (citaMatch) return <MiCita code={citaMatch[1]} />
   if (citaManagerMatch) return <MiCita workspaceId={citaManagerMatch[1]} page={citaManagerMatch[2]} onNavigate={navigate} onLogin={() => setAuthMode('login')} />

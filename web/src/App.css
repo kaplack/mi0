@@ -70,8 +70,6 @@ main { max-width: 1380px; margin: auto; }
 .dark-button { background: #172033; color: #fff; border: 0; width: 100%; }
 .empty-state { grid-column: 1/-1; padding: 50px; text-align: center; color: var(--text-secondary); }
 
-.benefits { padding: 30px; display: grid; grid-template-columns: repeat(4,1fr); gap: 30px; border-top: 1px solid var(--border); }
-.benefits b { font-size: 28px; font-weight: 500; } .benefits h3 { font-size: 16px; margin: 8px 0 3px; } .benefits p { color: var(--text-secondary); font-size: 12px; max-width: 190px; }
 footer { max-width: 1380px; margin: auto; padding: 34px 30px 100px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 24px; color: var(--text-secondary); font-size: 12px; }
 footer .logo { font-size: 22px; } footer span { margin-left: auto; }
 .mobile-nav { display: none; }
@@ -91,7 +89,6 @@ footer .logo { font-size: 22px; } footer span { margin-left: auto; }
   .tools-grid { grid-template-columns: repeat(2,1fr); }
   .pwa-card { display: grid; grid-template-columns: 70px 1fr; column-gap: 15px; }
   .pwa-card h2 { margin: 0; max-width: none; } .pwa-card > p, .pwa-card ul, .pwa-card button { grid-column: 2; }
-  .benefits { grid-template-columns: repeat(2,1fr); }
 }
 
 @media (max-width: 560px) {
@@ -114,7 +111,6 @@ footer .logo { font-size: 22px; } footer span { margin-left: auto; }
   .pwa-card { display: block; margin-top: 6px; }
   .pwa-card h2 { margin-top: 15px; }
   .pwa-card > p, .pwa-card ul, .pwa-card button { display: block; }
-  .benefits { grid-template-columns: 1fr 1fr; padding: 26px 20px 110px; gap: 28px 20px; }
   footer { display: none; }
   .mobile-nav { position: fixed; z-index: 30; display: grid; grid-template-columns: repeat(4,1fr); bottom: 0; left: 0; right: 0; padding: 9px 12px max(9px, env(safe-area-inset-bottom)); background: rgba(255,255,255,.96); backdrop-filter: blur(16px); border-top: 1px solid var(--border); }
   .mobile-nav a { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 20px; color: #64748b; }

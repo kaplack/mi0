@@ -1,1 +1,1 @@
-{ "rewrites": [{ "source": "/s/:code", "destination": "/index.html" }] }
+{ "rewrites": [{ "source": "/s/:code", "destination": "/index.html" }, { "source": "/quienes-somos", "destination": "/index.html" }, { "source": "/como-funciona", "destination": "/index.html" }] }
