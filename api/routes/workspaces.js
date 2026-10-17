@@ -35,7 +35,6 @@ router.get('/', async (req, res, next) => {
         role,
         accessLabel: role === 'OWNER' ? 'Propietario' : role === 'ADMIN' ? 'Administrador invitado' : workspace.citaClinic?.accesses.length ? 'Profesional' : workspace.turnQueue?.operators.length ? 'Operador' : 'Acceso invitado',
         modules: workspace.modules
-          .filter(({ module }) => module.active)
           .map(({ module }) => ({
             id: module.id,
             code: module.code,
@@ -55,13 +54,7 @@ router.post('/:workspaceId/modules/:moduleCode', async (req, res, next) => {
   try {
     await access(prisma, req.auth.user.id, req.params.workspaceId, true);
 
-    const module = await prisma.module.findUnique({
-      where: { code: req.params.moduleCode },
-    });
-
-    if (!module || !module.active) {
-      return res.status(404).json({ ok: false, message: 'Microapp no disponible' });
-    }
+    const module = await require('../catalog/service').requireAvailable(prisma, req.params.moduleCode, req.params.workspaceId);
 
     const workspaceModule = await prisma.workspaceModule.upsert({
       where: {

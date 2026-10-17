@@ -58,7 +58,11 @@ async function save(userId, body, id) {
       if (existing.status !== 'DRAFT') fail(409, 'Un sorteo realizado no se puede modificar');
       await db.raffleParticipant.deleteMany({ where: { raffleId: id } });
       await db.rafflePrize.deleteMany({ where: { raffleId: id } });
-    } else await access(db, userId, body.workspaceId, true);
+    } else {
+      await access(db, userId, body.workspaceId, true);
+      const previous = await db.raffle.findFirst({ where: { workspaceId: body.workspaceId }, select: { id: true } });
+      await require('../catalog/service').requireAvailable(db, 'sorteos-avanzado', body.workspaceId, Boolean(previous));
+    }
     const children = {
       name: data.name,
       participants: { create: data.participants.map((name, order) => ({ name, order })) },

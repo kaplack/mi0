@@ -100,9 +100,10 @@ async function saveSettings(userId, workspaceId, body) {
   return prisma.$transaction(async tx => {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${ 'cita:' + workspaceId }::text))`;
     await access(userId, workspaceId, true, tx);
+    const existing = await tx.citaClinic.findUnique({ where: { workspaceId } });
+    const module = await require('../catalog/service').requireAvailable(tx, 'mi-cita', workspaceId, Boolean(existing));
     const clinic = await tx.citaClinic.upsert({ where: { workspaceId }, update: data, create: { workspaceId, ...data, code: crypto.randomBytes(12).toString('hex') } });
-    const module = await tx.module.findUnique({ where: { code: 'mi-cita' } });
-    if (module?.active) await tx.workspaceModule.upsert({ where: { workspaceId_moduleId: { workspaceId, moduleId: module.id } }, update: { active: true }, create: { workspaceId, moduleId: module.id } });
+    if (module) await tx.workspaceModule.upsert({ where: { workspaceId_moduleId: { workspaceId, moduleId: module.id } }, update: { active: true }, create: { workspaceId, moduleId: module.id } });
     return { clinic };
   });
 }

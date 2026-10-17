@@ -10,6 +10,8 @@ const raffleRoutes = require('./routes/raffles');
 const turnRoutes = require('./routes/turnos');
 
 const app = express();
+const storage = require('./storage').createStorage();
+app.locals.storage = storage;
 
 
 const allowedOrigins = (process.env.CORS_ORIGIN || '')
@@ -24,7 +26,7 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Vary', 'Origin');
     res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Upload-Id');
   }
 
   if (req.method === 'OPTIONS') {
@@ -38,8 +40,16 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
+if (storage.provider === 'local') {
+  // Only explicitly public files are exposed; private files need an authorized route.
+  app.use('/uploads/public', (req, res, next) => {
+    res.set('X-Content-Type-Options', 'nosniff');
+    next();
+  }, express.static(storage.publicDirectory, { dotfiles: 'deny', index: false, redirect: false }));
+}
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/catalog', require('./routes/catalog'));
 app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/raffles', raffleRoutes);
 app.use('/api/turnos', require('./routes/turno-operators'));

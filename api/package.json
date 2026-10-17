@@ -11,6 +11,10 @@
     "db:migrate": "node node_modules/prisma/build/index.js migrate dev",
     "db:migrate:deploy": "node node_modules/prisma/build/index.js migrate deploy",
     "db:studio": "node node_modules/prisma/build/index.js studio",
+    "test:icons": "node --test catalog/icons.integration.test.js",
+    "test:profiles": "node --test catalog/profiles.integration.test.js",
+    "test:modules": "node --test catalog/module-status.integration.test.js",
+    "test:catalog": "node --test catalog/catalog.integration.test.js",
     "test:raffles": "node --test raffles/raffles.integration.test.js",
     "create:superadmin": "node scripts/create-superadmin.js",
     "test:citas": "node --test citas/citas.integration.test.js"

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-export function DashboardPayments({ api }) {
+export function DashboardPayments({ api, onCountChange }) {
   const [items, setItems] = useState([])
   const [revision, setRevision] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -14,6 +14,9 @@ export function DashboardPayments({ api }) {
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
   }, [api, revision])
+  useEffect(() => {
+    onCountChange?.(loading || error ? null : items.length)
+  }, [items.length, loading, error, onCountChange])
   async function review(item, action) {
     setBusy(item.id); setError('')
     try {

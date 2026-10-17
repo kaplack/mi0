@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import './App.css'
 import { AuthPage } from './pages/AuthPage'
+import { MicroappDetailPage } from './pages/MicroappDetailPage'
 import { HomePage } from './pages/HomePage'
 import { AboutPage } from './pages/AboutPage'
 import { HowItWorksPage } from './pages/HowItWorksPage'
@@ -89,6 +90,8 @@ function App() {
   if (publicMatch) return <PublicRaffle code={publicMatch[1]} />
   if (activeMicroapp === 'sorteos') return <Sorteos onBack={() => setActiveMicroapp(null)} />
   if (activeMicroapp === 'sorteos-avanzado' && user && workspace) return <SorteosAvanzado workspace={workspace} onBack={() => { setActiveMicroapp(null); setConsoleOpen(true) }} />
+  const detailMatch = pathname.match(/^\/microapps\/([a-z0-9-]+)\/?$/)
+  if (detailMatch) return <MicroappDetailPage key={detailMatch[1]} code={detailMatch[1]} user={user} onLogin={() => setAuthMode('login')} onRegister={() => setAuthMode('register')} onLogout={logout} onOpenMi0={() => { setConsoleOpen(true); navigate('/') }} onUse={code => { navigate('/'); openMicroapp(code) }} />
   if (user && consoleOpen) return <Mi0Page user={user} onLogout={logout}
     onOpenMicroapp={openMicroapp} openAdvancedRequested={openAdvancedRequested} />
   return <HomePage user={user} onLogin={() => setAuthMode('login')} onRegister={() => setAuthMode('register')}

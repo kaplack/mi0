@@ -29,6 +29,7 @@ Thumbs.db
 .idea/
 
 # Temporary files
+api/uploads/
 *.tmp
 *.temp
 .cache/

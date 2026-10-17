@@ -1,6 +1,6 @@
 # mi0.app · Backlog
 
-**Actualizado:** 8 de octubre de 2026
+**Actualizado:** 15 de octubre de 2026
 **Fase actual:** Sorteos, Mi Turno y Mi Cita implementados; verificación local y preparación de producción.
 
 ## Objetivo actual
@@ -23,7 +23,8 @@ La prioridad fue confirmada por el usuario el 7 de octubre de 2026. Matrículas 
 | Activación de módulos | API implementada | OWNER/ADMIN y espacio activo comprobados en servidor y pruebas |
 | Panel del usuario | Parcial | Lista espacios y módulos; permite abrir Sorteos Avanzado |
 | Superadmin | Parcial | Resumen/listados y revisión de pagos implementados; concurrencia/lint corregidos |
-| S3 | Integración presente | Conectividad y flujo de archivos no verificados |
+| S3 | Bucket y configuración existentes | Bucket `mi0-assets-prod` confirmado por el usuario; cliente y health check presentes. Sin flujo de subida integrado ni verificación remota en esta tarea |
+| Archivos locales | Base implementada y verificada | Carpeta `api/uploads/` fuera de Git, operaciones de guardado/lectura/borrado y separación público/privado; sin endpoint ni interfaz de subida |
 | PWA | Pendiente | Portada anuncia instalación; no se encontró manifest ni service worker |
 | Otras microapps | Pendientes | Ocultas del home; conservadas como ideas futuras |
 | Producción | No verificada | No se comprobó despliegue ni servicios externos |
@@ -97,6 +98,25 @@ No añadir historial, cuentas obligatorias o persistencia de sorteos sin una nec
 - [ ] Evaluar PWA e internacionalización cuando aporten valor.
 - [ ] Definir monetización para herramientas que lo justifiquen.
 - [ ] Evaluar historial, archivos, notificaciones e integraciones por necesidad concreta.
+
+## Almacenamiento de archivos · base completada, 15 de octubre de 2026
+
+- [x] Preparar almacenamiento local en `api/uploads/`, excluido de Git y creado al guardar el primer archivo.
+- [x] Exponer operaciones `save`, `read` y `remove` mediante `req.app.locals.storage`, con nombres UUID y validación de claves.
+- [x] Separar archivos públicos y privados; servir solo los públicos en `/uploads/public/` durante desarrollo.
+- [x] Seleccionar proveedor mediante `STORAGE_DRIVER`: local por defecto fuera de producción y S3 por defecto en producción. Rechazar almacenamiento local en producción; sin fallback automático ante fallos de AWS.
+- [x] Conservar cliente, credenciales y health check existentes de S3 sin cambios. No se accedió al bucket ni se modificó AWS.
+- [x] Documentar configuración y uso en `api/README.md` y `api/.env.example`.
+- [x] Verificar guardado, lectura y borrado locales, separación por visibilidad, rechazo de rutas inválidas y selección del proveedor en producción; sintaxis y `git diff --check` correctos. Sin solicitudes a AWS.
+
+**Pendiente solo cuando una funcionalidad lo requiera:**
+
+- [ ] Implementar endpoint e interfaz para subir imágenes, con autenticación, permisos, límite de tamaño y validación del contenido real.
+- [ ] Definir asociación de archivos con entidades y persistir sus claves en la base de datos.
+- [ ] Incorporar acceso autorizado a archivos privados y definir entrega de archivos desde S3 según las políticas del bucket.
+- [ ] Verificar el flujo completo de imágenes en local y, cuando corresponda, en producción.
+
+**Límite actual:** la infraestructura está preparada; ninguna microapp sube imágenes todavía. El bucket de producción existe, pero el flujo de archivos aún no está integrado.
 
 Sorteos continúa siendo la primera herramienta gratuita. Las hipótesis previas de S/19.90 mensuales, S/199 anuales y 14 días de prueba se conservan para futuras herramientas de pago, pendientes de validar.
 
@@ -256,3 +276,11 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Prueba focalizada desktop: navegación interna, selección predeterminada, agregado a dos espacios, duplicados, persistencia, rechazo MEMBER y ficha con Escape. Lint/build; revisión visual del usuario.
 
 - Catálogo: tres acciones compactas con iconos outline, etiquetas accesibles y tooltips al hover/foco; Escape los oculta. Áreas táctiles de 44px. Verificación mínima: lint/build; revisión visual del usuario.
+
+### Categorías administrables y catálogo conectado (2026-10-17)
+- CRUD de categorías en Superadmin; nombres normalizados, únicos sin distinguir mayúsculas, hasta 80 caracteres. Todas/Gratis reservados como filtros.
+- Relación muchos-a-muchos: una microapp puede tener varias categorías. Editor de clasificación y atributo independiente Totalmente gratis.
+- API pública GET /api/catalog; portada y Explorar consumen categorías, nombres, descripciones y gratuidad desde PostgreSQL. Se conservan las cuatro microapps implementadas; los registros históricos no implementados no se publican por conectar el catálogo.
+- Migración aditiva 202610170001_catalog_categories crea categorías/asociaciones, conserva datos, asigna Negocios/Utilidades y marca Sorteos gratuito. Eliminación solo sin asociaciones, en transacción serializable.
+- Pruebas aisladas PostgreSQL: permisos anónimo/USER/SUPERADMIN, CRUD, duplicados, validación, asociaciones múltiples, bloqueo de eliminación y contrato público; navegador escritorio/móvil con persistencia y filtros. Lint/build de web y Superadmin correctos.
+- Activado en PostgreSQL local: migración aplicada, cliente Prisma estándar regenerado y API reiniciada bajo nodemon. GET /api/catalog verificado con HTTP 200. npm run test:catalog pasa ambos recorridos (API y navegador escritorio/móvil) con el cliente estándar. Lint/build de ambos frontends correctos. No se ha desplegado a producción.

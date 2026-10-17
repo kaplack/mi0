@@ -1,0 +1,39 @@
+.microapp-detail-main { max-width: 1100px; padding: 28px 16px calc(110px + env(safe-area-inset-bottom)); }
+.detail-back { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 24px; color: var(--text-secondary); font-size: 14px; }
+.detail-hero { display: grid; gap: 20px; }
+.detail-hero .tool-icon { width: 72px; height: 72px; font-size: 32px; }
+.detail-hero h1 { margin: 16px 0 12px; font-size: clamp(30px, 5vw, 48px); letter-spacing: -1.5px; }
+.detail-hero p { color: var(--text-secondary); line-height: 1.7; }
+.detail-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.detail-tags span { background: #eef7f4; color: #216451; border-radius: 20px; padding: 6px 12px; font-size: 12px; }
+.detail-section { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--border); }
+.detail-section h2 { font-size: 23px; letter-spacing: -.5px; margin: 0 0 14px; }
+.detail-section > p { color: var(--text-secondary); line-height: 1.8; }
+.detail-description { white-space: pre-wrap; overflow-wrap: anywhere; }
+.detail-gallery { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 8px 0 16px; }
+.detail-gallery figure { flex: 0 0 min(82vw, 360px); min-width: 0; margin: 0; scroll-snap-align: start; }
+.detail-gallery button { display: block; width: 100%; padding: 0; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: #f1f5f4; }
+.detail-gallery img { display: block; width: 100%; height: 280px; object-fit: contain; }
+.detail-gallery figcaption { padding: 12px 4px; color: var(--text-secondary); font-size: 13px; overflow-wrap: anywhere; }
+.detail-features { list-style: none; padding: 0; display: grid; gap: 16px; }
+.detail-features li { display: flex; align-items: flex-start; gap: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.detail-features li span { color: var(--primary-dark); }
+.detail-use-desktop { display: none; }
+.detail-mobile-action { position: fixed; z-index: 25; bottom: 0; left: 0; right: 0; border-top: 1px solid var(--border); background: #fff; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+.detail-mobile-action button { width: 100%; min-height: 48px; }
+.detail-lightbox { max-width: min(95vw, 1100px); max-height: 90svh; border: 0; border-radius: 16px; padding: 16px; }
+.detail-lightbox::backdrop { background: rgb(15 23 42 / 75%); }
+.detail-lightbox > button { display: block; margin-left: auto; }
+.detail-lightbox figure { margin: 16px 0 0; }
+.detail-lightbox img { display: block; max-width: 100%; max-height: 70svh; object-fit: contain; margin: auto; }
+.detail-lightbox figcaption { margin-top: 12px; color: var(--text-secondary); }
+.microapp-detail-page button:focus-visible, .microapp-detail-page a:focus-visible { outline: 3px solid var(--primary-dark); outline-offset: 4px; }
+body:has(.detail-lightbox[open]) { overflow: hidden; }
+@media (min-width: 800px) {
+  .microapp-detail-main { padding: 40px 32px 80px; }
+  .detail-hero { grid-template-columns: 80px minmax(0, 1fr) auto; align-items: start; }
+  .detail-use-desktop { display: block; margin-top: 48px; }
+  .detail-mobile-action { display: none; }
+}
+.detail-hero h1:focus { outline: none; }
+.detail-hero h1, .detail-hero p { overflow-wrap: anywhere; }

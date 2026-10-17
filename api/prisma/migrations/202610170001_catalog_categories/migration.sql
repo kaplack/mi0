@@ -1,0 +1,13 @@
+CREATE TABLE "categories" ("id" UUID NOT NULL, "name" VARCHAR(80) NOT NULL, CONSTRAINT "categories_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "categories_name_key" ON "categories"("name");
+CREATE UNIQUE INDEX "categories_name_normalized_key" ON "categories"(lower("name"));
+ALTER TABLE "categories" ADD CONSTRAINT "categories_name_check" CHECK (length(trim("name")) > 0);
+ALTER TABLE "modules" ADD COLUMN "free" BOOLEAN NOT NULL DEFAULT false;
+CREATE TABLE "_CategoryToModule" ("A" UUID NOT NULL, "B" UUID NOT NULL);
+CREATE UNIQUE INDEX "_CategoryToModule_AB_unique" ON "_CategoryToModule"("A", "B");
+CREATE INDEX "_CategoryToModule_B_index" ON "_CategoryToModule"("B");
+ALTER TABLE "_CategoryToModule" ADD CONSTRAINT "_CategoryToModule_A_fkey" FOREIGN KEY ("A") REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_CategoryToModule" ADD CONSTRAINT "_CategoryToModule_B_fkey" FOREIGN KEY ("B") REFERENCES "modules"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+INSERT INTO "categories" (id,name) VALUES (gen_random_uuid(),'Negocios'),(gen_random_uuid(),'Utilidades');
+INSERT INTO "_CategoryToModule" ("A","B") SELECT c.id,m.id FROM categories c CROSS JOIN modules m WHERE (c.name='Negocios' AND m.code IN ('mi-cita','mi-turno')) OR (c.name='Utilidades' AND m.code IN ('sorteos','sorteos-avanzado'));
+UPDATE modules SET free=true WHERE code='sorteos';

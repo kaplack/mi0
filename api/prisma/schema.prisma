@@ -106,6 +106,12 @@ model Module {
   createdAt   DateTime          @default(now()) @map("created_at")
   updatedAt   DateTime          @updatedAt @map("updated_at")
   workspaces  WorkspaceModule[]
+  categories  Category[]
+  free        Boolean @default(false)
+  iconKey     String? @db.VarChar(200)
+  details     String @default("") @db.Text
+  features    String[] @default([])
+  screenshots ModuleScreenshot[]
 
   @@map("modules")
 }
@@ -416,4 +422,24 @@ model CitaInvitation {
   @@unique([clinicId, email])
   @@index([professionalId, status])
   @@map("cita_invitations")
+}
+
+model Category {
+  id String @id @default(uuid()) @db.Uuid
+  name String @unique @db.VarChar(80)
+  modules Module[]
+  @@map("categories")
+}
+
+model ModuleScreenshot {
+  id String @id @default(uuid()) @db.Uuid
+  moduleId String @map("module_id") @db.Uuid
+  storageKey String @map("storage_key") @db.VarChar(200)
+  contentType String @map("content_type") @db.VarChar(40)
+  caption String @db.VarChar(180)
+  position Int @default(0)
+  published Boolean @default(true)
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  @@index([moduleId, position])
+  @@map("module_screenshots")
 }

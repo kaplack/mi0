@@ -109,9 +109,9 @@ router.post('/setup', async (req, res, next) => {
     const data = settings(req.body);
     const result = await prisma.$transaction(async tx => {
       const existing = await tx.turnQueue.findUnique({ where: { workspaceId } });
+      const module = await require('../catalog/service').requireAvailable(tx, 'mi-turno', workspaceId, Boolean(existing));
       const queue = existing || await tx.turnQueue.create({ data: { workspaceId, ...data, code: crypto.randomBytes(6).toString('hex') } });
-      const module = await tx.module.findUnique({ where: { code: 'mi-turno' } });
-      if (module?.active) await tx.workspaceModule.upsert({ where: { workspaceId_moduleId: { workspaceId, moduleId: module.id } }, create: { workspaceId, moduleId: module.id }, update: { active: true } });
+      if (module) await tx.workspaceModule.upsert({ where: { workspaceId_moduleId: { workspaceId, moduleId: module.id } }, create: { workspaceId, moduleId: module.id }, update: { active: true } });
       return { queue, created: !existing };
     });
     res.status(result.created ? 201 : 200).json({ queue: result.queue });
