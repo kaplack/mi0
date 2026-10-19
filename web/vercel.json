@@ -1,8 +1,44 @@
 {
   "rewrites": [
-    { "source": "/s/:code", "destination": "/index.html" },
-    { "source": "/quienes-somos", "destination": "/index.html" },
-    { "source": "/como-funciona", "destination": "/index.html" },
-    { "source": "/microapps/:code([a-z0-9-]+)", "destination": "/index.html" }
+    {
+      "source": "/s/:code",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/quienes-somos",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/como-funciona",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/microapps/:code([a-z0-9-]+)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/catalogo-qr",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/catalogo-qr/:workspaceId",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/catalogo-qr/:workspaceId/:section",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/catalogo/:code",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:slug/catalogo",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:slug/carta",
+      "destination": "/index.html"
+    }
   ]
 }

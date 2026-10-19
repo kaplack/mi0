@@ -263,7 +263,7 @@ test('invitation renewal, expiration, cancellation, foreign professional and reg
   const listingResponse=await fetch(base.replace('/citas','/workspaces'),{headers:{Authorization:'Bearer '+account.token}});
   assert.equal(listingResponse.status,200);
   const listing=(await listingResponse.json()).workspaces;
-  assert.equal(listing.find(w=>w.id===f.w.id).name,f.clinic.name);
+  assert.equal(listing.find(w=>w.id===f.w.id).name,'Mi espacio'); // Workspace labels are independent of clinic names.
   assert.ok(listing.some(w=>w.name==='Mi espacio'&&w.id!==f.w.id));
   assert.deepEqual(listing.find(w=>w.id===f.w.id).modules.map(m=>m.code),['mi-cita']);
   assert.deepEqual(listing.find(w=>w.name==='Mi espacio'&&w.id!==f.w.id).modules,[]);

@@ -1,4 +1,5 @@
 export const tools = [
+  { code: 'catalogo-qr', icon: '▧', title: 'Catálogo QR', description: 'Tus productos, precios y redes con un enlace y QR permanente.', category: 'Negocios', tone: 'mint', available: true },
   { code: 'mi-cita', icon: '▦', title: 'Mi Cita', description: 'Reservas con QR, profesionales y confirmación de citas.', category: 'Negocios', tone: 'mint', available: true },
   { code: 'mi-turno', icon: '◷', title: 'Mi Turno', description: 'Colas virtuales con QR y varias cajas.', category: 'Negocios', tone: 'mint', available: true },
   { code: 'sorteos', icon: '★', title: 'Sorteos', description: 'Elige un ganador al azar de forma rápida y gratis.', category: 'Utilidades', tone: 'mint', available: true },

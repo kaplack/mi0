@@ -68,6 +68,9 @@ model Session {
 }
 
 model Workspace {
+  linkRequests CatalogLinkRequest[]
+  publicAddresses WorkspacePublicAddress[]
+  publicSlug String? @unique @db.VarChar(80)
   id          String          @id @default(uuid()) @db.Uuid
   name        String          @db.VarChar(120)
   type        WorkspaceType   @default(ORGANIZATION)
@@ -80,6 +83,9 @@ model Workspace {
   raffles     Raffle[]
   turnQueue   TurnQueue?
   citaClinic  CitaClinic?
+  qrCatalog QrCatalog?
+  catalogProducts CatalogProduct[]
+  catalogCategories CatalogCategory[]
 
   @@map("workspaces")
 }
@@ -442,4 +448,86 @@ model ModuleScreenshot {
   module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   @@index([moduleId, position])
   @@map("module_screenshots")
+}
+
+
+// Products belong to the workspace, independently of the QR presentation.
+model QrCatalog {
+  bannerKey String?
+  bannerType String?
+  linkLocked Boolean @default(false)
+  presentation String @default("CATALOG") @db.VarChar(10)
+  id String @id @default(uuid()) @db.Uuid
+  workspaceId String @unique @db.Uuid
+  code String @unique @db.VarChar(24)
+  name String @db.VarChar(120)
+  description String @default("") @db.VarChar(500)
+  currency String @default("PEN") @db.VarChar(3)
+  whatsapp String @default("") @db.VarChar(15)
+  socialLinks Json @default("[]")
+  published Boolean @default(false)
+  plan String @default("FREE") @db.VarChar(10)
+  logoKey String?
+  logoType String?
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  @@map("qr_catalogs")
+}
+model CatalogCategory {
+  id String @id @default(uuid()) @db.Uuid
+  workspaceId String @db.Uuid
+  name String @db.VarChar(80)
+  position Int @default(0)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  products CatalogProduct[]
+  @@unique([workspaceId, id])
+  @@map("catalog_categories")
+}
+model CatalogProduct {
+  id String @id @default(uuid()) @db.Uuid
+  workspaceId String @db.Uuid
+  categoryId String? @db.Uuid
+  name String @db.VarChar(120)
+  description String @default("") @db.VarChar(1000)
+  priceCents Int
+  position Int @default(0)
+  status String @default("AVAILABLE") @db.VarChar(20)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  category CatalogCategory? @relation(fields: [workspaceId, categoryId], references: [workspaceId, id], onDelete: NoAction)
+  images CatalogProductImage[]
+  @@index([workspaceId, position])
+  @@map("catalog_products")
+}
+model CatalogProductImage {
+  id String @id @default(uuid()) @db.Uuid
+  productId String @db.Uuid
+  storageKey String
+  contentType String
+  position Int @default(0)
+  product CatalogProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@index([productId, position])
+  @@map("catalog_product_images")
+}
+
+
+model WorkspacePublicAddress {
+  slug String @id @db.VarChar(80)
+  workspaceId String @db.Uuid
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  @@index([workspaceId])
+  @@map("workspace_public_addresses")
+}
+
+model CatalogLinkRequest {
+  id String @id @default(uuid()) @db.Uuid
+  workspaceId String @db.Uuid
+  requestedById String @db.Uuid
+  requestedSlug String @db.VarChar(60)
+  reason String @db.VarChar(300)
+  status String @default("PENDING") @db.VarChar(10)
+  createdAt DateTime @default(now())
+  reviewedAt DateTime?
+  reviewedById String? @db.Uuid
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  @@index([workspaceId, createdAt])
+  @@map("catalog_link_requests")
 }

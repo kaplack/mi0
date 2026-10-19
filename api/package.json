@@ -17,7 +17,8 @@
     "test:catalog": "node --test catalog/catalog.integration.test.js",
     "test:raffles": "node --test raffles/raffles.integration.test.js",
     "create:superadmin": "node scripts/create-superadmin.js",
-    "test:citas": "node --test citas/citas.integration.test.js"
+    "test:citas": "node --test citas/citas.integration.test.js",
+    "test:qr-catalog": "node --test qr-catalog/qr-catalog.integration.test.js"
   },
   "keywords": [],
   "author": "",

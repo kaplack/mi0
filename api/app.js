@@ -55,6 +55,7 @@ app.use('/api/raffles', raffleRoutes);
 app.use('/api/turnos', require('./routes/turno-operators'));
 app.use('/api/turnos', require('./routes/turno-dashboard'));
 app.use('/api/turnos', turnRoutes);
+app.use('/api/qr-catalog', require('./routes/qr-catalog'));
 app.use('/api/citas', require('./routes/citas'));
 
 app.get('/api/health', (req, res) => {

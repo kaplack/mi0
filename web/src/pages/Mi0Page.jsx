@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { listWorkspaces } from '../services/workspaces'
+import { WorkspaceHeading, CreateWorkspace } from '../components/WorkspaceControls'
+import { createWorkspace, renameWorkspace, deleteWorkspace, listWorkspaces } from '../services/workspaces'
 import { ExploreMicroapps } from '../components/ExploreMicroapps'
 import { tools } from '../data/catalog'
 export function Mi0Page({ user, onLogout, onOpenMicroapp, openAdvancedRequested }) {
@@ -7,6 +8,15 @@ export function Mi0Page({ user, onLogout, onOpenMicroapp, openAdvancedRequested 
   const [view, setView] = useState(openAdvancedRequested ? 'propias' : 'inicio')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [mutation, setMutation] = useState({busy:false,error:'',notice:''})
+  async function change(operation, apply, notice) {
+    setMutation({busy:true,error:'',notice:''})
+    try { const result=await operation();setWorkspaces(current=>apply(current,result));setMutation({busy:false,error:'',notice});return true }
+    catch(e){setMutation({busy:false,error:e.message,notice:''});return false}
+  }
+  const createSpace=name=>change(()=>createWorkspace(name),(current,result)=>[...current,{...result.workspace,role:'OWNER',accessLabel:'Propietario',modules:[]}],'Espacio creado.')
+  const renameSpace=(id,name)=>change(()=>renameWorkspace(id,name),(current,result)=>current.map(w=>w.id===id?{...w,name:result.workspace.name}:w),'Nombre del espacio guardado.')
+  const removeSpace=id=>change(()=>deleteWorkspace(id),current=>current.filter(w=>w.id!==id),'Espacio eliminado.')
   const [menuOpen, setMenuOpen] = useState(false)
   useEffect(() => {
     const controller = new AbortController()
@@ -34,9 +44,10 @@ export function Mi0Page({ user, onLogout, onOpenMicroapp, openAdvancedRequested 
       <section className="console-content">
         <div className="console-welcome"><span>MI0</span><h1>{exploreView ? 'Explorar microapps' : personalView ? 'Mis microapps' : 'Hola, ' + user.name}</h1><p>{exploreView ? 'Encuentra herramientas para ti y tu negocio.' : personalView ? 'Las herramientas de tus espacios personales y negocios propios.' : 'Tus espacios y los negocios que te invitaron, en un solo lugar.'}</p></div>
         {loading ? <p role="status" className="console-status">Cargando espacios…</p> : error ? <div className="console-empty" role="alert"><h2>No pudimos cargar tus espacios</h2><p>{error}</p></div> : exploreView ? <ExploreMicroapps workspaces={workspaces} onWorkspacesChange={setWorkspaces} onOpen={onOpenMicroapp} /> : <>
-          <div className="console-section-heading"><div><h2>{openAdvancedRequested ? 'Elige dónde usar Sorteos Avanzado' : personalView ? 'Tus espacios propios' : 'Tus espacios'}</h2></div><button onClick={() => navigate('explorar')}>Explorar microapps →</button></div>
+          <div className="console-section-heading"><div><h2>{openAdvancedRequested ? 'Elige dónde usar Sorteos Avanzado' : personalView ? 'Tus espacios propios' : 'Tus espacios'}</h2></div><div className="workspace-section-actions"><CreateWorkspace busy={mutation.busy} error={mutation.error} onCreate={createSpace}/><button onClick={() => navigate('explorar')}>Explorar microapps →</button></div></div>
+          {mutation.error&&<p className="workspace-error" role="alert">{mutation.error}</p>}{mutation.notice&&<p className="workspace-notice" role="status">{mutation.notice}</p>}
           {spaces.length ? <div className="console-spaces-grid">{spaces.map(space => <article className="console-space-card" key={space.id} aria-label={space.name}>
-            <div className="console-space-heading"><h3>{space.name}</h3><span>{space.accessLabel || (space.role === 'OWNER' ? 'Propietario' : 'Acceso invitado')}</span></div>
+            <WorkspaceHeading space={space} busy={mutation.busy} onRename={renameSpace} onDelete={removeSpace} />
             {space.modules.length ? <div className="console-shortcuts">{space.modules.map(module => {
               const tool = tools.find(item => item.code === module.code)
               return <button key={module.id} className="console-shortcut" disabled={!tool?.available} onClick={() => onOpenMicroapp(module.code, space)} aria-label={'Abrir ' + module.name + ' en ' + space.name}><span className="console-shortcut-icon" aria-hidden="true">{tool?.icon || '0_'}</span><span>{module.name}</span></button>

@@ -96,4 +96,4 @@ async function readImage(code, imageId, admin = false) {
   if (!image) throw fail(404, 'Captura no encontrada');
   return image;
 }
-module.exports = { getById, publicDetail, save, upload, remove, readImage };
+module.exports = { imageType, getById, publicDetail, save, upload, remove, readImage };

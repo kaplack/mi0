@@ -284,3 +284,113 @@ Esta tabla conserva la evidencia inicial; los resultados posteriores están regi
 - Migración aditiva 202610170001_catalog_categories crea categorías/asociaciones, conserva datos, asigna Negocios/Utilidades y marca Sorteos gratuito. Eliminación solo sin asociaciones, en transacción serializable.
 - Pruebas aisladas PostgreSQL: permisos anónimo/USER/SUPERADMIN, CRUD, duplicados, validación, asociaciones múltiples, bloqueo de eliminación y contrato público; navegador escritorio/móvil con persistencia y filtros. Lint/build de web y Superadmin correctos.
 - Activado en PostgreSQL local: migración aplicada, cliente Prisma estándar regenerado y API reiniciada bajo nodemon. GET /api/catalog verificado con HTTP 200. npm run test:catalog pasa ambos recorridos (API y navegador escritorio/móvil) con el cliente estándar. Lint/build de ambos frontends correctos. No se ha desplegado a producción.
+
+
+### Catálogo QR · completado en localhost
+- Alcance: un catálogo por espacio, gratis 30 productos y 1 foto; capacidad PRO 5 fotos preparada. Cobros y límite ampliado de productos pendientes de definición. Sin carrito, pedidos ni delivery.
+- Dominio qr-catalog reutiliza auth, memberships, storage privado local/S3 y qrcode existentes; biblioteca BaseReutilizable evaluada, no incorporada para evitar reemplazar identidad/storage y añadir checkout ajeno al alcance.
+- Productos/categorías pertenecen al workspace; presentación QR separada, preparada para conexión posterior con otras microapps.
+- Migración 202610170006_qr_catalog exclusivamente aditiva; se descartaron del diff las diferencias históricas ajenas al dominio. Migración aplicada a mi0 localhost; cliente Prisma regenerado y API reiniciada. Prueba API en schema aislado correcta: permisos, validaciones, publicación, privacidad de archivos, límites de fotos FREE/PRO y límite de 30 ante creaciones concurrentes. Recorrido real de navegador correcto en 1280 y 390 px: crear negocio/categoría/producto, foto, publicación, QR descargable, catálogo público sin cuenta, búsqueda y WhatsApp. Capturas manager/public revisadas sin desbordamientos; corregido estado de producto sin foto. Lint y build de web correctos. Sin despliegue a producción.
+
+
+### Identidad pública del espacio · completado en localhost
+- Dirección única del espacio: /[nombre-del-espacio]/catalogo, sugerida desde su nombre y elegible al guardar por primera vez. La dirección se conserva después para mantener enlaces y QR; nombre visible editable.
+- Workspace.publicSlug compartible con futuras microapps; duplicados y nombres reservados rechazados por servidor. Compartir y QR usan la dirección personalizada. /catalogo/:code sigue funcionando.
+- Migración 202610170007_workspace_public_slug aplicada solo a localhost con backfill de catálogos existentes; dirección asignada y unicidad verificadas en la base local. Suite qr-catalog correcta (API y navegador en 1280/390 px): ruta por nombre, QR/enlace personalizado, legado por código, duplicados, nombres reservados, inmutabilidad y publicación. Lint/build correctos. Sin despliegue.
+
+
+### Carta / Catálogo e identidad única · completado en localhost
+- Selector Mostrar como: Catálogo o Carta. Enlace para compartir y QR terminan en /catalogo o /carta según preferencia; ambas rutas conservan acceso al mismo contenido.
+- Nombre visible toma Workspace.name; al guardar Mi negocio se actualiza transaccionalmente el nombre del espacio (solo propietario). Dirección pública conservada; sugerencia inicial desde el nombre elegido.
+- Migración 202610180001_catalog_presentation conserva nombres públicos existentes para espacios iniciales Mi espacio y sincroniza las copias históricas de nombre. Migración aplicada en mi0 local, cliente Prisma regenerado. API verificada: validación de presentación, nombre sincronizado, renombrado solo OWNER, slugs conservados, límites concurrentes (espera transaccional ajustada a 15s). Navegador 1280/390 correcto: selector, Carta/Catálogo, enlaces/QR y ambas rutas, búsqueda y WhatsApp. Capturas públicas revisadas, lint/build correctos. Servicios locales iniciados: web 5174, API 3000, superadmin 5173. Sin despliegue.
+
+
+### Cambio del enlace de negocio · completado en localhost
+- Propietario puede editar el enlace aun después de guardar. Direcciones anteriores reservadas al mismo workspace como alias; mantienen Carta/Catálogo y QR sin permitir que otro negocio las tome.
+- Migración 202610180002_workspace_address_aliases aplicada localmente, direcciones existentes registradas. Suite qr-catalog correcta: edición después de guardar, reserva de alias contra apropiación por otros espacios, permisos OWNER/ADMIN, acceso con enlace anterior y nuevo, formulario/QR en 1280 y 390 px. Lint/build y diff-check correctos. API local /by-space/mi-espacio responde 200. El nombre visible sigue sin alterar enlaces automáticamente; cambiarlos es una acción explícita. Sin despliegue.
+
+
+### Espacios y nombre público independiente · completado en localhost
+- Crear varios espacios con nombre libre y OWNER al creador. Cards con lápiz inline (Enter/✓ guarda, Escape cancela) y tacho con confirmación. Crear en móvil solo ＋ accesible.
+- Migración 202610180003_workspace_names aplicada localmente conserva nombres visibles históricos al retirar fallback desde consultorio/cola.
+- Eliminar solo vacío: sin módulos incluso inactivos, dominios, productos/categorías, enlaces públicos ni invitados. Control servidor OWNER y bloqueo transaccional.
+- Nombre de catálogo vuelve a QrCatalog.name independiente de Workspace.name; modificar uno no cambia el otro ni sus enlaces. Suite qr-catalog correcta (3 pruebas: dominio catálogo, CRUD de espacios y recorrido navegador a 1280/390). Regresión puntual de citas invitation renewal correcta, expectativa actualizada a nombre real del espacio. Capturas spaces/public revisadas, lint/build y diff-check correctos. Web 5174 y API 3000 responden 200. Sin despliegue.
+
+- Corrección operativa local: API de puerto 3000 seguía ejecutando proceso anterior sin rutas CRUD; reiniciada. Smoke autenticado contra servidor real correcto: crear 201, PATCH nombre 200 y eliminar 200; usuario/espacio temporales retirados. No se modificaron los datos del usuario.
+
+
+### Formulario de negocio, publicación y enlace confirmado · implementación local
+- Nombre/logo/descripción agrupados; logo seleccionable con vista previa desde el primer guardado. Enlace destacado con URL completa y explicación explícita del QR. Luego moneda y contacto/redes.
+- Checkbox retirado: Guardar borrador, Publicar carta/catálogo (confirmación del enlace), Guardar cambios y Retirar de publicación. LinkLocked persiste tras primera publicación y no se elimina al retirar. Existentes publicados quedan bloqueados por migración.
+- Propietario solicita cambio de enlace/motivo; Superadmin → Catálogo QR → Solicitudes de enlace puede aprobar/rechazar. Alias anteriores se conservan.
+- Migración 202610180004_catalog_link_publication aplicada solo a localhost; Prisma regenerado y API reiniciada. No se ejecutaron pruebas, lint, build ni recorridos de navegador por instrucción del usuario; revisión funcional/visual a cargo del usuario.
+
+
+### Carga de logo más amigable · localhost
+- Selector nativo sustituido por miniatura clicable, icon buttons accesibles con tooltip por foco/hover para cargar/cambiar, retirar y deshacer. Admite arrastrar archivo y vista previa antes de guardar. Formatos/tamaño y guardado diferido explícitos. Distribución compacta para móvil.
+- Componente LogoPicker separado; conserva validaciones y persistencia existentes. Sin pruebas, lint, build ni inspección de navegador por instrucción del usuario.
+
+
+### Pendiente · limpieza fiable de archivos eliminados/reemplazados
+- Actualmente se retira la referencia en BD y se intenta eliminar el archivo en storage local/S3; algunos errores de limpieza se ignoran sin reintento, por lo que pueden quedar archivos huérfanos.
+- Implementar cola persistente de bajas con reintentos, registro de fallos y procesamiento idempotente. Antes de eliminar, comprobar que la clave ya no esté referenciada; cubrir fallos tras reemplazos/subidas y tareas interrumpidas. No borrar archivos por antigüedad sin verificar referencias.
+- Alcance futuro; no implementado en este cambio.
+
+### Logo · controles en esquinas
+- Una sola cámara abajo a la derecha carga/reemplaza. Tacho rojo sobre fondo blanco arriba a la derecha solo si hay imagen. Miniatura sin acción duplicada, zonas táctiles de 44px separadas. Deshacer como texto únicamente después de retirar; guardado diferido conservado.
+- Sin pruebas, lint, build ni navegador, por petición del usuario.
+
+- Ajuste de logo: después de retirar, Deshacer es icon button en esquina superior derecha, en lugar del tacho; no se muestran juntos. Sin pruebas por instrucción del usuario.
+
+- Logo: retiradas indicaciones repetidas. Título separado, formatos/tamaño como única ayuda fija y estado de guardado solo cuando hay cambios. En móvil, título/imagen/ayuda apilados para evitar texto estrecho junto a la miniatura. Sin pruebas por petición del usuario.
+
+- Formulario Mi negocio: secciones sin bordes/fondos anidados, agrupadas por títulos y divisores; tarjeta exterior retirada en móvil para recuperar ancho. Solo URL final destacada, selector Carta/Catálogo corto y aviso del enlace abreviado. Sin pruebas por petición del usuario.
+
+- Redes sociales: quitar con tacho+texto en escritorio; solo icon button junto al input Red social en móvil, enlace debajo a ancho completo. Agregar con fondo verde suave. Accesibilidad/tooltip y mismas acciones responsive. Sin pruebas por petición del usuario.
+
+- Guardar cambios/borrador destacado en verde con icono de guardar; móvil solo icon button accesible, escritorio icono+texto. Retirar de publicación renombrado Ocultar catálogo/carta, confirmando que clientes dejan de verlo sin perder enlace/productos. Sin pruebas por petición del usuario.
+
+- Ocultar carta/catálogo retirado del formulario por decisión del usuario. Publicado muestra solo Guardar cambios; borrador conserva Guardar borrador y Publicar. Sin pruebas.
+
+
+### Productos · fotos antes de guardar
+- Creación y edición permiten seleccionar fotos con vista previa local, quitar selección y marcar fotos existentes para retirar; persistencia diferida a Guardar producto. Cancelar/cerrar/Escape descarta cambios sin subir archivos ni borrar fotos existentes. Objetos URL liberados al quitar/cerrar.
+- Respeta límites de plan y 5 MB; un guardado coordina datos, retiros y subidas. Si falla una foto después de guardar datos, informa guardado parcial; conserva ID y fotos ya enviadas para reintentar sin duplicar producto/subidas confirmadas.
+- Sin pruebas, lint, build ni navegador por instrucción del usuario.
+
+- Editor de productos: guardar/cancelar/deshacer con icono+texto en escritorio y solo iconos accesibles en móvil; fotos con tacho, selector cámara sin texto en móvil. Sin pruebas por instrucción del usuario.
+
+
+### Catálogo QR · experiencia centrada en el negocio
+- Sidebar colapsable en escritorio con logo/nombre público y herramienta; espacio/rol como contexto secundario, Volver a mi0 al pie. Encabezado grande retirado.
+- Móvil con identidad compacta y barra inferior fija Productos/Categorías/Mi negocio/QR, iconos+texto, safe-area y espacio reservado; barra oculta con teclado visual abierto. Regreso a mi0 en encabezado.
+- Categorías extraído a sección independiente: crear, editar nombre/orden y eliminar preservando productos. Navegación por rutas /catalogo-qr/:workspaceId/productos|categorias|negocio|qr, compatibles con enlace anterior. Secciones permanecen montadas para conservar formularios al navegar.
+- Sin pruebas, lint, build ni recorridos de navegador por instrucción del usuario.
+
+
+### Portada y WhatsApp · implementado en localhost
+- Foto banner configurable en Mi negocio, vista previa/retirar/deshacer con guardado diferido. Portada opcional en encabezado público, sin cambiar nombres/productos de prueba del usuario. Storage privado reutilizado; migración 202610190001_catalog_banner.
+- WhatsApp con icono+texto en escritorio y solo icono accesible en móvil (contacto general y detalle). Sin pruebas por instrucción del usuario.
+
+- Migración del banner aplicada a mi0 localhost y cliente Prisma regenerado; API recargada. No se ejecutaron pruebas, lint, build ni navegador. Nombres y productos de ejemplo del usuario conservados.
+
+- Portada pública a ancho completo de pantalla en escritorio/móvil, sin tarjeta ni bordes; logo/nombre/descripción sobre imagen con degradado oscuro. Móvil compacto (mínimo 290px, adaptable al texto), redes en fila fuera del banner. Productos conservan ancho máximo y márgenes. Sin pruebas por instrucción del usuario.
+
+
+### Catálogo público · navegación móvil y redes estructuradas
+- Barra inferior Buscar/Categorías/WhatsApp en móvil; buscador superior/chips y WhatsApp flotante retirados solo en móvil. Buscar abre campo fijo arriba y enfoca dentro del gesto para solicitar teclado; categorías en panel modal inferior. Filtros activos visibles y limpiables; pie reserva espacio.
+- Redes dentro del banner debajo de descripción, solo iconos con nombres accesibles y tooltip. Mi negocio: selector Instagram/Facebook/TikTok/YouTube/X/Sitio web y entrada usuario o enlace. Servidor arma HTTPS desde usuario y valida plataforma/dominio; enlaces históricos conservados al leer y adaptados al editar.
+- Sin pruebas, lint, build ni recorridos de navegador por instrucción del usuario. Recarga de API solicitada al watcher local para la nueva validación.
+
+
+### Catálogo QR · propuestas para el plan pago (pendientes)
+Ideas documentadas el 19/10/2026; no implementadas. El alcance final y las reglas comerciales quedan por definir. Prioridad actual: terminar de pulir la versión gratuita.
+
+- [ ] Dashboard de ingresos/visitas al catálogo público, con evolución por día o mes. Definir qué cuenta como visita y distinguir visitas de personas únicas; comunicar claramente la métrica.
+- [ ] Sección de promociones: destacar productos con precio de oferta y fechas de vigencia.
+- [ ] Sección de combos: agrupar productos con un precio conjunto (por ejemplo, pizza + bebida). Diferenciar combos de descuentos y permitir mostrarlos sin depender de carrito, pedidos o delivery.
+- [ ] Más de 30 productos; definir el límite del plan pago.
+- [ ] Hasta 5 fotos por producto, frente a 1 en la versión gratuita.
+- [ ] Evaluar personalización adicional de apariencia; opciones concretas por definir.
+
+Base gratuita acordada: hasta 30 productos, 1 foto por producto, categorías, identidad del negocio, redes sociales, contacto por WhatsApp y enlace/QR permanente. Facilidad de uso, velocidad y adaptación móvil deben mantenerse en ambos planes. La lista de funciones pagas puede ampliarse conforme se definan nuevas necesidades.

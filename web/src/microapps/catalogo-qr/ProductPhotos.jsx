@@ -1,0 +1,11 @@
+import { ProductActionIcon } from './ProductActionIcon'
+import { CatalogImage } from './CatalogUi'
+export function ProductPhotos({images,files,removed,limit,busy,onAdd,onRemoveExisting,onRemoveFile,onUndo}) {
+ const visible=images.filter(image=>!removed.includes(image.id))
+ const count=visible.length+files.length
+ return <section className="cq-product-photo-editor" aria-label="Fotos del producto"><h3>Fotos · {count}/{limit}</h3><div className="cq-photo-drafts">
+ {visible.map((image,index)=><div className="cq-photo-draft" key={image.id}><CatalogImage preview url={image.url} alt={'Foto '+(index+1)+' del producto'}/><button type="button" className="cq-photo-remove" disabled={busy} aria-label={'Retirar foto '+(index+1)} title="Retirar foto" onClick={()=>onRemoveExisting(image.id)}><ProductActionIcon kind="remove"/><span>Retirar</span></button>{index===0&&<small>Portada</small>}</div>)}
+ {files.map((file,index)=><div className="cq-photo-draft" key={file.id}><img src={file.url} alt={'Vista previa de '+file.file.name}/><button type="button" className="cq-photo-remove" disabled={busy} aria-label={'Quitar foto seleccionada '+(index+1)} title="Quitar foto seleccionada" onClick={()=>onRemoveFile(file.id)}><ProductActionIcon kind="remove"/><span>Quitar</span></button><small>{visible.length+index===0?'Portada · Sin guardar':'Sin guardar'}</small></div>)}
+ {count<limit&&<label className={'cq-photo-add'+(busy?' is-disabled':'')}><input type="file" aria-label="Agregar fotos del producto" accept="image/png,image/jpeg,image/webp" multiple={limit>1} disabled={busy} onChange={e=>{onAdd(Array.from(e.target.files||[]));e.target.value=''}}/><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M8 6l2-3h4l2 3h5v14H3V6z"/><circle cx="12" cy="13" r="4"/></svg><span>Agregar foto</span></label>}
+ </div>{removed.length>0&&<button type="button" className="cq-product-action" aria-label="Deshacer retiro de fotos" data-tooltip="Deshacer retiro de fotos" disabled={busy} onClick={onUndo}><ProductActionIcon kind="undo"/><span>Deshacer retiro de fotos</span></button>}<p>PNG, JPEG o WebP · Hasta 5 MB por foto. La primera es la portada.</p><small>Las fotos se subirán al guardar. Si cancelas, se descartarán los cambios.</small></section>
+}

@@ -7,6 +7,9 @@ const router = express.Router();
 const catalog = require('../catalog/service');
 
 router.use(requireAuth, requireSuperadmin);
+router.get('/catalog-link-requests',async(req,res,next)=>{try{res.json({requests:await require('../qr-catalog/linkRequests').list()});}catch(e){next(e);}});
+router.patch('/catalog-link-requests/:id',async(req,res,next)=>{try{res.json(await require('../qr-catalog/linkRequests').review(req.auth.user.id,req.params.id,req.body));}catch(e){next(e);}});
+
 
 router.get('/summary', async (req, res, next) => {
   try {

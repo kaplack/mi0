@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { DashboardPayments } from './DashboardPayments'
 import { Publications } from './Publications'
+import { CatalogLinkRequests } from './CatalogLinkRequests'
 import { PublicProfile } from './PublicProfile'
 import { Catalog } from './Catalog'
 import { ModuleTabs } from './ModuleTabs'
@@ -118,9 +119,11 @@ function App() {
           <ModuleTabs activeTab={moduleTab} onChange={setModuleTab} tabs={[
             ...(managedModule.code === 'sorteos-avanzado' ? [{ key: 'publications', label: 'Publicaciones', count: pending.publications }] : []),
             ...(managedModule.code === 'mi-turno' ? [{ key: 'payments', label: 'Pagos de Dashboard', count: pending.payments }] : []),
+            ...(managedModule.code === 'catalogo-qr' ? [{key:'linkRequests',label:'Solicitudes de enlace'}] : []),
             { key: 'profile', label: 'Ficha pública' },
             { key: 'settings', label: 'Configuración' },
           ]} />
+          {managedModule.code === 'catalogo-qr' && moduleTab === 'linkRequests' && <div id="module-panel-linkRequests" role="tabpanel" aria-labelledby="module-tab-linkRequests"><CatalogLinkRequests api={api}/></div>}
           <div id="module-panel-profile" role="tabpanel" aria-labelledby="module-tab-profile" tabIndex={0} hidden={moduleTab !== 'profile'}>
             <PublicProfile key={managedModule.id} api={api} moduleId={managedModule.id} onSaved={profile => setManagedModule(previous => ({ ...previous, description: profile.description }))} />
           </div>

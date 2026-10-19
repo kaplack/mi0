@@ -130,3 +130,7 @@ Consulta [BACKLOG.md](BACKLOG.md) para conocer prioridades, criterios de aceptac
 ## Mi Cita
 
 Reservas públicas sin registro mediante QR, agenda y profesionales por workspace, confirmación/cancelación por el personal y DNI configurable (desactivado por defecto). Conserva los roles y el sistema visual de Mi Turno. Consulta [la guía de Mi Cita](docs/MI_CITA.md) para configuración, arquitectura, migración PostgreSQL y pruebas.
+
+## Catálogo QR
+
+Microapp local de productos, categorías, redes y QR público. Consulta [uso, arquitectura y planes](docs/CATALOGO_QR.md).

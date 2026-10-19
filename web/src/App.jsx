@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import './App.css'
+import { CatalogQr } from './microapps/catalogo-qr/CatalogQr'
+import { PublicCatalog } from './microapps/catalogo-qr/PublicCatalog'
 import { AuthPage } from './pages/AuthPage'
 import { MicroappDetailPage } from './pages/MicroappDetailPage'
 import { HomePage } from './pages/HomePage'
@@ -39,10 +41,13 @@ function App() {
   const citaInvitationMatch = pathname.match(/^\/mi-cita\/invitacion\/([a-f0-9]{64})\/?$/)
   const citaMatch = pathname.match(/^\/cita\/([a-f0-9]{24})\/?$/)
   const citaManagerMatch = pathname.match(/^\/mi-cita(?:\/([^/]+)(?:\/(agenda|pendientes|profesionales|configuracion|qr))?)?\/?$/)
+  const spaceCatalogMatch = pathname.match(/^\/([a-z0-9]+(?:-[a-z0-9]+)*)\/(catalogo|carta)\/?$/)
+  const catalogPublicMatch = pathname.match(/^\/catalogo\/([a-f0-9]{24})\/?$/)
+  const catalogManagerMatch = pathname.match(/^\/catalogo-qr(?:\/([^/]+)(?:\/(productos|categorias|negocio|qr))?)?\/?$/)
   const publicMatch = pathname.match(/^\/s\/([^/]+)\/?$/)
 
   useEffect(() => {
-    if (window.location.pathname.startsWith('/s/') || window.location.pathname.startsWith('/cita/')) return
+    if (window.location.pathname.startsWith('/s/') || window.location.pathname.startsWith('/cita/') || window.location.pathname.startsWith('/catalogo/')) return
     if (!localStorage.getItem(TOKEN_KEY)) return
     const controller = new AbortController()
     api('/auth/me', { signal: controller.signal }).then(data => {
@@ -64,7 +69,8 @@ function App() {
         if (!user) setAuthMode('login')
         else setConsoleOpen(true)
       }
-    } else if (code === 'mi-cita' && nextWorkspace) navigate('/mi-cita/' + nextWorkspace.id)
+    } else if (code === 'catalogo-qr') navigate('/catalogo-qr' + (nextWorkspace ? '/' + nextWorkspace.id : ''))
+    else if (code === 'mi-cita' && nextWorkspace) navigate('/mi-cita/' + nextWorkspace.id)
     else if (code === 'mi-turno' && nextWorkspace) navigate('/mi-turno/' + nextWorkspace.id + '/operacion')
     else setActiveMicroapp(code)
   }, [user, navigate])
@@ -78,6 +84,9 @@ function App() {
   if (/^\/como-funciona\/?$/.test(pathname)) return <HowItWorksPage user={user}
     onLogin={() => setAuthMode('login')} onRegister={() => setAuthMode('register')}
     onOpenMi0={() => { setConsoleOpen(true); navigate('/') }} onLogout={logout} />
+  if (spaceCatalogMatch) return <PublicCatalog slug={spaceCatalogMatch[1]} />
+  if (catalogPublicMatch) return <PublicCatalog code={catalogPublicMatch[1]} />
+  if (catalogManagerMatch) return <CatalogQr workspaceId={catalogManagerMatch[1]} page={catalogManagerMatch[2]} onNavigate={navigate} onLogin={() => setAuthMode('login')} />
   if (citaInvitationMatch) return <CitaInvitation token={citaInvitationMatch[1]} />
   if (citaMatch) return <MiCita code={citaMatch[1]} />
   if (citaManagerMatch) return <MiCita workspaceId={citaManagerMatch[1]} page={citaManagerMatch[2]} onNavigate={navigate} onLogin={() => setAuthMode('login')} />

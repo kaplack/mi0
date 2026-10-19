@@ -6,6 +6,11 @@ const { access } = require('../raffles/service');
 const router = express.Router();
 
 router.use(requireAuth);
+const management = require('../workspaces/service');
+router.post('/', async(req,res,next)=>{try{res.status(201).json({workspace:await management.create(req.auth.user.id,req.body)});}catch(error){next(error);}});
+router.patch('/:workspaceId', async(req,res,next)=>{try{res.json({workspace:await management.rename(req.auth.user.id,req.params.workspaceId,req.body)});}catch(error){next(error);}});
+router.delete('/:workspaceId', async(req,res,next)=>{try{await management.remove(req.auth.user.id,req.params.workspaceId);res.json({ok:true});}catch(error){next(error);}});
+
 
 router.get('/', async (req, res, next) => {
   try {
@@ -30,7 +35,7 @@ router.get('/', async (req, res, next) => {
       .filter(({ workspace }) => workspace.status === 'ACTIVE')
       .map(({ role, workspace }) => ({
         id: workspace.id,
-        name: workspace.name === 'Mi espacio' ? workspace.citaClinic?.name || workspace.turnQueue?.name || workspace.name : workspace.name,
+        name: workspace.name,
         type: workspace.type,
         role,
         accessLabel: role === 'OWNER' ? 'Propietario' : role === 'ADMIN' ? 'Administrador invitado' : workspace.citaClinic?.accesses.length ? 'Profesional' : workspace.turnQueue?.operators.length ? 'Operador' : 'Acceso invitado',
