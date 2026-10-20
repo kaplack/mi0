@@ -402,3 +402,9 @@ Base gratuita acordada: hasta 30 productos, 1 foto por producto, categorías, id
 - Pruebas mínimas: 3 de reglas + 1 integración aislada correctas; build y lint de archivos afectados correctos. Lint global falla por 3 errores anteriores del Catálogo QR, sin modificar esos archivos.
 - Chrome desktop/móvil: ingreso, sorteo, recuperación y marcas tras recarga, limpieza en nueva ronda, pantalla pública; capturas revisadas sin overflow móvil ni errores JS. Datos temporales eliminados.
 - Pendientes: prueba realista con 30 jugadores, regresión completa y pruebas manuales del usuario. Detalles y pasos: docs/mi-bingo.md. Web 5174, API 3000.
+
+### Mi Bingo · primera versión publicada · 20/10/2026
+- Autorización del usuario: subir la primera versión para probar hoy con su primo.
+- Commit 5725c25 subido a origin/main. Rewrites Vercel añadidos para /mi-bingo y /bingo, incluidos enlaces públicos y pantalla.
+- Despliegues automáticos verificados: https://mi0.app/mi-bingo responde 200 y muestra la pantalla de acceso de Mi Bingo; bundle actualizado. https://api.mi0.app/api/catalog incluye mi-bingo y la ruta pública nueva responde JSON Sala no disponible para código inexistente, confirmando API y tablas disponibles. No fue necesario acceder al panel de Render.
+- No se crearon participantes, usuarios ni salas de prueba en producción. Pendiente la partida real del usuario; carga de 30 jugadores sin verificar.
