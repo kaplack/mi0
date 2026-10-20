@@ -21,6 +21,7 @@ async function remove(userId,workspaceId){
   await owned(db,userId,workspaceId);
   const space=await db.workspace.findUnique({where:{id:workspaceId},include:{turnQueue:{select:{id:true}},citaClinic:{select:{id:true}},qrCatalog:{select:{id:true}},_count:{select:{modules:true,raffles:true,catalogProducts:true,catalogCategories:true,publicAddresses:true,memberships:true}}}});
   const c=space._count;
+  if(await db.bingoRoom.count({where:{workspaceId}}))throw fail(409,'Este espacio conserva salas de bingo y no puede eliminarse');
   if(space.turnQueue||space.citaClinic||space.qrCatalog||c.modules||c.raffles||c.catalogProducts||c.catalogCategories||c.publicAddresses||c.memberships>1)throw fail(409,'Solo puedes eliminar espacios vacíos, sin microapps, datos, enlaces públicos ni personas invitadas');
   await db.workspace.delete({where:{id:workspaceId}});
  });

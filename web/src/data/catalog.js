@@ -1,4 +1,5 @@
 export const tools = [
+  { code: 'mi-bingo', icon: '▦', title: 'Mi Bingo', description: 'Bingo de 75 bolillas con cartones digitales, QR y varias rondas.', category: 'Utilidades', tone: 'violet', available: true },
   { code: 'catalogo-qr', icon: '▧', title: 'Catálogo QR', description: 'Tus productos, precios y redes con un enlace y QR permanente.', category: 'Negocios', tone: 'mint', available: true },
   { code: 'mi-cita', icon: '▦', title: 'Mi Cita', description: 'Reservas con QR, profesionales y confirmación de citas.', category: 'Negocios', tone: 'mint', available: true },
   { code: 'mi-turno', icon: '◷', title: 'Mi Turno', description: 'Colas virtuales con QR y varias cajas.', category: 'Negocios', tone: 'mint', available: true },

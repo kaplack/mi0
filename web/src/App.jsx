@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import './App.css'
+import { MiBingo } from './microapps/mi-bingo/MiBingo'
 import { CatalogQr } from './microapps/catalogo-qr/CatalogQr'
 import { PublicCatalog } from './microapps/catalogo-qr/PublicCatalog'
 import { AuthPage } from './pages/AuthPage'
@@ -45,6 +46,8 @@ function App() {
   const catalogPublicMatch = pathname.match(/^\/catalogo\/([a-f0-9]{24})\/?$/)
   const catalogManagerMatch = pathname.match(/^\/catalogo-qr(?:\/([^/]+)(?:\/(productos|categorias|negocio|qr))?)?\/?$/)
   const publicMatch = pathname.match(/^\/s\/([^/]+)\/?$/)
+  const bingoMatch = pathname.match(/^\/bingo\/([a-f0-9]{32})(?:\/(pantalla))?\/?$/)
+  const bingoManagerMatch = pathname.match(/^\/mi-bingo(?:\/([^/]+))?\/?$/)
 
   useEffect(() => {
     if (window.location.pathname.startsWith('/s/') || window.location.pathname.startsWith('/cita/') || window.location.pathname.startsWith('/catalogo/')) return
@@ -69,7 +72,8 @@ function App() {
         if (!user) setAuthMode('login')
         else setConsoleOpen(true)
       }
-    } else if (code === 'catalogo-qr') navigate('/catalogo-qr' + (nextWorkspace ? '/' + nextWorkspace.id : ''))
+    } else if (code === 'mi-bingo') navigate('/mi-bingo' + (nextWorkspace ? '/' + nextWorkspace.id : ''))
+    else if (code === 'catalogo-qr') navigate('/catalogo-qr' + (nextWorkspace ? '/' + nextWorkspace.id : ''))
     else if (code === 'mi-cita' && nextWorkspace) navigate('/mi-cita/' + nextWorkspace.id)
     else if (code === 'mi-turno' && nextWorkspace) navigate('/mi-turno/' + nextWorkspace.id + '/operacion')
     else setActiveMicroapp(code)
@@ -84,6 +88,8 @@ function App() {
   if (/^\/como-funciona\/?$/.test(pathname)) return <HowItWorksPage user={user}
     onLogin={() => setAuthMode('login')} onRegister={() => setAuthMode('register')}
     onOpenMi0={() => { setConsoleOpen(true); navigate('/') }} onLogout={logout} />
+  if (bingoMatch) return <MiBingo code={bingoMatch[1]} publicDisplay={Boolean(bingoMatch[2])} />
+  if (bingoManagerMatch) return <MiBingo workspaceId={bingoManagerMatch[1]} onNavigate={navigate} onLogin={() => setAuthMode('login')} />
   if (spaceCatalogMatch) return <PublicCatalog slug={spaceCatalogMatch[1]} />
   if (catalogPublicMatch) return <PublicCatalog code={catalogPublicMatch[1]} />
   if (catalogManagerMatch) return <CatalogQr workspaceId={catalogManagerMatch[1]} page={catalogManagerMatch[2]} onNavigate={navigate} onLogin={() => setAuthMode('login')} />

@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/mi-bingo/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/bingo/:path*",
+      "destination": "/index.html"
+    },
+    {
       "source": "/s/:code",
       "destination": "/index.html"
     },

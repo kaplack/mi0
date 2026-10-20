@@ -4,6 +4,7 @@
   "description": "API de mi0.app",
   "main": "server.js",
   "scripts": {
+    "test:bingo": "node --test bingo/rules.test.js bingo/bingo.integration.test.js",
     "dev": "nodemon server.js",
     "start": "node server.js",
     "postinstall": "node node_modules/prisma/build/index.js generate",

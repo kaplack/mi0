@@ -57,6 +57,7 @@ app.use('/api/turnos', require('./routes/turno-dashboard'));
 app.use('/api/turnos', turnRoutes);
 app.use('/api/qr-catalog', require('./routes/qr-catalog'));
 app.use('/api/citas', require('./routes/citas'));
+app.use('/api/bingo', require('./routes/bingo'));
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({

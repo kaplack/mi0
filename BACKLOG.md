@@ -394,3 +394,11 @@ Ideas documentadas el 19/10/2026; no implementadas. El alcance final y las regla
 - [ ] Evaluar personalización adicional de apariencia; opciones concretas por definir.
 
 Base gratuita acordada: hasta 30 productos, 1 foto por producto, categorías, identidad del negocio, redes sociales, contacto por WhatsApp y enlace/QR permanente. Facilidad de uso, velocidad y adaptación móvil deben mantenerse en ambos planes. La lista de funciones pagas puede ampliarse conforme se definan nuevas necesidades.
+
+### Mi Bingo · MVP implementado en local · 20/10/2026
+- Organizador propietario: una sala activa, QR, participantes, tres patrones, premio, varias rondas, pantalla pública e historial. Integrado a Explorar y espacios; conserva VDS.
+- PostgreSQL autoritativo, bloqueos transaccionales y compare-and-set de sorteo, validación independiente de marcas, fase de resolución con empates y cierre manual. Identidad privada recuperable en mismo navegador; marcas locales por ronda.
+- Migración 202610200001_mi_bingo aplicada solo en localhost y Prisma regenerado. Sin variables nuevas, push ni despliegue.
+- Pruebas mínimas: 3 de reglas + 1 integración aislada correctas; build y lint de archivos afectados correctos. Lint global falla por 3 errores anteriores del Catálogo QR, sin modificar esos archivos.
+- Chrome desktop/móvil: ingreso, sorteo, recuperación y marcas tras recarga, limpieza en nueva ronda, pantalla pública; capturas revisadas sin overflow móvil ni errores JS. Datos temporales eliminados.
+- Pendientes: prueba realista con 30 jugadores, regresión completa y pruebas manuales del usuario. Detalles y pasos: docs/mi-bingo.md. Web 5174, API 3000.

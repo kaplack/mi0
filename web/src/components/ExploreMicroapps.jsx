@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useCatalog } from '../data/useCatalog'
 import { addMicroapp, listWorkspaces } from '../services/workspaces'
 const features = {
+  'mi-bingo': ['Comparte tu sala por QR, sin registro para jugadores.', 'Juega una línea, dos líneas o cartón lleno.', 'Valida bingos y empates, y proyecta la pantalla pública.'],
   'catalogo-qr': ['Publica hasta 30 productos gratis, con una foto por producto.', 'Organiza categorías, precios y disponibilidad.', 'Comparte tu QR, WhatsApp y redes sociales.'],
   'mi-cita': ['Recibe solicitudes de citas desde tu QR.', 'Organiza profesionales, horarios y tu agenda.', 'Confirma o cancela solicitudes y comparte acceso con tu equipo.'],
   'mi-turno': ['Tus clientes toman un turno desde el QR.', 'Atiende desde varias ventanillas.', 'Comparte la pantalla pública y el acceso de tus operadores.'],
