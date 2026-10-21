@@ -64,7 +64,7 @@ npm start
 
 Conservar HTTPS, CORS_ORIGIN y DATABASE_URL existentes. En Windows, detener la API antes de regenerar Prisma si mantiene la DLL bloqueada. Los rewrites existentes /mi-bingo y /bingo cubren la recuperación por fragmento; no se necesita una ruta con secretos.
 
-No se hizo push ni despliegue de v1.1. Producción conserva v1 hasta autorización posterior.
+v1.1 publicada el 21/10/2026 con autorización del usuario. Commit f4c04ab en main; web pública verificada con Crear bingo gratis y API POST /api/bingo/guest/current verificada con HTTP 200 y room:null para una credencial inexistente. Sin crear usuarios ni salas de prueba en producción.
 
 ## Comprobaciones
 

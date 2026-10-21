@@ -414,3 +414,8 @@ Base gratuita acordada: hasta 30 productos, 1 foto por producto, categorías, id
 - Modelo ampliado y migración aditiva 202610210001_bingo_guest aplicada solo a localhost; Prisma regenerado. Propiedad anónima, transferencia, retención y UI integradas con registro existente.
 - Política explícita: 24 h de inactividad administrativa en espera/entre rondas; 7 días en ronda abandonada; después de caducar no hay acceso, retención 7 días y limpieza idempotente. Polling no renueva actividad. Recuperar revoca navegadores anteriores y consume enlace; revocar enlace conserva administrador vigente.
 - Verificación: 12 comprobaciones automatizadas correctas (reglas v1 y 8 escenarios v1.1), incluyendo un proceso nuevo del backend que recupera 25 jugadores/38 bolillas. UI Chrome correcta: creación, recarga, recuperación desde otro contexto, revocación anterior, registro y vuelta al mismo bingo /50, sin overflow móvil. Lint focalizado/build correctos; documentación en docs/mi-bingo.md. Datos de prueba aislados y eliminados. Web 5174/API 3000. Pendientes: prueba real en dispositivos, carga y autorización posterior para publicar.
+
+### Mi Bingo v1.1 · publicado · 21/10/2026
+- Autorización explícita del usuario para subir la versión; revisión UX/UI queda para su regreso.
+- Commit f4c04ab subido a main. Despliegues automáticos verificados: web /mi-bingo HTTP 200 y bundle con Crear bingo gratis; POST https://api.mi0.app/api/bingo/guest/current HTTP 200 con room:null para credencial inexistente, confirmando ruta y tabla de identidades anónimas disponibles.
+- Sin crear usuarios/salas de prueba en producción. Pendiente partida real y revisión UX/UI; no se amplió el alcance.
