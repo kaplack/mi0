@@ -89,7 +89,7 @@ function App() {
     onLogin={() => setAuthMode('login')} onRegister={() => setAuthMode('register')}
     onOpenMi0={() => { setConsoleOpen(true); navigate('/') }} onLogout={logout} />
   if (bingoMatch) return <MiBingo code={bingoMatch[1]} publicDisplay={Boolean(bingoMatch[2])} />
-  if (bingoManagerMatch) return <MiBingo workspaceId={bingoManagerMatch[1]} onNavigate={navigate} onLogin={() => setAuthMode('login')} />
+  if (bingoManagerMatch) return <MiBingo workspaceId={bingoManagerMatch[1]} onNavigate={navigate} onLogin={(mode = 'login') => setAuthMode(mode)} />
   if (spaceCatalogMatch) return <PublicCatalog slug={spaceCatalogMatch[1]} />
   if (catalogPublicMatch) return <PublicCatalog code={catalogPublicMatch[1]} />
   if (catalogManagerMatch) return <CatalogQr workspaceId={catalogManagerMatch[1]} page={catalogManagerMatch[2]} onNavigate={navigate} onLogin={() => setAuthMode('login')} />

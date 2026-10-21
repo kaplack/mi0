@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test:bingo": "node --test bingo/rules.test.js bingo/bingo.integration.test.js",
+    "test:bingo:ui": "node bingo/ui-smoke.cjs",
     "dev": "nodemon server.js",
     "start": "node server.js",
     "postinstall": "node node_modules/prisma/build/index.js generate",

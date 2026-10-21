@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const { isolatedDatabase, actor } = require('../citas/test-helpers');
-test('recorrido mínimo: permisos, recuperación, sorteo concurrente, empate y nueva ronda', async () => {
+test('Bingo: regresión de v1 y permisos, recuperación y conversión de v1.1', async t => {
   const isolated = await isolatedDatabase();
   const db = isolated.db;
   let server;
@@ -48,6 +48,7 @@ test('recorrido mínimo: permisos, recuperación, sorteo concurrente, empate y n
     const base = 'http://127.0.0.1:' + server.address().port;
     assert.equal((await fetch(base + '/api/bingo/public/' + code)).status, 200);
     assert.equal((await fetch(base + '/api/bingo/' + code)).status, 401);
+    await require('./guest.test-cases')(t, db, owner, other, w, base);
   } finally {
     if (server) await new Promise(resolve => server.close(resolve));
     await isolated.cleanup();

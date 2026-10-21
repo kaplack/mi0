@@ -536,18 +536,36 @@ model CatalogLinkRequest {
 
 model BingoRoom {
   id String @id @default(uuid()) @db.Uuid
-  workspaceId String @db.Uuid
-  ownerId String @db.Uuid
+  workspaceId String? @db.Uuid
+  ownerId String? @db.Uuid
+  guestId String? @db.Uuid
+  participantLimit Int @default(50)
+  lastAdminAt DateTime @default(now())
+  expiresAt DateTime?
+  deleteAfter DateTime?
   code String @unique @db.VarChar(32)
   name String @db.VarChar(120)
   status String @default("WAITING") @db.VarChar(16)
   createdAt DateTime @default(now())
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: NoAction)
-  owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  owner User? @relation(fields: [ownerId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  guest BingoGuest? @relation(fields: [guestId], references: [id], onDelete: Restrict)
   participants BingoParticipant[]
   rounds BingoRound[]
   @@index([workspaceId, createdAt])
+  @@index([expiresAt])
+  @@index([deleteAfter])
   @@map("bingo_rooms")
+}
+
+model BingoGuest {
+  id String @id @default(uuid()) @db.Uuid
+  adminHash String @unique @db.Char(64)
+  recoveryHash String? @db.Char(64)
+  recoveryCode String? @db.VarChar(32)
+  createdAt DateTime @default(now())
+  rooms BingoRoom[]
+  @@map("bingo_guests")
 }
 
 model BingoParticipant {

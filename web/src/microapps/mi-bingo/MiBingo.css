@@ -1,5 +1,7 @@
 .bingo { min-height:100vh; color:var(--text-primary); background:var(--background); }
+.bingo-guest { padding:32px; max-width:1320px; }.bingo-guest-access { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:20px; }.bingo-guest-access p { color:var(--text-secondary); font-size:14px; }.bingo-recovery { margin-bottom:24px; }.bingo-recovery p { max-width:760px; font-size:14px; }.bingo-recovery-actions { display:flex; gap:12px; flex-wrap:wrap; margin:16px 0; }.bingo-recovery>label { margin:16px 0; }.bingo-recovery input { font-size:12px; }.bingo-guest .bingo-create>button { width:100%; }.bingo-guest .is-error>button { margin-left:12px; }@media(max-width:760px) { .bingo-guest { padding:24px 12px 40px; }.bingo-guest-access { grid-template-columns:1fr; gap:16px; }.bingo-recovery-actions { flex-direction:column; } }
 .bingo-header { height:76px; display:flex; align-items:center; gap:24px; padding:0 32px; border-bottom:1px solid var(--border); background:var(--surface); }
+.bingo-guest-access>div>p { margin-bottom:0; }.bingo-upgrade>summary { color:#087f62; font-weight:500; }.bingo details.bingo-recovery { padding:12px 20px; }.bingo details.bingo-recovery>summary { font-weight:500; }.bingo-guest:has(.bingo-guest-access)>.bingo-title { margin-bottom:12px; }
 .bingo-header>a:last-child { margin-left:auto; font-size:14px; }
 .bingo h1 { font-size:32px; letter-spacing:-1px; margin:12px 0; }
 .bingo h2 { font-size:24px; margin:12px 0; }.bingo h3 { margin:0 0 12px; }
