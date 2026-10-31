@@ -70,11 +70,53 @@ function Share({ code }) {
 export function MiBingo({ code, publicDisplay, workspaceId, onNavigate, onLogin }) {
   return <div className={'bingo' + (publicDisplay ? ' bingo-display' : '')}><header className="bingo-header"><Logo /><span>Mi Bingo</span>{!code && <a href="/">← Volver a mi0</a>}</header>{code ? publicDisplay ? <PublicDisplay code={code} /> : <Player key={code} code={code} /> : <Manager workspaceId={workspaceId} onNavigate={onNavigate} onLogin={onLogin} />}</div>
 }
+function ConfettiParticles() {
+  const pieces = [
+    { left: '10%', delay: '0s', bg: '#00e5a8', size: '12px' },
+    { left: '20%', delay: '0.4s', bg: '#6366f1', size: '10px' },
+    { left: '30%', delay: '0.1s', bg: '#f59e0b', size: '14px' },
+    { left: '40%', delay: '0.6s', bg: '#ec4899', size: '11px' },
+    { left: '50%', delay: '0.2s', bg: '#10b981', size: '13px' },
+    { left: '60%', delay: '0.5s', bg: '#8b5cf6', size: '10px' },
+    { left: '70%', delay: '0.3s', bg: '#06b6d4', size: '12px' },
+    { left: '80%', delay: '0.7s', bg: '#f43f5e', size: '14px' },
+    { left: '90%', delay: '0.2s', bg: '#00e5a8', size: '11px' },
+    { left: '15%', delay: '0.8s', bg: '#f59e0b', size: '9px' },
+    { left: '45%', delay: '1s', bg: '#6366f1', size: '12px' },
+    { left: '75%', delay: '0.9s', bg: '#10b981', size: '13px' },
+    { left: '85%', delay: '0.4s', bg: '#ec4899', size: '10px' },
+  ]
+  return (
+    <div className="bingo-confetti-wrap" aria-hidden="true">
+      {pieces.map((p, i) => (
+        <span
+          key={i}
+          className="bingo-confetti-item"
+          style={{
+            left: p.left,
+            animationDelay: p.delay,
+            backgroundColor: p.bg,
+            width: p.size,
+            height: p.size,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
 function PublicDisplay({ code }) {
   const state = useBingo(() => bingo.state(code), code)
   const [showQr, setShowQr] = useState(false)
+  const [dismissedKey, setDismissedKey] = useState('')
   const [qrUrl, setQrUrl] = useState('')
   const joinUrl = location.origin + '/bingo/' + code
+
+  const round = state.data?.room?.rounds?.at(-1)
+  const winners = round?.winners || []
+  const hasWinners = winners.length > 0
+  const winnerKey = hasWinners ? winners.map(w => w.id || w.name).join(',') + '-' + round?.number : ''
+  const isWinnerModalOpen = hasWinners && dismissedKey !== winnerKey
 
   useEffect(() => {
     let active = true
@@ -106,6 +148,55 @@ function PublicDisplay({ code }) {
 
           <RoundInfo room={state.data.room} publicDisplay />
           <p>mi0.app · Mi Bingo</p>
+
+          {/* CELEBRACIÓN HERO MODAL AL CANTAR BINGO */}
+          {isWinnerModalOpen && (
+            <div className="bingo-modal-overlay bingo-celebration-overlay" onClick={() => setDismissedKey(winnerKey)}>
+              <ConfettiParticles />
+              <div className="bingo-celebration-card" onClick={e => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className="bingo-modal-close"
+                  onClick={() => setDismissedKey(winnerKey)}
+                  aria-label="Minimizar celebración y ver tablero"
+                >
+                  ✕
+                </button>
+
+                <div className="bingo-celebration-badge">
+                  <span>🎉 ¡BINGO CANTADO! 🏆</span>
+                </div>
+
+                <div className="bingo-celebration-names">
+                  {winners.map(w => (
+                    <h2 key={w.id || w.name} className="bingo-winner-name">
+                      {w.name}
+                    </h2>
+                  ))}
+                </div>
+
+                <p className="bingo-celebration-meta">
+                  Ronda #{round.number} · <strong>{patterns[round.pattern]}</strong>
+                  {round.prize && <span className="bingo-celebration-prize">🎁 Premio: {round.prize}</span>}
+                </p>
+
+                {round.balls?.length > 0 && (
+                  <div className="bingo-winning-ball-pill">
+                    <span>Bolilla ganadora:</span>
+                    <strong>{ballLabel(round.balls.at(-1))}</strong>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="secondary-button bingo-celebration-back-btn"
+                  onClick={() => setDismissedKey(winnerKey)}
+                >
+                  Ver tablero completo
+                </button>
+              </div>
+            </div>
+          )}
 
           {showQr && (
             <div className="bingo-modal-overlay" onClick={() => setShowQr(false)}>
