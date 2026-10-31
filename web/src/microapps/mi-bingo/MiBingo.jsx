@@ -243,20 +243,51 @@ function Player({ code }) {
   const [identity] = useState(() => playerToken(code))
   const [joined, setJoined] = useState(() => localStorage.getItem('mi0_bingo_joined_' + code) === 'yes')
   const state = useBingo(() => bingo.state(code, joined ? identity : null), code + joined)
-  const [name, setName] = useState(''), [busy, setBusy] = useState(false), [message, setMessage] = useState('')
+  const [name, setName] = useState(''), [cardCount, setCardCount] = useState(1), [busy, setBusy] = useState(false), [message, setMessage] = useState('')
+  const [activeCardIdx, setActiveCardIdx] = useState(0)
+  const touchStartRef = useRef({ x: 0, y: 0 })
+
   const room = state.data?.room, p = state.data?.participant, round = room?.rounds.at(-1), last = round?.balls.at(-1)
   const firstName = p?.name?.trim()?.split(/\s+/)?.[0] || p?.name || 'Jugador'
+  const cards = (Array.isArray(p?.cards) && p.cards.length > 0) ? p.cards : (p?.card ? [p.card] : [])
+  const totalCards = cards.length
 
   async function join(event) {
     event.preventDefault(); setBusy(true); setMessage('')
-    try { await bingo.join(code, { name, token: identity }); localStorage.setItem('mi0_bingo_joined_' + code, 'yes'); setJoined(true) }
+    try {
+      await bingo.join(code, { name, token: identity, cardCount })
+      localStorage.setItem('mi0_bingo_joined_' + code, 'yes')
+      setJoined(true)
+    }
     catch (e) { setMessage(e.message) } finally { setBusy(false) }
   }
 
   async function claim() {
     setBusy(true)
-    try { const result = await bingo.claim(code, { token: identity, roundId: round.id }); setMessage(result.message); await state.reload() }
+    try {
+      const result = await bingo.claim(code, { token: identity, roundId: round.id })
+      setMessage(result.message)
+      await state.reload()
+    }
     catch (e) { setMessage(e.message) } finally { setBusy(false) }
+  }
+
+  const handleTouchStart = e => {
+    const touch = e.touches[0]
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY }
+  }
+
+  const handleTouchEnd = e => {
+    const touch = e.changedTouches[0]
+    const deltaX = touch.clientX - touchStartRef.current.x
+    const deltaY = touch.clientY - touchStartRef.current.y
+    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX < 0 && activeCardIdx < totalCards - 1) {
+        setActiveCardIdx(i => i + 1)
+      } else if (deltaX > 0 && activeCardIdx > 0) {
+        setActiveCardIdx(i => i - 1)
+      }
+    }
   }
 
   if (!room) return <main className="bingo-player"><Notice error>{state.error}</Notice><p role="status">Cargando sala…</p></main>
@@ -268,7 +299,7 @@ function Player({ code }) {
         <section className="bingo-panel">
           <span className="eyebrow">BIENVENIDO A MI BINGO</span>
           <h2>Tu cartón te espera</h2>
-          <p>Juega desde aquí. Conserva este navegador para recuperar tu cartón.</p>
+          <p>Juega desde aquí. Conserva este navegador para recuperar tus cartones.</p>
           {joined ? (
             <p>Reintentando recuperar tu cartón…</p>
           ) : (
@@ -276,8 +307,25 @@ function Player({ code }) {
               <label>Tu nombre
                 <input required maxLength={80} value={name} onChange={e => setName(e.target.value)} autoComplete="given-name" placeholder="Ej: Jesenia" />
               </label>
+
+              <div className="bingo-count-selector-label">
+                <span>¿Cuántos cartones deseas? <small>(Gratis)</small></span>
+                <div className="bingo-card-count-selector" role="radiogroup" aria-label="Cantidad de cartones">
+                  {[1, 2, 3].map(num => (
+                    <button
+                      key={num}
+                      type="button"
+                      className={'bingo-count-option' + (cardCount === num ? ' selected' : '')}
+                      onClick={() => setCardCount(num)}
+                    >
+                      {num} {num === 1 ? 'cartón' : 'cartones'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <button className="primary-button" disabled={busy || !['WAITING', 'BETWEEN'].includes(room.status)}>
-                Recibir mi cartón
+                {cardCount === 1 ? 'Recibir mi cartón' : 'Recibir mis ' + cardCount + ' cartones'}
               </button>
               <p>{statuses[room.status]}</p>
             </form>
@@ -300,7 +348,7 @@ function Player({ code }) {
         <div className="bingo-player-game-meta">
           <div className="bingo-meta-top">
             <strong className="bingo-room-mini-title" title={room.name}>{room.name}</strong>
-            <span className="bingo-player-name-tag" title={p.name}>👤 {firstName}</span>
+            <span className="bingo-player-name-tag" title={p.name}>👤 {firstName}{totalCards > 1 ? ' · C' + (activeCardIdx + 1) + '/' + totalCards : ''}</span>
           </div>
           <div className="bingo-meta-bottom">
             <span className="eyebrow">{round ? 'Ronda ' + round.number : 'Próxima'}</span>
@@ -317,16 +365,59 @@ function Player({ code }) {
       )}
       {room.status === 'FINISHED' && <Notice>El evento terminó. Gracias por jugar.</Notice>}
       {round?.status === 'CANCELLED' && <Notice>Ronda cerrada sin ganadores.</Notice>}
-      {room.status === 'BETWEEN' && <Notice>Espera la próxima ronda. Conservarás los números de tu cartón.</Notice>}
+      {room.status === 'BETWEEN' && <Notice>Espera la próxima ronda. Conservarás los números de tus cartones.</Notice>}
       {message && <Notice>{message}</Notice>}
 
       <section className="bingo-panel bingo-player-card-panel">
-        <PlayingCard
-          key={round?.id || 'waiting'}
-          card={p.card}
-          storageKey={'mi0_bingo_marks_' + p.id + '_' + (round?.id || 'waiting')}
-          disabled={room.status !== 'PLAYING' || !['ACTIVE', 'RESOLVING'].includes(round?.status)}
-        />
+        {totalCards > 1 && (
+          <div className="bingo-card-nav-row">
+            {activeCardIdx > 0 ? (
+              <button
+                type="button"
+                className="bingo-card-nav-pill prev"
+                onClick={() => setActiveCardIdx(i => i - 1)}
+                aria-label={'Ver cartón ' + activeCardIdx}
+              >
+                ‹ {activeCardIdx}
+              </button>
+            ) : <span className="bingo-card-nav-spacer" />}
+            <span className="bingo-card-nav-dots" aria-label={'Cartón ' + (activeCardIdx + 1) + ' de ' + totalCards}>
+              {cards.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={'bingo-dot' + (i === activeCardIdx ? ' active' : '')}
+                  onClick={() => setActiveCardIdx(i)}
+                  aria-label={'Ir al cartón ' + (i + 1)}
+                />
+              ))}
+            </span>
+            {activeCardIdx < totalCards - 1 ? (
+              <button
+                type="button"
+                className="bingo-card-nav-pill next"
+                onClick={() => setActiveCardIdx(i => i + 1)}
+                aria-label={'Ver cartón ' + (activeCardIdx + 2)}
+              >
+                {activeCardIdx + 2} ›
+              </button>
+            ) : <span className="bingo-card-nav-spacer" />}
+          </div>
+        )}
+
+        <div
+          className="bingo-card-swipe-area"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          <PlayingCard
+            key={(round?.id || 'waiting') + '_' + activeCardIdx}
+            card={cards[activeCardIdx]}
+            storageKey={activeCardIdx === 0 ? ('mi0_bingo_marks_' + p.id + '_' + (round?.id || 'waiting')) : ('mi0_bingo_marks_' + p.id + '_c' + activeCardIdx + '_' + (round?.id || 'waiting'))}
+            disabled={room.status !== 'PLAYING' || !['ACTIVE', 'RESOLVING'].includes(round?.status)}
+          />
+        </div>
+
         <button
           type="button"
           className="primary-button bingo-claim-btn"

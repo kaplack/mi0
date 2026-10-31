@@ -66,3 +66,13 @@ test('patrones de letra: X, L, T, H, O con centro libre automático', () => {
   const xSinCentro = ballsFor(xIdx); // filter(Boolean) ya excluye el 0
   assert.equal(r.wins(card, xSinCentro, 'LETTER_X'), true, 'X: centro libre cuenta sin sortearse');
 });
+test('multi-cartón: verificación si cualquiera de los cartones gana', () => {
+  const card1 = r.card();
+  const card2 = r.card();
+  const card3 = r.card();
+  const cards = [card1, card2, card3];
+  assert.equal(cards.some(c => r.wins(c, [], 'ONE')), false);
+  const winningBalls = card2.slice(0, 5);
+  assert.equal(cards.some(c => r.wins(c, winningBalls, 'ONE')), true);
+  assert.equal(r.wins(card2, winningBalls, 'ONE'), true);
+});

@@ -324,3 +324,24 @@
   .bingo-public-screen .bingo-ball-column { grid-template-columns:1fr; gap:5px; }
   .bingo-history-row { flex-direction:column; }
 }
+
+/* MULTI-CARTÓN UI */
+.bingo-count-selector-label { display:flex; flex-direction:column; gap:6px; margin:14px 0; font-size:14px; font-weight:600; color:var(--text-primary); }
+.bingo-count-selector-label small { color:#047857; font-weight:700; }
+.bingo-card-count-selector { display:flex; gap:8px; width:100%; }
+.bingo-count-option { flex:1; min-height:42px; padding:6px 10px; background:var(--background); border:1px solid var(--border); border-radius:10px; color:var(--text-primary); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:all .15s ease; display:flex; align-items:center; justify-content:center; }
+.bingo-count-option:hover { border-color:#047857; }
+.bingo-count-option.selected { background:#e9fff8; border-color:#047857; color:#047857; font-weight:700; box-shadow:0 2px 8px rgba(0,229,168,.2); }
+
+.bingo-card-nav-row { display:flex; align-items:center; justify-content:space-between; min-height:28px; padding:0 4px; margin:-4px 0 2px; user-select:none; }
+.bingo-card-nav-pill { background:#e9fff8; border:1px solid #a7f3d0; color:#047857; font-family:inherit; font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px; cursor:pointer; transition:all .15s ease; display:inline-flex; align-items:center; gap:3px; line-height:1.2; }
+.bingo-card-nav-pill:hover, .bingo-card-nav-pill:active { background:var(--primary); border-color:var(--primary); color:#064e3b; box-shadow:0 2px 6px rgba(0,229,168,.3); }
+.bingo-card-nav-dots { display:flex; align-items:center; gap:8px; }
+.bingo-dot { width:8px; height:8px; padding:0; border-radius:50%; border:0; background:#cbd5e1; cursor:pointer; transition:all .2s ease; }
+.bingo-dot.active { background:#047857; transform:scale(1.3); }
+.bingo-card-nav-spacer { width:44px; display:inline-block; }
+.bingo-card-swipe-area { touch-action:pan-y; width:100%; }
+
+.bingo-participants-list li { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; }
+.bingo-participant-row-info { display:flex; align-items:center; gap:12px; }
+.bingo-card-count-badge { background:#e9fff8; color:#047857; border:1px solid #a7f3d0; font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px; white-space:nowrap; }
