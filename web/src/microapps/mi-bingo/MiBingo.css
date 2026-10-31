@@ -345,3 +345,14 @@
 .bingo-participants-list li { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; }
 .bingo-participant-row-info { display:flex; align-items:center; gap:12px; }
 .bingo-card-count-badge { background:#e9fff8; color:#047857; border:1px solid #a7f3d0; font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px; white-space:nowrap; }
+
+@keyframes bingoSlideInNext {
+  from { opacity: 0.5; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes bingoSlideInPrev {
+  from { opacity: 0.5; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.bingo-card-slide-next { animation: bingoSlideInNext .2s cubic-bezier(0.16, 1, 0.3, 1); }
+.bingo-card-slide-prev { animation: bingoSlideInPrev .2s cubic-bezier(0.16, 1, 0.3, 1); }

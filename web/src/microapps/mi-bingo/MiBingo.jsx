@@ -245,7 +245,9 @@ function Player({ code }) {
   const state = useBingo(() => bingo.state(code, joined ? identity : null), code + joined)
   const [name, setName] = useState(''), [cardCount, setCardCount] = useState(1), [busy, setBusy] = useState(false), [message, setMessage] = useState('')
   const [activeCardIdx, setActiveCardIdx] = useState(0)
-  const touchStartRef = useRef({ x: 0, y: 0 })
+  const [slideDir, setSlideDir] = useState('next')
+  const touchStartRef = useRef(null)
+  const isSwipingRef = useRef(false)
 
   const room = state.data?.room, p = state.data?.participant, round = room?.rounds.at(-1), last = round?.balls.at(-1)
   const firstName = p?.name?.trim()?.split(/\s+/)?.[0] || p?.name || 'Jugador'
@@ -273,21 +275,37 @@ function Player({ code }) {
   }
 
   const handleTouchStart = e => {
-    const touch = e.touches[0]
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY }
+    const point = e.touches ? e.touches[0] : e
+    touchStartRef.current = { x: point.clientX, y: point.clientY }
+    isSwipingRef.current = false
+  }
+
+  const handleTouchMove = e => {
+    if (!touchStartRef.current) return
+    const point = e.touches ? e.touches[0] : e
+    const deltaX = point.clientX - touchStartRef.current.x
+    const deltaY = point.clientY - touchStartRef.current.y
+    if (Math.abs(deltaX) > 15 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      isSwipingRef.current = true
+    }
   }
 
   const handleTouchEnd = e => {
-    const touch = e.changedTouches[0]
-    const deltaX = touch.clientX - touchStartRef.current.x
-    const deltaY = touch.clientY - touchStartRef.current.y
-    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY)) {
+    if (!touchStartRef.current) return
+    const point = e.changedTouches ? e.changedTouches[0] : e
+    const deltaX = point.clientX - touchStartRef.current.x
+    const deltaY = point.clientY - touchStartRef.current.y
+    if (Math.abs(deltaX) > 35 && Math.abs(deltaX) > Math.abs(deltaY)) {
       if (deltaX < 0 && activeCardIdx < totalCards - 1) {
+        setSlideDir('next')
         setActiveCardIdx(i => i + 1)
       } else if (deltaX > 0 && activeCardIdx > 0) {
+        setSlideDir('prev')
         setActiveCardIdx(i => i - 1)
       }
     }
+    touchStartRef.current = null
+    setTimeout(() => { isSwipingRef.current = false }, 80)
   }
 
   if (!room) return <main className="bingo-player"><Notice error>{state.error}</Notice><p role="status">Cargando sala…</p></main>
@@ -375,7 +393,7 @@ function Player({ code }) {
               <button
                 type="button"
                 className="bingo-card-nav-pill prev"
-                onClick={() => setActiveCardIdx(i => i - 1)}
+                onClick={() => { setSlideDir('prev'); setActiveCardIdx(i => i - 1) }}
                 aria-label={'Ver cartón ' + activeCardIdx}
               >
                 ‹ {activeCardIdx}
@@ -387,7 +405,7 @@ function Player({ code }) {
                   key={i}
                   type="button"
                   className={'bingo-dot' + (i === activeCardIdx ? ' active' : '')}
-                  onClick={() => setActiveCardIdx(i)}
+                  onClick={() => { setSlideDir(i > activeCardIdx ? 'next' : 'prev'); setActiveCardIdx(i) }}
                   aria-label={'Ir al cartón ' + (i + 1)}
                 />
               ))}
@@ -396,7 +414,7 @@ function Player({ code }) {
               <button
                 type="button"
                 className="bingo-card-nav-pill next"
-                onClick={() => setActiveCardIdx(i => i + 1)}
+                onClick={() => { setSlideDir('next'); setActiveCardIdx(i => i + 1) }}
                 aria-label={'Ver cartón ' + (activeCardIdx + 2)}
               >
                 {activeCardIdx + 2} ›
@@ -406,15 +424,20 @@ function Player({ code }) {
         )}
 
         <div
-          className="bingo-card-swipe-area"
+          className={'bingo-card-swipe-area bingo-card-slide-' + slideDir}
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onPointerDown={handleTouchStart}
+          onPointerMove={handleTouchMove}
+          onPointerUp={handleTouchEnd}
         >
           <PlayingCard
             key={(round?.id || 'waiting') + '_' + activeCardIdx}
             card={cards[activeCardIdx]}
             storageKey={activeCardIdx === 0 ? ('mi0_bingo_marks_' + p.id + '_' + (round?.id || 'waiting')) : ('mi0_bingo_marks_' + p.id + '_c' + activeCardIdx + '_' + (round?.id || 'waiting'))}
             disabled={room.status !== 'PLAYING' || !['ACTIVE', 'RESOLVING'].includes(round?.status)}
+            isSwipingRef={isSwipingRef}
           />
         </div>
 
@@ -430,9 +453,14 @@ function Player({ code }) {
     </main>
   )
 }
-function PlayingCard({ card, storageKey, disabled }) {
+function PlayingCard({ card, storageKey, disabled, isSwipingRef }) {
   const [marks, setMarks] = useState(() => { try { const saved = JSON.parse(localStorage.getItem(storageKey) || '[]'); return Array.isArray(saved) ? saved : [] } catch { return [] } })
-  function toggle(n) { const next = marks.includes(n) ? marks.filter(x => x !== n) : [...marks, n]; setMarks(next); localStorage.setItem(storageKey, JSON.stringify(next)) }
+  function toggle(n) {
+    if (isSwipingRef?.current) return
+    const next = marks.includes(n) ? marks.filter(x => x !== n) : [...marks, n]
+    setMarks(next)
+    localStorage.setItem(storageKey, JSON.stringify(next))
+  }
   return <div className="bingo-card">{'BINGO'.split('').map(letter => <strong key={letter}>{letter}</strong>)}{card.map((n, i) => <button key={i} disabled={!n || disabled} aria-label={n ? String(n) : 'Centro libre'} aria-pressed={!n || marks.includes(n)} className={!n || marks.includes(n) ? 'marked' : ''} onClick={() => toggle(n)}>{n || <span>★<small>LIBRE</small></span>}</button>)}</div>
 }
 function Manager({ workspaceId, onNavigate, onLogin }) {
