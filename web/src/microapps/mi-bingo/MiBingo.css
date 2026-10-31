@@ -107,9 +107,14 @@
 .bingo-ball-column>span.drawn { background:#c7f9e9; color:#075c46; font-weight:700; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
 
 /* VISTAS DE PESTAÑAS SECUNDARIAS */
-.bingo-participants-list { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:10px; list-style:none; padding:0; margin:16px 0 0; }
+.bingo-participants-view { display:flex; flex-direction:column; gap:20px; }
+.bingo-share-panel { padding:22px; }
+.bingo-participants-header { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+.bingo-participants-header h3 { margin:0; }
+.bingo-participants-list { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:10px; list-style:none; padding:0; margin:0; }
 .bingo-participants-list li { display:flex; align-items:center; gap:8px; padding:12px 14px; background:var(--background); border:1px solid var(--border); border-radius:10px; font-size:14px; }
 .bingo-participants-list li span { color:var(--text-secondary); font-size:12px; }
+.bingo-empty-text { margin:0; color:var(--text-secondary); font-size:14px; }
 .bingo-rounds-history { display:flex; flex-direction:column; gap:12px; margin-top:16px; }
 .bingo-round-item { padding:14px 16px; border-radius:10px; border:1px solid var(--border); background:var(--background); }
 .bingo-round-item h4 { margin:0 0 6px; font-size:15px; }

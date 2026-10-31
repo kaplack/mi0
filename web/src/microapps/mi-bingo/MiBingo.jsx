@@ -550,15 +550,7 @@ export function Organizer({
               onClick={() => setTab('participants')}
             >
               <span className="bingo-nav-icon">👥</span>
-              <span className="bingo-menu-label">Participantes ({room.participantCount})</span>
-            </button>
-            <button
-              type="button"
-              aria-current={tab === 'share' ? 'page' : undefined}
-              onClick={() => setTab('share')}
-            >
-              <span className="bingo-nav-icon">▧</span>
-              <span className="bingo-menu-label">QR y Pantalla</span>
+              <span className="bingo-menu-label">Participantes y QR ({room.participantCount})</span>
             </button>
             <button
               type="button"
@@ -740,24 +732,27 @@ export function Organizer({
         )}
 
         {tab === 'participants' && (
-          <section className="bingo-panel">
-            <h3>Participantes: {room.participantCount} / {room.participantLimit}</h3>
-            {state.data?.participants?.length ? (
-              <ul className="bingo-participants-list">
-                {state.data.participants.map((p, idx) => (
-                  <li key={p.id}><span>#{idx + 1}</span><strong>{p.name}</strong></li>
-                ))}
-              </ul>
-            ) : (
-              <p>Aún no se han unido participantes. Comparte el QR para empezar.</p>
-            )}
-          </section>
-        )}
+          <div className="bingo-participants-view">
+            <section className="bingo-panel bingo-share-panel">
+              <Share code={code} />
+            </section>
 
-        {tab === 'share' && (
-          <section className="bingo-panel">
-            <Share code={code} />
-          </section>
+            <section className="bingo-panel">
+              <div className="bingo-participants-header">
+                <h3>Jugadores conectados ({room.participantCount} / {room.participantLimit})</h3>
+                <small className="bingo-help">Se actualiza en tiempo real conforme se unen.</small>
+              </div>
+              {state.data?.participants?.length ? (
+                <ul className="bingo-participants-list">
+                  {state.data.participants.map((p, idx) => (
+                    <li key={p.id}><span>#{idx + 1}</span><strong>{p.name}</strong></li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="bingo-empty-text">Aún no se han unido participantes. Comparte el código QR superior para empezar.</p>
+              )}
+            </section>
+          </div>
         )}
 
         {tab === 'history' && (
@@ -873,9 +868,6 @@ export function Organizer({
         </button>
         <button type="button" aria-current={tab === 'participants' ? 'page' : undefined} onClick={() => { setTab('participants'); setMoreMenu(false) }}>
           <span className="bingo-nav-icon">👥</span><span>Jugadores</span>
-        </button>
-        <button type="button" aria-current={tab === 'share' ? 'page' : undefined} onClick={() => { setTab('share'); setMoreMenu(false) }}>
-          <span className="bingo-nav-icon">▧</span><span>QR</span>
         </button>
         <button type="button" aria-current={tab === 'history' ? 'page' : undefined} onClick={() => { setTab('history'); setMoreMenu(false) }}>
           <span className="bingo-nav-icon">◷</span><span>Historial</span>
