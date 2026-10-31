@@ -69,7 +69,7 @@ async function manage(userId, code, action, body = {}) {
     const round = current.rounds.at(-1);
     if (action === 'start') {
       if (!['WAITING', 'BETWEEN'].includes(current.status)) throw r.fail(409, 'Cierra la ronda actual primero');
-      if (!['ONE', 'TWO', 'FULL'].includes(body.pattern)) throw r.fail(400, 'Selecciona un patrón válido');
+      if (!['ONE', 'TWO', 'FULL', 'LETTER_X', 'LETTER_L', 'LETTER_T', 'LETTER_H', 'LETTER_O'].includes(body.pattern)) throw r.fail(400, 'Selecciona un patrón válido');
       if (!current._count.participants) throw r.fail(409, 'Espera al menos un participante');
       const prize = body.prize ? r.text(body.prize, 120) : '';
       await db.bingoRound.create({ data: { roomId: current.id, number: current.rounds.length + 1, pattern: body.pattern, prize } });

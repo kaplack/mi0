@@ -5,10 +5,43 @@ import { TOKEN_KEY } from '../../services/api'
 import { bingo, playerToken } from '../../services/bingo'
 import { useBingo } from './useBingo'
 import './MiBingo.css'
-import { GuestManager } from './GuestManager'
+import { GuestManager, RecoveryAccess, AttachRoom } from './GuestManager'
 import { guestAccess, UPGRADE_KEY } from '../../services/bingo'
 
-const patterns = { ONE: 'Una línea horizontal', TWO: 'Dos líneas horizontales', FULL: 'Cartón lleno' }
+const prettyDate = value => value ? new Date(value).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' }) : ''
+const patterns = {
+  ONE:      'Una línea horizontal',
+  TWO:      'Dos líneas horizontales',
+  FULL:     'Cartón lleno',
+  LETTER_X: 'Letra X',
+  LETTER_L: 'Letra L',
+  LETTER_T: 'Letra T',
+  LETTER_H: 'Letra H',
+  LETTER_O: 'Letra O',
+}
+// Índices (0-24, orden fila-columna) que deben estar marcados para cada patrón de letra.
+// Para ONE/TWO/FULL se genera la máscara dinámicamente solo a efectos del preview.
+const PATTERN_PREVIEW = {
+  ONE:      new Set([0, 1, 2, 3, 4]),
+  TWO:      new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+  FULL:     new Set(Array.from({ length: 25 }, (_, i) => i)),
+  LETTER_X: new Set([0, 4, 6, 8, 12, 16, 18, 20, 24]),
+  LETTER_L: new Set([0, 5, 10, 15, 20, 21, 22, 23, 24]),
+  LETTER_T: new Set([0, 1, 2, 3, 4, 7, 12, 17, 22]),
+  LETTER_H: new Set([0, 4, 5, 9, 10, 11, 12, 13, 14, 15, 19, 20, 24]),
+  LETTER_O: new Set([0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 19, 20, 21, 22, 23, 24]),
+}
+function PatternPreview({ pattern }) {
+  const mask = PATTERN_PREVIEW[pattern]
+  if (!mask) return null
+  return (
+    <div className="bingo-pattern-preview" aria-hidden="true">
+      {Array.from({ length: 25 }, (_, i) => (
+        <span key={i} className={mask.has(i) ? 'on' : ''} />
+      ))}
+    </div>
+  )
+}
 const statuses = { WAITING: 'Esperando jugadores', PLAYING: 'Jugando', BETWEEN: 'Entre rondas', FINISHED: 'Sala finalizada' }
 const ballLabel = n => n ? 'BINGO'[Math.floor((n - 1) / 15)] + '-' + n : '—'
 function Notice({ children, error }) { return children && <p className={'bingo-notice' + (error ? ' is-error' : '')} role={error ? 'alert' : 'status'}>{children}</p> }
@@ -70,14 +103,15 @@ function Manager({ workspaceId, onNavigate, onLogin }) {
   const state = useBingo(() => loggedIn ? bingo.spaces() : Promise.resolve({ workspaces: [] }), loggedIn, false)
   const spaces = state.data?.workspaces.filter(w => w.role === 'OWNER') || []
   const workspace = spaces.find(w => w.id === workspaceId) || (!workspaceId ? spaces[0] : null)
-  if (!workspaceId && !accountMode && (!loggedIn || guestAccess()?.code || localStorage.getItem(UPGRADE_KEY) || location.hash || sessionStorage.getItem('mi0_bingo_recovery'))) return <GuestManager Organizer={Organizer} onLogin={onLogin} onNavigate={onNavigate} onAccount={() => setAccountMode(true)} loggedIn={loggedIn} />
+  if (!workspaceId && !accountMode && (!loggedIn || guestAccess()?.code || localStorage.getItem(UPGRADE_KEY) || location.hash || sessionStorage.getItem('mi0_bingo_recovery'))) {
+    return <GuestManager Organizer={Organizer} onLogin={onLogin} onNavigate={onNavigate} onAccount={() => setAccountMode(true)} loggedIn={loggedIn} />
+  }
   if (!loggedIn) return <GuestManager Organizer={Organizer} onLogin={onLogin} onNavigate={onNavigate} loggedIn={false} />
   return <main className="bingo-manager"><Notice error>{state.error}</Notice>{!state.data ? <p>Cargando espacios…</p> : !workspace ? <section className="bingo-panel"><h1>Mi Bingo</h1><p>Necesitas un espacio propio para organizar una sala.</p><a href="/">Ir a mis espacios →</a></section> : <Workspace key={workspace.id} workspace={workspace} spaces={spaces} onNavigate={onNavigate} />}</main>
 }
 function Workspace({ workspace, spaces, onNavigate }) {
   const state = useBingo(() => bingo.list(workspace.id), workspace.id, false)
   const [selected, setSelected] = useState(null), [name, setName] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false)
-  const [collapsed, setCollapsed] = useState(false), [menu, setMenu] = useState(false), [tab, setTab] = useState('game')
   const rooms = state.data?.rooms || [], current = selected || rooms.find(r => r.status !== 'FINISHED')?.code
   async function create(e) {
     e.preventDefault(); setBusy(true); setError('')
@@ -85,14 +119,107 @@ function Workspace({ workspace, spaces, onNavigate }) {
     catch (e) { setError(e.message) } finally { setBusy(false) }
   }
   async function finished() { await state.reload(); setSelected(null) }
-  return <div className={'bingo-layout' + (collapsed ? ' collapsed' : '')}><aside className={'bingo-sidebar' + (menu ? ' open' : '')}><button className="secondary-button" aria-label="Colapsar menú" onClick={() => setCollapsed(!collapsed)}>☰</button>{(!collapsed || menu) && <><span className="eyebrow">MI BINGO</span><h2>{workspace.name}</h2><label>Espacio<select value={workspace.id} onChange={e => onNavigate('/mi-bingo/' + e.target.value)}>{spaces.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label><nav><button onClick={() => { setTab('game'); setMenu(false) }}>▦ Partida</button><button onClick={() => { setTab('share'); setMenu(false) }}>▧ Compartir QR</button><button onClick={() => { setSelected(null); setTab('history'); setMenu(false); state.reload() }}>◷ Historial</button></nav><a href="/">← Volver a mi0</a></>}</aside><section className="bingo-content"><div className="bingo-title"><div><span className="eyebrow">JUEGA Y COMPARTE</span><h1>Mi Bingo</h1><p>Una sala, muchos cartones y un gran momento.</p></div><button className="secondary-button bingo-menu" aria-label="Abrir menú" onClick={() => setMenu(!menu)}>☰</button></div><Notice error>{error || state.error}</Notice>{tab === 'history' ? <section className="bingo-panel"><h2>Tus salas</h2>{rooms.length ? rooms.map(room => <button className="bingo-history-row" key={room.id} onClick={() => { setSelected(room.code); setTab('game') }}><strong>{room.name}</strong><span>{statuses[room.status]} · {room.rounds.length} rondas →</span></button>) : <p>Aún no has creado salas.</p>}<button className="secondary-button" onClick={() => { setSelected(null); setTab('game') }}>Volver a la partida</button></section> : current ? <Organizer key={current} code={current} tab={tab} onFinished={finished} /> : <section className="bingo-panel bingo-create"><span className="bingo-create-icon">▦</span><h2>Que empiece la diversión</h2><p>Hasta 50 cartones gratis. Comparte el QR y cada jugador recibirá un cartón único.</p><form onSubmit={create}><label>Nombre del evento<input required maxLength={120} placeholder="Por ejemplo: Bingo de amigos" value={name} onChange={e => setName(e.target.value)} /></label><button disabled={busy} className="primary-button">Crear sala →</button></form></section>}</section><nav className="bingo-bottom" aria-label="Navegación de Bingo"><button onClick={() => setTab('game')}>▦<span>Partida</span></button><button onClick={() => setTab('share')}>▧<span>QR</span></button><button onClick={() => { setTab('history'); state.reload() }}>◷<span>Historial</span></button></nav></div>
+
+  if (current) {
+    return (
+      <Organizer
+        key={current}
+        code={current}
+        workspace={workspace}
+        spaces={spaces}
+        onNavigate={onNavigate}
+        onFinished={finished}
+        isGuest={false}
+      />
+    )
+  }
+
+  return (
+    <div className="bingo-layout">
+      <div className="bingo-sidebar-area">
+        <aside className="bingo-sidebar" aria-label="Menú de Mi Bingo">
+          <div className="bingo-sidebar-heading">
+            <strong className="bingo-menu-label">Mi Bingo</strong>
+          </div>
+          <div className="bingo-sidebar-context">
+            <small className="eyebrow">MI ESPACIO</small>
+            <strong>{workspace.name}</strong>
+            {spaces.length > 1 && (
+              <label>Espacio
+                <select value={workspace.id} onChange={e => onNavigate?.('/mi-bingo/' + e.target.value)}>
+                  {spaces.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                </select>
+              </label>
+            )}
+          </div>
+          <nav aria-label="Pantallas de Mi Bingo">
+            <button type="button" aria-current="page"><span className="bingo-nav-icon">▦</span><span className="bingo-menu-label">Salas</span></button>
+          </nav>
+          <div className="bingo-sidebar-footer">
+            <a href="/">← Volver a mi0</a>
+          </div>
+        </aside>
+      </div>
+      <section className="bingo-content">
+        <div className="bingo-title">
+          <div><span className="eyebrow">JUEGA Y COMPARTE</span><h1>Mi Bingo</h1><p>Una sala, muchos cartones y un gran momento.</p></div>
+        </div>
+        <Notice error>{error || state.error}</Notice>
+        <section className="bingo-panel bingo-create">
+          <span className="bingo-create-icon">▦</span>
+          <h2>Que empiece la diversión</h2>
+          <p>Hasta 50 cartones gratis. Comparte el QR y cada jugador recibirá un cartón único.</p>
+          <form onSubmit={create}>
+            <label>Nombre del evento
+              <input required maxLength={120} placeholder="Por ejemplo: Bingo de amigos" value={name} onChange={e => setName(e.target.value)} />
+            </label>
+            <button disabled={busy} className="primary-button">Crear sala →</button>
+          </form>
+        </section>
+        {rooms.length > 0 && (
+          <section className="bingo-panel">
+            <h2>Tus salas</h2>
+            {rooms.map(room => (
+              <button className="bingo-history-row" key={room.id} onClick={() => setSelected(room.code)}>
+                <strong>{room.name}</strong>
+                <span>{statuses[room.status]} · {room.rounds.length} rondas →</span>
+              </button>
+            ))}
+          </section>
+        )}
+      </section>
+    </div>
+  )
 }
-function Organizer({ code, tab, onFinished, adminToken, onActivity }) {
+export function Organizer({
+  code,
+  tab: initialTab,
+  onFinished,
+  adminToken,
+  onActivity,
+  isGuest = false,
+  guestRoom,
+  workspace,
+  spaces = [],
+  onNavigate,
+  loggedIn,
+  onLogin,
+  startAgain,
+  RecoveryAccessComponent = RecoveryAccess,
+  AttachRoomComponent = AttachRoom
+}) {
   const state = useBingo(() => adminToken ? bingo.guestInfo(code, adminToken) : bingo.info(code), code + (adminToken || ''))
+  const [tab, setTab] = useState(initialTab || 'game')
+  const [gameTab, setGameTab] = useState('board')
+  const [collapsed, setCollapsed] = useState(false)
+  const [menu, setMenu] = useState(false)
   const [pattern, setPattern] = useState('ONE'), [prize, setPrize] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('')
   const [sound, setSound] = useState(false)
   const audio = useRef(null), lastPlayed = useRef(null)
-  const room = state.data?.room, round = room?.rounds.at(-1), last = round?.balls.at(-1)
+
+  const room = state.data?.room || guestRoom
+  const round = room?.rounds.at(-1), last = round?.balls.at(-1)
+
   useEffect(() => {
     if (sound && last && lastPlayed.current !== last && audio.current) {
       const ctx = audio.current, tone = ctx.createOscillator(), volume = ctx.createGain()
@@ -101,13 +228,365 @@ function Organizer({ code, tab, onFinished, adminToken, onActivity }) {
     lastPlayed.current = last
   }, [last, sound])
   useEffect(() => () => { audio.current?.close() }, [])
+
   async function action(kind, body) {
     if (busy) return
     if (['close', 'finish'].includes(kind) && !confirm(kind === 'finish' ? '¿Finalizar la sala? Se cerrará la ronda y no se podrá seguir jugando.' : round?.winners.length ? '¿Cerrar reclamaciones y confirmar estos ganadores?' : '¿Cerrar esta ronda sin ganadores?')) return
     setBusy(true); setError('')
-    try { if (adminToken) await bingo.guestAction(code, kind, { ...body, adminToken }); else await bingo.action(code, kind, body); await state.reload(); await onActivity?.(); if (kind === 'finish') onFinished() }
+    try {
+      if (adminToken) await bingo.guestAction(code, kind, { ...body, adminToken }); else await bingo.action(code, kind, body)
+      await state.reload()
+      await onActivity?.()
+      if (kind === 'finish') onFinished?.()
+    }
     catch (e) { setError(e.message); await state.reload() } finally { setBusy(false) }
   }
-  if (!room) return <><Notice error>{state.error}</Notice><p>Cargando sala…</p></>
-  return <><div className="bingo-room-heading"><h2>{room.name}</h2><a className="secondary-button" href={'/bingo/' + code + '/pantalla'} target="_blank" rel="noreferrer">Pantalla pública ↗</a></div><Notice error>{error || (state.error && 'Sincronización pendiente: ' + state.error)}</Notice>{tab === 'share' ? <section className="bingo-panel"><Share code={code} /></section> : <div className="bingo-organizer-grid"><section className="bingo-panel"><RoundInfo room={room} />{room.status !== 'FINISHED' && <div className="bingo-controls">{['WAITING', 'BETWEEN'].includes(room.status) ? <><label>Modalidad<select value={pattern} onChange={e => setPattern(e.target.value)}>{Object.entries(patterns).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label><label>Premio (opcional)<input maxLength={120} value={prize} onChange={e => setPrize(e.target.value)} placeholder="¿Qué se lleva el ganador?" /></label><button className="primary-button" disabled={busy || !room.participantCount} onClick={() => action('start', { pattern, prize })}>Iniciar nueva ronda →</button></> : <><button className="primary-button bingo-draw" disabled={busy || !!state.error || round?.status !== 'ACTIVE' || round.balls.length === 75} onClick={() => action('draw', { roundId: round.id, expectedCount: round.balls.length })}>Sacar bolilla</button>{round?.status === 'RESOLVING' && <p>Da tiempo a los demás jugadores para reclamar antes de cerrar.</p>}<button className="secondary-button" disabled={busy} onClick={() => action('close')}>{round?.winners.length ? 'Cerrar reclamaciones y confirmar' : 'Cerrar ronda sin ganadores'}</button></>}<button className="bingo-sound" aria-pressed={sound} onClick={async () => { try { if (!audio.current) audio.current = new AudioContext(); await audio.current.resume(); setSound(!sound) } catch { setError('Este navegador no permite reproducir el sonido') } }}>Sonido: {sound ? 'activado' : 'desactivado'}</button></div>}<BallBoard round={round} /><details><summary>Orden de salida</summary><p>{round?.balls.map(ballLabel).join(' · ') || 'Todavía no hay bolillas sorteadas.'}</p></details></section><div className="bingo-side-panels"><section className="bingo-panel"><h3>Participantes: {room.participantCount} / {room.participantLimit}</h3><details><summary>Ver inscritos</summary><ul>{state.data.participants.map(p => <li key={p.id}>{p.name}</li>)}</ul></details></section><section className="bingo-panel"><Share code={code} /></section>{room.rounds.length > 0 && <section className="bingo-panel"><h3>Rondas del evento</h3>{room.rounds.map(r => <p key={r.id}>#{r.number} · {patterns[r.pattern]}<br /><small>{r.winners.map(w => w.name).join(', ') || (r.status === 'CANCELLED' ? 'Sin ganadores' : 'En curso')}{r.prize && ' · ' + r.prize}</small></p>)}</section>}{room.status !== 'FINISHED' && <button className="bingo-danger" disabled={busy} onClick={() => action('finish')}>Finalizar sala</button>}</div></div>}</>
+
+  function upgrade(mode) {
+    if (room) localStorage.setItem(UPGRADE_KEY, room.code)
+    onLogin?.(mode)
+  }
+
+  if (!room) return <><Notice error>{state.error}</Notice><p role="status">Cargando sala…</p></>
+
+  return (
+    <div className={'bingo-layout' + (collapsed ? ' collapsed' : '')}>
+      <div className="bingo-sidebar-area">
+        <aside className={'bingo-sidebar' + (menu ? ' open' : '')} aria-label="Menú de Mi Bingo">
+          <div className="bingo-sidebar-heading">
+            <strong className="bingo-menu-label">Mi Bingo</strong>
+            <button
+              type="button"
+              className="bingo-collapse"
+              onClick={() => setCollapsed(!collapsed)}
+              aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+              title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+            >
+              {collapsed ? '▶' : '◀'}
+            </button>
+          </div>
+
+          {isGuest ? (
+            <div className="bingo-sidebar-context bingo-guest-access">
+              <small className="eyebrow">SALA TEMPORAL</small>
+              <strong>{room.name}</strong>
+              <h3>Participantes: {room.participantCount} / {room.participantLimit}</h3>
+              <p>{room.status === 'FINISHED' ? 'Finalizada' : 'Expira: ' + prettyDate(room.expiresAt)}</p>
+            </div>
+          ) : (
+            <div className="bingo-sidebar-context">
+              <small className="eyebrow">MI ESPACIO</small>
+              <strong>{workspace?.name}</strong>
+              {spaces.length > 1 && (
+                <label>Espacio
+                  <select value={workspace.id} onChange={e => onNavigate?.('/mi-bingo/' + e.target.value)}>
+                    {spaces.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                  </select>
+                </label>
+              )}
+              <h3>Participantes: {room.participantCount} / {room.participantLimit}</h3>
+            </div>
+          )}
+
+          <nav aria-label="Pantallas de Mi Bingo">
+            <button
+              type="button"
+              aria-current={tab === 'game' ? 'page' : undefined}
+              onClick={() => { setTab('game'); setMenu(false) }}
+            >
+              <span className="bingo-nav-icon">▦</span>
+              <span className="bingo-menu-label">Partida en vivo</span>
+            </button>
+            <button
+              type="button"
+              aria-current={tab === 'participants' ? 'page' : undefined}
+              onClick={() => { setTab('participants'); setMenu(false) }}
+            >
+              <span className="bingo-nav-icon">👥</span>
+              <span className="bingo-menu-label">Participantes ({room.participantCount})</span>
+            </button>
+            <button
+              type="button"
+              aria-current={tab === 'share' ? 'page' : undefined}
+              onClick={() => { setTab('share'); setMenu(false) }}
+            >
+              <span className="bingo-nav-icon">▧</span>
+              <span className="bingo-menu-label">QR y Pantalla</span>
+            </button>
+            <button
+              type="button"
+              aria-current={tab === 'history' ? 'page' : undefined}
+              onClick={() => { setTab('history'); setMenu(false) }}
+            >
+              <span className="bingo-nav-icon">◷</span>
+              <span className="bingo-menu-label">Historial rondas</span>
+            </button>
+            <button
+              type="button"
+              aria-current={tab === 'settings' ? 'page' : undefined}
+              onClick={() => { setTab('settings'); setMenu(false) }}
+            >
+              <span className="bingo-nav-icon">⚙️</span>
+              <span className="bingo-menu-label">Configuración</span>
+            </button>
+          </nav>
+
+          <div className="bingo-sidebar-footer">
+            <a href="/">← Volver a mi0</a>
+          </div>
+        </aside>
+      </div>
+
+      <section className="bingo-content">
+        <div className="bingo-room-heading">
+          <div>
+            <h2>{room.name}</h2>
+            <h3 className="bingo-participant-heading">Participantes: {room.participantCount} / {room.participantLimit}</h3>
+          </div>
+          <div className="bingo-heading-actions">
+            <a className="secondary-button" href={'/bingo/' + code + '/pantalla'} target="_blank" rel="noreferrer">
+              Pantalla pública ↗
+            </a>
+            <button className="secondary-button bingo-menu" aria-label="Abrir menú" onClick={() => setMenu(!menu)}>
+              ☰
+            </button>
+          </div>
+        </div>
+
+        <Notice error>{error || (state.error && 'Sincronización pendiente: ' + state.error)}</Notice>
+
+        {tab === 'game' && (
+          <div className="bingo-game-container">
+            <section className="bingo-panel bingo-game-hero">
+              <RoundInfo room={room} />
+              {room.status === 'PLAYING' && (
+                <div className="bingo-active-actions">
+                  <button
+                    className="primary-button bingo-draw"
+                    disabled={busy || !!state.error || round?.status !== 'ACTIVE' || round.balls.length === 75}
+                    onClick={() => action('draw', { roundId: round.id, expectedCount: round.balls.length })}
+                  >
+                    Sacar bolilla
+                  </button>
+                  {round?.status === 'RESOLVING' && <p className="bingo-help-text">Da tiempo a los demás jugadores para reclamar antes de cerrar.</p>}
+                  <button className="secondary-button" disabled={busy} onClick={() => action('close')}>
+                    {round?.winners.length ? 'Cerrar reclamaciones y confirmar' : 'Cerrar ronda sin ganadores'}
+                  </button>
+                </div>
+              )}
+            </section>
+
+            <div className="bingo-subtabs-nav" role="tablist" aria-label="Secciones de la partida">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={gameTab === 'board'}
+                className={'bingo-subtab-btn' + (gameTab === 'board' ? ' is-active' : '')}
+                onClick={() => setGameTab('board')}
+              >
+                <span>Tablero de bolillas</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={gameTab === 'setup'}
+                className={'bingo-subtab-btn' + (gameTab === 'setup' ? ' is-active' : '')}
+                onClick={() => setGameTab('setup')}
+              >
+                <span>Configurar ronda</span>
+                {['WAITING', 'BETWEEN'].includes(room.status) && <span className="bingo-subtab-dot" aria-label="Pendiente de iniciar" />}
+              </button>
+            </div>
+
+            {gameTab === 'board' && (
+              <section className="bingo-panel">
+                <BallBoard round={round} />
+                <details className="bingo-history-details">
+                  <summary>Orden de salida ({round?.balls.length || 0})</summary>
+                  <p>{round?.balls.map(ballLabel).join(' · ') || 'Todavía no hay bolillas sorteadas en esta ronda.'}</p>
+                </details>
+              </section>
+            )}
+
+            {gameTab === 'setup' && (
+              <section className="bingo-panel bingo-setup-panel">
+                <h3>Configuración de la ronda</h3>
+                <p>Define la modalidad de victoria y premio antes de cantar las bolillas.</p>
+
+                {room.status !== 'FINISHED' && (
+                  <div className="bingo-controls">
+                    {['WAITING', 'BETWEEN'].includes(room.status) ? (
+                      <>
+                        <label>Modalidad de victoria
+                          <select value={pattern} onChange={e => setPattern(e.target.value)}>
+                            {Object.entries(patterns).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+                          </select>
+                        </label>
+                        <PatternPreview pattern={pattern} />
+                        <label>Premio (opcional)
+                          <input maxLength={120} value={prize} onChange={e => setPrize(e.target.value)} placeholder="¿Qué se lleva el ganador?" />
+                        </label>
+                        <button className="primary-button" disabled={busy || !room.participantCount} onClick={() => action('start', { pattern, prize })}>
+                          Iniciar nueva ronda →
+                        </button>
+                      </>
+                    ) : (
+                      <div className="bingo-notice">
+                        <p>Hay una ronda en curso (Ronda #{round?.number} · {patterns[round?.pattern]}). Cierra la ronda actual para configurar la siguiente.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
+            )}
+          </div>
+        )}
+
+        {tab === 'participants' && (
+          <section className="bingo-panel">
+            <h3>Participantes: {room.participantCount} / {room.participantLimit}</h3>
+            {state.data?.participants?.length ? (
+              <ul className="bingo-participants-list">
+                {state.data.participants.map((p, idx) => (
+                  <li key={p.id}><span>#{idx + 1}</span><strong>{p.name}</strong></li>
+                ))}
+              </ul>
+            ) : (
+              <p>Aún no se han unido participantes. Comparte el QR para empezar.</p>
+            )}
+          </section>
+        )}
+
+        {tab === 'share' && (
+          <section className="bingo-panel">
+            <Share code={code} />
+          </section>
+        )}
+
+        {tab === 'history' && (
+          <section className="bingo-panel">
+            <h3>Rondas del evento</h3>
+            {room.rounds.length > 0 ? (
+              <div className="bingo-rounds-history">
+                {room.rounds.map(r => (
+                  <div key={r.id} className="bingo-round-item">
+                    <h4>Ronda #{r.number} · {patterns[r.pattern]}</h4>
+                    <p>
+                      <strong>Ganadores:</strong> {r.winners.map(w => w.name).join(', ') || (r.status === 'CANCELLED' ? 'Sin ganadores' : 'En curso')}
+                      {r.prize && <span> · Premio: {r.prize}</span>}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>Todavía no se han jugado rondas en esta sala.</p>
+            )}
+          </section>
+        )}
+
+        {tab === 'settings' && (
+          <div className="bingo-settings-view">
+            <section className="bingo-panel">
+              <h3>Preferencias de la mesa</h3>
+              <p>Configura las ayudas visuales y sonoras durante el sorteo.</p>
+              <div className="bingo-setting-row">
+                <div>
+                  <strong>Sonido de bolillas</strong>
+                  <small>Emite un tono breve cada vez que sale una bolilla nueva.</small>
+                </div>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  aria-pressed={sound}
+                  onClick={async () => {
+                    try {
+                      const AudioContextClass = window.AudioContext || window.webkitAudioContext
+                      if (!audio.current) audio.current = new AudioContextClass()
+                      await audio.current.resume()
+                      setSound(!sound)
+                    } catch { setError('Este navegador no permite reproducir sonido') }
+                  }}
+                >
+                  {sound ? '🔊 Sonido activado' : '🔇 Sonido desactivado'}
+                </button>
+              </div>
+            </section>
+
+            {isGuest ? (
+              <>
+                <section className="bingo-panel">
+                  <h3>Enlace privado de recuperación</h3>
+                  <p>Guarda este enlace privado para recuperar la administración de la sala si cambias de dispositivo o navegador.</p>
+                  {RecoveryAccessComponent && <RecoveryAccessComponent code={room.code} adminToken={adminToken} refresh={state.reload} />}
+                </section>
+
+                <section className="bingo-panel">
+                  <h3>Capacidad y cuenta</h3>
+                  <p>Tu sala temporal tiene un límite de 30 cartones. Crea tu cuenta o inicia sesión para ampliar a 50 cartones gratis.</p>
+                  {!loggedIn ? (
+                    <details className="bingo-upgrade" open={room.participantCount >= 30 || undefined}>
+                      <summary>¿Necesitas más cartones? Amplía a 50 gratis</summary>
+                      <p>{room.participantCount >= 30 ? 'Tu sala alcanzó los 30 cartones. Crea tu cuenta gratuita y continúa con hasta 50 en esta misma sala.' : 'Regístrate o inicia sesión y conserva este bingo en tu cuenta.'}</p>
+                      <button className="secondary-button" onClick={() => upgrade('register')}>Ampliar a 50 gratis</button>
+                      <button className="bingo-sound" onClick={() => upgrade('login')}>Ya tengo una cuenta</button>
+                    </details>
+                  ) : (
+                    AttachRoomComponent && <AttachRoomComponent room={room} adminToken={adminToken} onNavigate={onNavigate} />
+                  )}
+                  {room.status === 'FINISHED' && (
+                    <button className="secondary-button" onClick={startAgain}>Crear otro bingo</button>
+                  )}
+                </section>
+              </>
+            ) : (
+              <section className="bingo-panel">
+                <h3>Espacio de trabajo</h3>
+                <p>Esta sala está guardada en tu cuenta bajo el espacio <strong>{workspace?.name}</strong>.</p>
+                <div className="bingo-setting-row">
+                  <div>
+                    <strong>Capacidad ampliada</strong>
+                    <small>Hasta 50 cartones activos y almacenamiento permanente.</small>
+                  </div>
+                  <span className="bingo-badge-pill">50 cartones</span>
+                </div>
+              </section>
+            )}
+
+            {room.status !== 'FINISHED' && (
+              <section className="bingo-panel bingo-danger-panel">
+                <h3>Zona de peligro</h3>
+                <p>Finalizar la sala terminará la partida y las rondas activas. No se podrá seguir jugando.</p>
+                <button
+                  type="button"
+                  className="bingo-danger"
+                  disabled={busy}
+                  onClick={() => action('finish')}
+                >
+                  Finalizar sala
+                </button>
+              </section>
+            )}
+          </div>
+        )}
+      </section>
+
+      <nav className="bingo-bottom" aria-label="Navegación de Bingo">
+        <button type="button" aria-current={tab === 'game' ? 'page' : undefined} onClick={() => setTab('game')}>
+          <span className="bingo-nav-icon">▦</span><span>Partida</span>
+        </button>
+        <button type="button" aria-current={tab === 'participants' ? 'page' : undefined} onClick={() => setTab('participants')}>
+          <span className="bingo-nav-icon">👥</span><span>Jugadores</span>
+        </button>
+        <button type="button" aria-current={tab === 'share' ? 'page' : undefined} onClick={() => setTab('share')}>
+          <span className="bingo-nav-icon">▧</span><span>QR</span>
+        </button>
+        <button type="button" aria-current={tab === 'history' ? 'page' : undefined} onClick={() => setTab('history')}>
+          <span className="bingo-nav-icon">◷</span><span>Historial</span>
+        </button>
+        <button type="button" aria-current={tab === 'settings' ? 'page' : undefined} onClick={() => setTab('settings')}>
+          <span className="bingo-nav-icon">⚙️</span><span>Ajustes</span>
+        </button>
+      </nav>
+    </div>
+  )
 }
