@@ -7,6 +7,16 @@ import { WhatsAppIcon } from './WhatsAppIcon'
 import { CatalogImage } from './CatalogUi'
 import { money } from './catalogUtils'
 import './CatalogQr.css'
+function ShareIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+      <polyline points="16 6 12 2 8 6" />
+      <line x1="12" y1="2" x2="12" y2="15" />
+    </svg>
+  )
+}
+
 function ProductDetail({ product, catalog, onClose }) {
   const dialog = useRef(null)
   useEffect(() => { const d = dialog.current; d.showModal(); return () => d.close() }, [])
@@ -17,6 +27,7 @@ export function PublicCatalog({ code, slug }) {
   const [category, setCategory] = useState('')
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(null)
+  const [copied, setCopied] = useState(false)
   const resultsRef=useRef(null)
   useEffect(() => { const controller = new AbortController(); getPublicQrCatalog(code, { signal: controller.signal }, slug).then(data => { if (!controller.signal.aborted) setState({ data, error: '' }) }).catch(e => { if (!controller.signal.aborted) setState({ data: null, error: e.message }) }); return () => controller.abort() }, [code, slug])
   if (state.error) return <main className="cq cq-public"><div className="cq-empty"><h1>Catálogo no disponible</h1><p role="alert">{state.error}</p><a href="/">Ir a mi0.app</a></div></main>
@@ -24,7 +35,30 @@ export function PublicCatalog({ code, slug }) {
   const { catalog, categories, products } = state.data
   const isMenu = catalog.presentation === 'MENU'
   const visible = products.filter(p => (!category || p.categoryId === category) && (p.name + ' ' + p.description).toLocaleLowerCase().includes(query.toLocaleLowerCase()))
-  return <main className="cq cq-public cq-public-full"><header className={'cq-store-header'+(catalog.bannerUrl?' cq-has-banner':'')}>{catalog.bannerUrl&&<CatalogImage className="cq-store-banner" url={catalog.bannerUrl} alt={'Portada de '+catalog.name}/> }<div className="cq-store-identity">{catalog.logoUrl && <CatalogImage url={catalog.logoUrl} alt={'Logo de ' + catalog.name} width="88" height="88" />}<span className="cq-eyebrow">{isMenu ? 'CARTA' : 'CATÁLOGO'}</span><h1>{catalog.name}</h1><p className="cq-description">{catalog.description}</p>{catalog.socialLinks.length>0&&<nav className="cq-social-links cq-banner-socials" aria-label="Redes sociales del negocio">{catalog.socialLinks.map((link,i)=>{const platform=socialPlatform(link);const label=socialNetworks.find(n=>n.id===platform)?.name || link.label;return <a key={i} href={link.url} aria-label={label} data-tooltip={label} target="_blank" rel="noreferrer"><SocialIcon platform={platform}/></a>})}</nav>}</div></header>
+
+  async function handleShare() {
+    const url = window.location.href
+    const title = catalog.name
+    const text = isMenu ? `Revisa la carta de ${catalog.name} en mi0:` : `Echa un vistazo a la tienda de ${catalog.name} en mi0:`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url })
+        return
+      } catch (err) {
+        if (err.name === 'AbortError') return
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      window.prompt('Copia el enlace de la tienda:', url)
+    }
+  }
+  return <main className="cq cq-public cq-public-full"><header className={'cq-store-header'+(catalog.bannerUrl?' cq-has-banner':'')}><button type="button" className="cq-store-share-btn" onClick={handleShare} aria-label={isMenu ? 'Compartir carta' : 'Compartir tienda'} title={isMenu ? 'Compartir carta' : 'Compartir tienda'}><ShareIcon /><span>{copied ? '¡Copiado!' : 'Compartir'}</span></button>{catalog.bannerUrl&&<CatalogImage className="cq-store-banner" url={catalog.bannerUrl} alt={'Portada de '+catalog.name}/> }<div className="cq-store-identity">{catalog.logoUrl && <CatalogImage url={catalog.logoUrl} alt={'Logo de ' + catalog.name} width="88" height="88" />}<span className="cq-eyebrow">{isMenu ? 'CARTA' : 'CATÁLOGO'}</span><h1>{catalog.name}</h1><p className="cq-description">{catalog.description}</p>{catalog.socialLinks.length>0&&<nav className="cq-social-links cq-banner-socials" aria-label="Redes sociales del negocio">{catalog.socialLinks.map((link,i)=>{const platform=socialPlatform(link);const label=socialNetworks.find(n=>n.id===platform)?.name || link.label;return <a key={i} href={link.url} aria-label={label} data-tooltip={label} target="_blank" rel="noreferrer"><SocialIcon platform={platform}/></a>})}</nav>}</div></header>
     <section ref={resultsRef} className="cq-store-content"><div className="cq-desktop-discovery"><label className="cq-search">{isMenu ? 'Buscar en la carta' : 'Buscar en el catálogo'}<input type="search" placeholder="¿Qué estás buscando?" value={query} onChange={e => setQuery(e.target.value)} /></label><nav className="cq-category-pills" aria-label="Categorías de productos"><button aria-pressed={!category} onClick={() => setCategory('')}>Todos</button>{categories.map(c => <button key={c.id} aria-pressed={category === c.id} onClick={() => setCategory(c.id)}>{c.name}</button>)}</nav></div><div className="cq-mobile-active-filters">{category&&<button type="button" onClick={()=>setCategory('')} aria-label="Quitar filtro de categoría">{categories.find(c=>c.id===category)?.name} ×</button>}{query&&<button type="button" onClick={()=>setQuery('')} aria-label="Quitar búsqueda">“{query}” ×</button>}</div><p className="cq-result-count" aria-live="polite">{visible.length} {visible.length === 1 ? 'producto' : 'productos'}</p>
     {visible.length ? <div className="cq-store-grid">{visible.map(product => <button className="cq-store-product" key={product.id} onClick={() => setSelected(product)} aria-label={'Ver ' + product.name}><div className="cq-product-photo"><CatalogImage url={product.images[0]?.url} alt={product.name} loading="lazy" />{product.status === 'SOLD_OUT' && <span className="cq-badge sold_out">Agotado</span>}</div><div className="cq-product-copy"><h2>{product.name}</h2><p>{product.description}</p><strong>{money(product.priceCents, catalog.currency)}</strong><span>Ver detalle →</span></div></button>)}</div> : <div className="cq-empty"><h2>{products.length ? 'No encontramos productos' : 'Pronto encontrarás nuestros productos aquí'}</h2><p>{products.length ? 'Prueba otra búsqueda o categoría.' : 'Estamos preparando nuestro catálogo.'}</p></div>}
     </section>{catalog.whatsapp && <a className="cq-whatsapp" aria-label="Consultar por WhatsApp" title="Consultar por WhatsApp" target="_blank" rel="noreferrer" href={'https://wa.me/' + catalog.whatsapp}><WhatsAppIcon/><span className="cq-whatsapp-label">Consultar por WhatsApp</span></a>}<footer className="cq-store-footer">{isMenu ? 'Carta creada con' : 'Catálogo creado con'} <a href="/">mi0.app</a></footer>

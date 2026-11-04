@@ -44,7 +44,7 @@ function App() {
   const citaManagerMatch = pathname.match(/^\/mi-cita(?:\/([^/]+)(?:\/(agenda|pendientes|profesionales|configuracion|qr))?)?\/?$/)
   const spaceCatalogMatch = pathname.match(/^\/([a-z0-9]+(?:-[a-z0-9]+)*)\/(catalogo|carta)\/?$/)
   const catalogPublicMatch = pathname.match(/^\/catalogo\/([a-f0-9]{24})\/?$/)
-  const catalogManagerMatch = pathname.match(/^\/catalogo-qr(?:\/([^/]+)(?:\/(productos|categorias|negocio|qr))?)?\/?$/)
+  const catalogManagerMatch = pathname.match(/^\/(?:catalogo-qr|mi-tienda)(?:\/([^/]+)(?:\/(productos|categorias|negocio|qr))?)?\/?$/)
   const publicMatch = pathname.match(/^\/s\/([^/]+)\/?$/)
   const bingoMatch = pathname.match(/^\/bingo\/([a-f0-9]{32})(?:\/(pantalla))?\/?$/)
   const bingoManagerMatch = pathname.match(/^\/mi-bingo(?:\/([^/]+))?\/?$/)
@@ -73,7 +73,7 @@ function App() {
         else setConsoleOpen(true)
       }
     } else if (code === 'mi-bingo') navigate('/mi-bingo' + (nextWorkspace ? '/' + nextWorkspace.id : ''))
-    else if (code === 'catalogo-qr') navigate('/catalogo-qr' + (nextWorkspace ? '/' + nextWorkspace.id : ''))
+    else if (code === 'catalogo-qr' || code === 'mi-tienda') navigate('/mi-tienda' + (nextWorkspace ? '/' + nextWorkspace.id : ''))
     else if (code === 'mi-cita' && nextWorkspace) navigate('/mi-cita/' + nextWorkspace.id)
     else if (code === 'mi-turno' && nextWorkspace) navigate('/mi-turno/' + nextWorkspace.id + '/operacion')
     else setActiveMicroapp(code)
@@ -92,7 +92,7 @@ function App() {
   if (bingoManagerMatch) return <MiBingo workspaceId={bingoManagerMatch[1]} onNavigate={navigate} onLogin={(mode = 'login') => setAuthMode(mode)} />
   if (spaceCatalogMatch) return <PublicCatalog slug={spaceCatalogMatch[1]} />
   if (catalogPublicMatch) return <PublicCatalog code={catalogPublicMatch[1]} />
-  if (catalogManagerMatch) return <CatalogQr workspaceId={catalogManagerMatch[1]} page={catalogManagerMatch[2]} onNavigate={navigate} onLogin={() => setAuthMode('login')} />
+  if (catalogManagerMatch) return <CatalogQr workspaceId={catalogManagerMatch[1]} page={catalogManagerMatch[2]} onNavigate={navigate} onLogin={(mode = 'login') => setAuthMode(mode)} />
   if (citaInvitationMatch) return <CitaInvitation token={citaInvitationMatch[1]} />
   if (citaMatch) return <MiCita code={citaMatch[1]} />
   if (citaManagerMatch) return <MiCita workspaceId={citaManagerMatch[1]} page={citaManagerMatch[2]} onNavigate={navigate} onLogin={() => setAuthMode('login')} />

@@ -8,7 +8,11 @@ function position(value) { if (!Number.isInteger(value) || value < 0 || value > 
 function settings(body) {
   if (!body || !['PEN','USD','EUR'].includes(body.currency) || typeof body.published !== 'boolean') throw fail(400, 'Revisa la moneda y publicación');
   if (body.presentation !== undefined && !['CATALOG','MENU'].includes(body.presentation)) throw fail(400,'Selecciona Carta o Catálogo');
-  const whatsapp = text(body.whatsapp, 15, 'WhatsApp');
+  let whatsapp = text(body.whatsapp, 15, 'WhatsApp');
+  if (whatsapp && whatsapp.startsWith('+')) whatsapp = whatsapp.slice(1);
+  if (whatsapp && whatsapp.length === 9 && whatsapp.startsWith('9')) {
+    whatsapp = '51' + whatsapp;
+  }
   if (whatsapp && !/^[1-9]\d{6,14}$/.test(whatsapp)) throw fail(400, 'Ingresa WhatsApp con código de país, solo números (ej. 51987654321)');
   if (!Array.isArray(body.socialLinks) || body.socialLinks.length > 8) throw fail(400, 'Agrega hasta 8 redes sociales');
   const socialLinks = body.socialLinks.map(require('./socials').normalize);

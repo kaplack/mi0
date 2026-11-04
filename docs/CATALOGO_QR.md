@@ -67,5 +67,11 @@ En móvil, barra fija Buscar, Categorías y WhatsApp. Buscar abre un campo super
 Las redes aparecen dentro del banner, debajo de la descripción, como iconos accesibles. Mi negocio permite elegir Instagram, Facebook, TikTok, YouTube, X o Sitio web e ingresar usuario o enlace. La API genera enlaces HTTPS y valida el dominio de la plataforma. Los enlaces históricos se adaptan al editar. Sin pruebas por instrucción del usuario.
 
 
+## Mi Tienda y Modo Freemium sin Registro (Noviembre 2026)
+- Renombrado visible de **Catálogo QR** a **Mi Tienda** en el catálogo de herramientas y paneles, manteniendo compatibilidad de rutas `/mi-tienda` y `/catalogo-qr`.
+- **Modo Freemium / Sin Registro**: Emprendedores pueden crear su tienda en un minuto sin requerir cuenta de usuario. La API genera un token secreto administrativo (`adminToken`) persistido en `localStorage` del navegador y registrado con hash SHA-256 en la tabla `catalog_guests` (`migration 202611040001_catalog_guest`).
+- **Respaldo a prueba de pérdidas**: Panel incluye botón destacado *📲 Guardar llave en WhatsApp* con mensaje pre-redactado que contiene el enlace privado de recuperación (`/mi-tienda/:id?key=:token`) para reabrir y administrar la tienda desde cualquier celular o navegador.
+- **Vinculación a cuenta permanente (Attach)**: Banner interactivo superior permite convertir la tienda de invitado en un espacio permanente de mi0 con rol `OWNER` mediante el endpoint `POST /api/qr-catalog/:workspaceId/attach`, transfiriendo productos, fotos y configuraciones sin interrupciones.
+
 ## Publicación 19/10/2026
 Vercel incluye rewrites para rutas de administración y enlaces públicos /:slug/catalogo y /:slug/carta. El despliegue de API debe ejecutar `npm run db:migrate:deploy` y `npm run db:generate` desde api antes de iniciar la nueva versión. Incluye las siete migraciones del catálogo y espacios, hasta 202610190001_catalog_banner. Producción requiere el storage S3 y CORS configurados según api/.env.example. No se ejecutaron pruebas por instrucción del usuario; el push no confirma aplicación de migraciones ni despliegue de servicios.

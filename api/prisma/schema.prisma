@@ -87,6 +87,7 @@ model Workspace {
   qrCatalog QrCatalog?
   catalogProducts CatalogProduct[]
   catalogCategories CatalogCategory[]
+  catalogGuest CatalogGuest?
   bingoRooms BingoRoom[]
 
   @@map("workspaces")
@@ -532,6 +533,16 @@ model CatalogLinkRequest {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   @@index([workspaceId, createdAt])
   @@map("catalog_link_requests")
+}
+
+model CatalogGuest {
+  id String @id @default(uuid()) @db.Uuid
+  workspaceId String @unique @db.Uuid
+  adminHash String @unique @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at")
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("catalog_guests")
 }
 
 model BingoRoom {
