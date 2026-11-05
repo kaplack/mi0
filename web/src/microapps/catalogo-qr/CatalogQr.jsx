@@ -482,7 +482,7 @@ function CatalogManager({
               />
             </section>
             <section className="cq-app-section cq-panel" aria-label="QR y enlace" hidden={active !== 'share'}>
-              {catalog && <CatalogShare catalog={catalog} />}
+              {catalog && <CatalogShare catalog={catalog} onNavigate={navigate} />}
             </section>
           </>
         )}
