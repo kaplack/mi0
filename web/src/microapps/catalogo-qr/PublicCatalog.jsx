@@ -29,6 +29,17 @@ export function PublicCatalog({ code, slug }) {
   const [selected, setSelected] = useState(null)
   const [copied, setCopied] = useState(false)
   const resultsRef=useRef(null)
+
+  useEffect(() => {
+    if (!state.data?.catalog?.name) return
+    const cat = state.data.catalog
+    const typeLabel = cat.presentation === 'MENU' ? 'Carta' : 'Catálogo'
+    const prev = document.title
+    document.title = `${typeLabel} - ${cat.name} | mi0.app`
+    return () => {
+      document.title = prev
+    }
+  }, [state.data])
   useEffect(() => { const controller = new AbortController(); getPublicQrCatalog(code, { signal: controller.signal }, slug).then(data => { if (!controller.signal.aborted) setState({ data, error: '' }) }).catch(e => { if (!controller.signal.aborted) setState({ data: null, error: e.message }) }); return () => controller.abort() }, [code, slug])
   if (state.error) return <main className="cq cq-public"><div className="cq-empty"><h1>Catálogo no disponible</h1><p role="alert">{state.error}</p><a href="/">Ir a mi0.app</a></div></main>
   if (!state.data) return <main className="cq cq-public"><p role="status">Cargando catálogo…</p></main>

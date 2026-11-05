@@ -274,6 +274,13 @@ function CatalogManager({
   const tool = catalog?.presentation === 'MENU' ? 'Carta QR' : 'Mi Tienda'
   const isGuest = Boolean(data?.isGuest || isGuestView)
 
+  useEffect(() => {
+    if (!business) return
+    const prev = document.title
+    document.title = `${business} | ${tool} · mi0.app`
+    return () => { document.title = prev }
+  }, [business, tool])
+
   const basePath =
     typeof window !== 'undefined' && window.location.pathname.startsWith('/catalogo-qr')
       ? '/catalogo-qr/'
