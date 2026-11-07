@@ -52,7 +52,7 @@ function imageType(buffer) {
   if (!Buffer.isBuffer(buffer)) throw fail(415, 'Selecciona una imagen PNG, JPEG o WebP');
   if (buffer.length > 5 * 1024 * 1024 || !buffer.length) throw fail(400, 'La imagen debe pesar hasta 5 MB');
   if (buffer.length >= 24 && buffer.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10])) && buffer.toString('ascii',12,16) === 'IHDR') return { extension: 'png', contentType: 'image/png' };
-  if (buffer.length >= 4 && buffer[0] === 255 && buffer[1] === 216 && buffer[2] === 255 && buffer[buffer.length-2] === 255 && buffer[buffer.length-1] === 217) return { extension: 'jpg', contentType: 'image/jpeg' };
+  if (buffer.length >= 4 && buffer[0] === 255 && buffer[1] === 216 && buffer[2] === 255) return { extension: 'jpg', contentType: 'image/jpeg' };
   if (buffer.length >= 16 && buffer.toString('ascii',0,4) === 'RIFF' && buffer.toString('ascii',8,12) === 'WEBP') return { extension: 'webp', contentType: 'image/webp' };
   throw fail(415, 'El archivo no es una imagen PNG, JPEG o WebP válida');
 }
