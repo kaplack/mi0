@@ -11,9 +11,9 @@ async function access(db, auth, workspaceId) {
   const adminToken = typeof auth === 'object' ? auth?.adminToken : null;
   if (userId) {
     const member = await db.membership.findUnique({ where:{ userId_workspaceId:{ userId, workspaceId } }, include:{ workspace:true } });
-    if (!member || member.workspace.status !== 'ACTIVE') throw v.fail(403,'No tienes acceso a este espacio activo');
-    if (!['OWNER','ADMIN'].includes(member.role)) throw v.fail(403,'Solo propietarios y administradores pueden gestionar el catálogo');
-    return { ...member.workspace, membershipRole:member.role, isGuest:false };
+    if (member && member.workspace.status === 'ACTIVE' && ['OWNER','ADMIN'].includes(member.role)) {
+      return { ...member.workspace, membershipRole:member.role, isGuest:false };
+    }
   }
   if (adminToken) {
     const adminHash = crypto.createHash('sha256').update(adminToken).digest('hex');
@@ -23,7 +23,7 @@ async function access(db, auth, workspaceId) {
     }
     return { ...guest.workspace, membershipRole:'OWNER', isGuest:true };
   }
-  throw v.fail(401,'Se requiere autenticación o llave de administración');
+  throw v.fail(403, userId ? 'No tienes acceso a este espacio activo' : 'Se requiere autenticación o llave de administración');
 }
 
 async function lock(db, auth, workspaceId) {

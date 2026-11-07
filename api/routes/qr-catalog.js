@@ -12,8 +12,8 @@ const run = fn => async (req, res, next) => {
 };
 
 function getAuth(req) {
-  if (req.auth?.user?.id) return { userId: req.auth.user.id };
-  const adminToken = req.headers['x-admin-token'] || req.query.token;
+  const adminToken = req.headers['x-admin-token'] || req.query.token || req.query.key;
+  if (req.auth?.user?.id) return { userId: req.auth.user.id, adminToken };
   if (adminToken) return { adminToken };
   return null;
 }
@@ -26,12 +26,20 @@ function resolveOptionalAuth(req, res, next) {
 }
 
 function requireAuthOrGuest(req, res, next) {
-  if (req.headers.authorization) {
-    return requireAuth(req, res, next);
-  }
-  const adminToken = req.headers['x-admin-token'] || req.query.token;
+  const adminToken = req.headers['x-admin-token'] || req.query.token || req.query.key;
   if (adminToken) {
     req.adminToken = adminToken;
+  }
+  if (req.headers.authorization) {
+    return requireAuth(req, res, (err) => {
+      if (err) {
+        if (adminToken) return next();
+        return next(err);
+      }
+      return next();
+    });
+  }
+  if (adminToken) {
     return next();
   }
   return res.status(401).json({ error: 'Se requiere autenticación o llave de administración' });

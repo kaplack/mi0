@@ -25,13 +25,18 @@ export function CatalogQr({ workspaceId, onLogin, page, onNavigate }) {
   const loggedIn = Boolean(localStorage.getItem(TOKEN_KEY))
   const lastGuestId = getLastGuestWorkspaceId()
 
+  if (typeof window !== 'undefined' && workspaceId) {
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('key') || params.get('token')
+    if (token) {
+      saveGuestToken(workspaceId, token)
+    }
+  }
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const token = params.get('key') || params.get('token')
     if (token) {
-      if (workspaceId) {
-        saveGuestToken(workspaceId, token)
-      }
       const cleanUrl = window.location.pathname
       window.history.replaceState({}, '', cleanUrl)
     }
