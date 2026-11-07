@@ -1,11 +1,35 @@
 {
   "rewrites": [
     {
+      "source": "/mi-tienda/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/catalogo-qr/:path*",
+      "destination": "/index.html"
+    },
+    {
       "source": "/mi-bingo/:path*",
       "destination": "/index.html"
     },
     {
       "source": "/bingo/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/mi-cita/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cita/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/mi-turno/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/turno/:path*",
       "destination": "/index.html"
     },
     {
@@ -25,18 +49,6 @@
       "destination": "/index.html"
     },
     {
-      "source": "/catalogo-qr",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/catalogo-qr/:workspaceId",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/catalogo-qr/:workspaceId/:section",
-      "destination": "/index.html"
-    },
-    {
       "source": "/catalogo/:code",
       "destination": "/index.html"
     },
@@ -46,6 +58,10 @@
     },
     {
       "source": "/:slug/carta",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
