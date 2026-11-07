@@ -553,3 +553,222 @@
     gap: 4px;
   }
 }
+
+/* ==========================================================================
+   Opciones de compra / precios múltiples (ej. conjunto vs partes sueltas)
+   ========================================================================== */
+.cq-btn-toggle-options {
+  background: transparent;
+  border: 1px dashed #087f62;
+  color: #087f62;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+.cq-btn-toggle-options:hover {
+  background: #f0fdf9;
+  border-color: #065f46;
+}
+.cq-options-builder {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: -6px;
+  margin-bottom: 16px;
+}
+.cq-options-builder-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cq-options-builder-top strong {
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+.cq-btn-link-remove {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+.cq-btn-link-remove:hover {
+  color: #b91c1c;
+}
+.cq-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cq-option-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.cq-option-name-input {
+  flex: 2;
+  min-width: 0;
+  padding: 8px 10px !important;
+  font-size: 13.5px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+}
+.cq-option-price-wrapper {
+  flex: 1;
+  min-width: 90px;
+  max-width: 130px;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 0 8px;
+}
+.cq-option-price-wrapper span {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.cq-option-price-input {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  padding: 8px 4px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+}
+.cq-option-del-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #94a3b8;
+  font-size: 18px;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.cq-option-del-btn:hover {
+  color: #ef4444;
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+.cq-btn-add-more-option {
+  margin-top: 10px;
+  background: transparent;
+  border: 1px dashed #cbd5e1;
+  color: #0f766e;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+.cq-btn-add-more-option:hover {
+  border-color: #0f766e;
+  background: #f0fdf4;
+}
+
+/* Tabla del admin */
+.cq-options-table-pill {
+  display: inline-block;
+  background: #e6f7f2;
+  color: #087f62;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  margin-top: 3px;
+}
+
+/* Tarjeta pública del producto */
+.cq-product-card-pricing {
+  margin-top: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cq-options-pill {
+  font-size: 11px;
+  font-weight: 600;
+  background: #f0fdf9;
+  color: #087f62;
+  border: 1px solid #a7f3d0;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+
+/* Modal de detalle público */
+.cq-detail-options-section {
+  margin: 14px 0 16px;
+  text-align: left;
+}
+.cq-detail-options-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 8px;
+}
+.cq-detail-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+.cq-option-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+.cq-option-chip:hover {
+  border-color: #087f62;
+  background: #f0fdf9;
+}
+.cq-option-chip.is-active {
+  border-color: #087f62;
+  background: #f0fdf9;
+  box-shadow: 0 0 0 1px #087f62;
+}
+.cq-option-chip-name {
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+.cq-option-chip-price {
+  font-size: 14px;
+  font-weight: 750;
+  color: #087f62;
+}

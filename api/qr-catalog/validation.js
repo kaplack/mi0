@@ -18,9 +18,27 @@ function settings(body) {
   const socialLinks = body.socialLinks.map(require('./socials').normalize);
   return { ...(body.presentation ? {presentation:body.presentation} : {}), name: text(body.name,120,'el nombre del negocio',true), description: text(body.description,500,'la descripción'), currency:body.currency, whatsapp, published:body.published, socialLinks };
 }
+function priceOptionsList(options) {
+  if (!Array.isArray(options)) return [];
+  if (options.length > 10) throw fail(400, 'Máximo 10 opciones de precio por producto');
+  return options
+    .filter(opt => opt && typeof opt === 'object')
+    .map(opt => {
+      const name = text(opt.name, 60, 'el nombre de la opción', true);
+      const priceCents = Number.isSafeInteger(opt.priceCents) ? opt.priceCents : Math.round(Number(opt.priceCents) || 0);
+      if (priceCents < 0 || priceCents > 99999999) throw fail(400, 'Revisa el precio de la opción ' + name);
+      return { name, priceCents };
+    });
+}
+
 function product(body) {
-  if (!body || !Number.isSafeInteger(body.priceCents) || body.priceCents < 0 || body.priceCents > 99999999 || !['AVAILABLE','SOLD_OUT','HIDDEN'].includes(body.status)) throw fail(400, 'Revisa el precio y estado del producto');
-  return { name:text(body.name,120,'el nombre del producto',true), description:text(body.description,1000,'la descripción'), priceCents:body.priceCents, categoryId:body.categoryId ? id(body.categoryId) : null, status:body.status, position:position(body.position) };
+  const options = priceOptionsList(body?.priceOptions);
+  let priceCents = body?.priceCents;
+  if (options.length > 0 && (!Number.isSafeInteger(priceCents) || priceCents <= 0)) {
+    priceCents = options[0].priceCents;
+  }
+  if (!Number.isSafeInteger(priceCents) || priceCents < 0 || priceCents > 99999999 || !['AVAILABLE','SOLD_OUT','HIDDEN'].includes(body?.status)) throw fail(400, 'Revisa el precio y estado del producto');
+  return { name:text(body.name,120,'el nombre del producto',true), description:text(body.description,1000,'la descripción'), priceCents, priceOptions: options, categoryId:body.categoryId ? id(body.categoryId) : null, status:body.status, position:position(body.position) };
 }
 module.exports = { fail, id, text, position, settings, product };
 

@@ -492,6 +492,7 @@ model CatalogProduct {
   name String @db.VarChar(120)
   description String @default("") @db.VarChar(1000)
   priceCents Int
+  priceOptions Json @default("[]")
   position Int @default(0)
   status String @default("AVAILABLE") @db.VarChar(20)
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
