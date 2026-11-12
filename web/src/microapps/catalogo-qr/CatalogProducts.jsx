@@ -9,7 +9,31 @@ export function CatalogProducts({ workspaceId, data, state }) {
   const [editor, setEditor] = useState(null)
   const filtered = data.products.filter(p => p.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()) && (!category || p.categoryId === category))
   return <>
-    <div className="cq-section-heading"><div><h2>Productos</h2><p>{data.products.length} de {data.catalog.productLimit} productos · {data.catalog.plan === 'FREE' ? 'Plan gratis' : 'Plan Pro'}</p></div><button className="primary-button" disabled={state.busy || data.products.length >= data.catalog.productLimit} onClick={() => setEditor({})}>+ Nuevo producto</button></div>
+    <div className="cq-section-heading">
+      <div>
+        <h2>Productos</h2>
+        <p>
+          {data.products.length} de {data.catalog.productLimit} productos ·{' '}
+          {data.catalog.plan === 'PRO'
+            ? 'Plan Pro'
+            : data.isGuest
+            ? 'Modo invitado (hasta 30)'
+            : 'Cuenta vinculada (hasta 50)'}
+        </p>
+      </div>
+      <button
+        className="primary-button"
+        disabled={state.busy || data.products.length >= data.catalog.productLimit}
+        onClick={() => setEditor({})}
+      >
+        + Nuevo producto
+      </button>
+    </div>
+    {data.isGuest && data.products.length >= data.catalog.productLimit && (
+      <div className="cq-limit-notice" style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', fontSize: '13.5px', color: '#92400e' }}>
+        ⚡ Has alcanzado el límite de {data.catalog.productLimit} productos en modo invitado. Vincula tu cuenta gratis para desbloquear hasta <strong>50 productos</strong>.
+      </div>
+    )}
     <div className="cq-toolbar"><label>Buscar producto<input type="search" placeholder="Nombre del producto" value={query} onChange={e => setQuery(e.target.value)} /></label><label>Filtrar por categoría<select value={category} onChange={e => setCategory(e.target.value)}><option value="">Todas las categorías</option>{data.categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label></div>
     {!filtered.length ? <div className="cq-empty"><h3>{data.products.length ? 'No hay coincidencias' : 'Tu catálogo empieza con un producto'}</h3><p>{data.products.length ? 'Prueba otra búsqueda o categoría.' : 'Agrega una foto, un precio y una descripción para que tus clientes lo conozcan.'}</p></div> : <table className="cq-product-table"><thead><tr><th>Producto</th><th>Precio</th><th>Estado</th><th>Orden</th><th>Acciones</th></tr></thead><tbody>{filtered.map(product => <tr key={product.id}><td><div className="cq-product-name"><CatalogImage preview url={product.images[0]?.url} alt={product.name} width="60" height="60" /><div><strong>{product.name}</strong><small>{data.categories.find(c => c.id === product.categoryId)?.name || 'Sin categoría'}</small></div></div></td><td data-label="Precio">
   <div>{product.priceOptions?.length > 1 ? `Desde ${money(Math.min(...product.priceOptions.map(o => o.priceCents)), data.catalog.currency)}` : money(product.priceCents, data.catalog.currency)}</div>

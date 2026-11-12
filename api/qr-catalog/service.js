@@ -38,18 +38,19 @@ function viewProduct(product,code) {
   return { ...rest, images:images.map(image=>({ id:image.id, url:imageUrl(code,image.id) })) };
 }
 
-function viewCatalog(catalog,manager=false) {
+function viewCatalog(catalog,manager=false,isGuest=false) {
+  const productLimit = isGuest ? 30 : 50;
   return { publicPath: catalog.workspace?.publicSlug ? `/${catalog.workspace.publicSlug}/${catalog.presentation==='MENU'?'carta':'catalogo'}` : `/catalogo/${catalog.code}`, publicSlug:catalog.workspace?.publicSlug || null, presentation:catalog.presentation, name:catalog.name,description:catalog.description,currency:catalog.currency,whatsapp:catalog.whatsapp,socialLinks:catalog.socialLinks,code:catalog.code,
     bannerUrl:catalog.bannerKey ? `/api/qr-catalog/public/${catalog.code}/banner?v=${encodeURIComponent(catalog.bannerKey.split('/').pop())}` : null,
     logoUrl:catalog.logoKey ? `/api/qr-catalog/public/${catalog.code}/logo?v=${encodeURIComponent(catalog.logoKey.split('/').pop())}` : null,
-    ...(manager ? { linkLocked:catalog.linkLocked,published:catalog.published,plan:catalog.plan,productLimit:30,imageLimit:catalog.plan==='PRO'?5:1 } : {}) };
+    ...(manager ? { linkLocked:catalog.linkLocked,published:catalog.published,plan:catalog.plan,productLimit,imageLimit:catalog.plan==='PRO'?5:1 } : {}) };
 }
 
 async function get(auth, workspaceId) {
   const workspace = await access(prisma, auth, workspaceId);
   const catalog = await prisma.qrCatalog.findUnique({ where:{workspaceId}, include:{workspace:{select:{publicSlug:true,name:true}}} });
   if (!catalog) return { catalog:null, isGuest:Boolean(workspace.isGuest), workspace:{ id:workspace.id,name:workspace.name,canRename:workspace.membershipRole==='OWNER',publicSlug:workspace.publicSlug,suggestedSlug:v.suggestSlug(workspace.name) },categories:[],products:[] };
-  return { isGuest:Boolean(workspace.isGuest), linkRequest:await prisma.catalogLinkRequest.findFirst({where:{workspaceId},orderBy:{createdAt:'desc'},select:{status:true,requestedSlug:true,reason:true}}), workspace:{ id:workspace.id,name:workspace.name,canRename:workspace.membershipRole==='OWNER',publicSlug:workspace.publicSlug,suggestedSlug:v.suggestSlug(workspace.name) }, catalog:viewCatalog(catalog,true),
+  return { isGuest:Boolean(workspace.isGuest), linkRequest:await prisma.catalogLinkRequest.findFirst({where:{workspaceId},orderBy:{createdAt:'desc'},select:{status:true,requestedSlug:true,reason:true}}), workspace:{ id:workspace.id,name:workspace.name,canRename:workspace.membershipRole==='OWNER',publicSlug:workspace.publicSlug,suggestedSlug:v.suggestSlug(workspace.name) }, catalog:viewCatalog(catalog,true,workspace.isGuest),
     categories:await prisma.catalogCategory.findMany({where:{workspaceId},orderBy:[{position:'asc'},{id:'asc'}],select:{id:true,name:true,position:true}}),
     products:(await prisma.catalogProduct.findMany({where:{workspaceId},include,orderBy:[{position:'asc'},{id:'asc'}]})).map(p=>viewProduct(p,catalog.code)) };
 }
@@ -112,10 +113,13 @@ async function saveProduct(auth, workspaceId, body, productId) {
   if(productId) v.id(productId);
   const data=v.product(body);
   await transact(async db=>{
-    await lock(db, auth, workspaceId); await catalogIn(db,workspaceId);
+    const workspace=await lock(db, auth, workspaceId); const catalog=await catalogIn(db,workspaceId);
     if(productId && !await db.catalogProduct.findFirst({where:{id:productId,workspaceId}})) throw v.fail(404,'Producto no encontrado');
     if(data.categoryId && !await db.catalogCategory.findFirst({where:{id:data.categoryId,workspaceId}})) throw v.fail(400,'Selecciona una categoría de este negocio');
-    if(!productId && await db.catalogProduct.count({where:{workspaceId}})>=30) throw v.fail(409,'Tu catálogo admite hasta 30 productos');
+    const limit = workspace.isGuest ? 30 : 50;
+    if(!productId && await db.catalogProduct.count({where:{workspaceId}})>=limit) {
+      throw v.fail(409, workspace.isGuest ? 'Tu catálogo como invitado admite hasta 30 productos. Vincula tu cuenta gratis para subir hasta 50 productos.' : `Tu catálogo admite hasta ${limit} productos`);
+    }
     if(productId) await db.catalogProduct.update({where:{id:productId},data});
     else await db.catalogProduct.create({data:{...data,workspaceId}});
   });

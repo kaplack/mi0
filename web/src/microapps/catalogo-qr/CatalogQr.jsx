@@ -395,11 +395,10 @@ function CatalogManager({
         {isGuest && workspace.id && (
           <div className="cq-guest-banner" role="status">
             <div className="cq-guest-banner-text">
-              <strong>⚡ Estás administrando tu tienda sin cuenta</strong>
+              <strong>⚡ Estás administrando tu tienda sin cuenta (hasta 30 productos)</strong>
               <p>
-                Tu tienda ya está activa y pública. Para que siempre puedas volver a entrar a{' '}
-                <strong>editar tus productos y precios</strong> desde cualquier celular o PC, guarda tu enlace
-                privado de administración:
+                Tu tienda ya está activa y pública. Guarda tu enlace privado para editar en cualquier momento o{' '}
+                <strong>vincula tu cuenta gratis para asegurar tu tienda y desbloquear hasta 50 productos</strong>.
               </p>
             </div>
             <div className="cq-guest-banner-actions">
